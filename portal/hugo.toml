@@ -1,0 +1,4 @@
+baseURL = 'https://docs.venturalitica.com/'
+languageCode = 'en-us'
+title = 'Venturalitica SDK'
+theme = 'book'
