@@ -176,17 +176,18 @@ venturalitica ui
 
 ## ☁️ Venturalitica Cloud (Coming Soon)
 
-**Enterprise-grade compliance management platform**
+**Enterprise-grade EU AI Act & ISO 42001 compliance management**
 
-While the SDK provides frictionless local enforcement, **Venturalitica Cloud** will offer a complete EU AI Act compliance lifecycle management platform:
+While the SDK provides frictionless local enforcement, **Venturalitica Cloud** will offer a complete compliance lifecycle management platform for **EU AI Act** and **ISO 42001**:
 
 ### What's Coming
 
-- **Visual Policy Builder**: Create OSCAL policies without writing YAML
+- **Visual Policy Builder**: Create OSCAL policies mapped to EU AI Act Articles 9-15 & ISO 42001 controls
 - **Team Collaboration**: Centralized policy management across organizations
-- **Audit Trail**: Immutable compliance history for regulatory inspections
+- **Compliance Dashboard**: Real-time status for EU AI Act & ISO 42001 requirements
 - **Annex IV Generator**: Auto-generate complete EU AI Act technical documentation
-- **Risk Assessment**: Guided workflows for Articles 9-15 compliance
+- **Risk Assessment**: Guided workflows for high-risk AI system classification
+- **Audit Trail**: Immutable compliance history for regulatory inspections
 - **Integration Hub**: Connect with your existing MLOps and governance tools
 
 ### Early Access
@@ -195,7 +196,7 @@ Interested in early access to Venturalitica Cloud?
 - **Join the waitlist**: [venturalitica.com/cloud](https://venturalitica.com/cloud) *(coming soon)*
 - **Enterprise inquiries**: Contact us for pilot programs
 
-The SDK will always remain **free and open-source** under Apache 2.0. The cloud platform will offer additional enterprise features for teams managing compliance at scale.
+The SDK will always remain **free and open-source** under Apache 2.0. The cloud platform will offer additional enterprise features for teams managing EU AI Act and ISO 42001 compliance at scale.
 
 ## 🤝 Contributing
 
