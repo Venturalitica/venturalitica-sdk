@@ -3,19 +3,8 @@ import pandas as pd
 from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Union
-from .models import InternalPolicy, InternalControl
+from .models import InternalPolicy, InternalControl, ComplianceResult
 from .storage import BaseStorage, LocalFileSystemStorage
-
-@dataclass
-class ComplianceResult:
-    control_id: str
-    description: str
-    metric_key: str
-    threshold: float
-    actual_value: float
-    operator: str
-    passed: bool
-    severity: str
 
 class GovernanceValidator:
     def __init__(self, policy: Union[str, Path], storage: Optional[BaseStorage] = None):

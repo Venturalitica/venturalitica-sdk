@@ -42,7 +42,10 @@ packages = ["src/venturalitica"]
 [dependency-groups]
 dev = [
     "clearml>=2.1.2",
+    "codecarbon>=3.2.1",
+    "fairlearn>=0.13.0",
     "mlflow>=3.1.4",
+    "psutil>=7.2.1",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
     "pytest-mock>=3.15.1",

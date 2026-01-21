@@ -19,7 +19,9 @@ def mock_policy_file():
                         'props': [
                             {'name': 'metric_key', 'value': 'accuracy_score'},
                             {'name': 'threshold', 'value': '0.8'},
-                            {'name': 'operator', 'value': '>='}
+                            {'name': 'operator', 'value': '>='},
+                            {'name': 'input:target', 'value': 'target'},
+                            {'name': 'input:prediction', 'value': 'prediction'}
                         ]
                     },
                     {
@@ -27,7 +29,10 @@ def mock_policy_file():
                         'props': [
                             {'name': 'metric_key', 'value': 'disparate_impact'},
                             {'name': 'threshold', 'value': '0.8'},
-                            {'name': 'operator', 'value': '<'}
+                            {'name': 'operator', 'value': '>'}, # > 0.8 is good
+                            {'name': 'input:target', 'value': 'target'},
+                            {'name': 'input:prediction', 'value': 'prediction'},
+                            {'name': 'input:dimension', 'value': 'sensitive'}
                         ]
                     }
                 ]
@@ -68,6 +73,56 @@ def test_missing_policy():
     with pytest.raises(FileNotFoundError):
         GovernanceValidator("missing.oscal.yaml")
 
+def test_validator_no_policy():
+    with patch("venturalitica.core.LocalFileSystemStorage.get_policy", return_value=None):
+        validator = GovernanceValidator("any.yaml")
+        assert validator.controls == []
+
+@pytest.fixture
+def mock_single_control_policy():
+    policy_data = {
+        'catalog': {
+            'metadata': {'title': 'Single Control'},
+            'controls': [
+                {
+                    'id': 'C1',
+                    'props': [
+                        {'name': 'metric_key', 'value': 'accuracy_score'},
+                        {'name': 'threshold', 'value': '0.8'}
+                    ]
+                }
+            ]
+        }
+    }
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.oscal.yaml', delete=False) as f:
+        yaml.dump(policy_data, f)
+        path = f.name
+    yield path
+    if os.path.exists(path):
+        os.unlink(path)
+
+def test_compute_and_evaluate_value_error(mock_single_control_policy):
+    validator = GovernanceValidator(mock_single_control_policy)
+    from venturalitica.metrics import METRIC_REGISTRY
+    df = pd.DataFrame({'a': [1]})
+    mapping = {'target': 'a'}
+    
+    with patch.dict(METRIC_REGISTRY, {"accuracy_score": MagicMock(side_effect=ValueError)}):
+        results = validator.compute_and_evaluate(df, mapping)
+        assert results == []
+
+def test_compute_and_evaluate_unexpected_error(mock_single_control_policy, capsys):
+    validator = GovernanceValidator(mock_single_control_policy)
+    from venturalitica.metrics import METRIC_REGISTRY
+    df = pd.DataFrame({'a': [1]})
+    mapping = {'target': 'a'}
+    
+    with patch.dict(METRIC_REGISTRY, {"accuracy_score": MagicMock(side_effect=RuntimeError("Unexpected"))}):
+        validator.compute_and_evaluate(df, mapping)
+    
+    captured = capsys.readouterr()
+    assert "Unexpected error" in captured.out
+
 def test_operators():
     v = GovernanceValidator.__new__(GovernanceValidator)
     assert v._check_condition(1.0, '>', 0.5) is True
@@ -85,9 +140,10 @@ def test_compute_and_evaluate(mock_policy_file):
     df = pd.DataFrame({
         't': [1, 1, 0, 0], 
         'p': [1, 1, 0, 0],
-        's': ['A', 'A', 'B', 'B']
+        's': ['A', 'B', 'A', 'B']  # Balanced: Both A and B have 1 pos, 1 neg
     })
     
+    # mapping maps Variable Names (from policy) to Actual Columns (in df)
     mapping = {'target': 't', 'prediction': 'p', 'sensitive': 's'}
     results = validator.compute_and_evaluate(df, mapping)
     
@@ -103,7 +159,7 @@ def test_evaluate_precomputed(mock_policy_file):
     
     assert len(results) == 2
     assert results[0].passed == False # 0.7 >= 0.8
-    assert results[1].passed == True  # 0.5 < 0.8
+    assert results[1].passed == False # 0.5 > 0.8
 
 def test_compute_and_evaluate_invalid_data():
     v = GovernanceValidator.__new__(GovernanceValidator)

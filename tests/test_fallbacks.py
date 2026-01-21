@@ -2,28 +2,36 @@ import pytest
 import sys
 from unittest.mock import patch
 import importlib
-import venturalitica.metrics
+import venturalitica.metrics.data
+import venturalitica.metrics.fairness
+import venturalitica.metrics.performance
 
 def test_metrics_no_fairlearn():
     with patch.dict('sys.modules', {'fairlearn.metrics': None, 'fairlearn': None}):
-        importlib.reload(venturalitica.metrics)
+        importlib.reload(venturalitica.metrics.data)
+        importlib.reload(venturalitica.metrics.fairness)
+        importlib.reload(venturalitica.metrics.performance)
         
-        assert venturalitica.metrics.HAS_FAIRLEARN is False
+        from venturalitica.metrics.data import HAS_FAIRLEARN as HF_DATA
+        from venturalitica.metrics.fairness import HAS_FAIRLEARN as HF_FAIR
+        
+        assert HF_DATA is False
+        assert HF_FAIR is False
         
         import pandas as pd
-        # Test data where demographic parity should be 1.0 (max bias)
         df = pd.DataFrame({'t': [1, 0], 'p': [1, 0], 's': ['A', 'B']})
-        # Group A: mean(p) = 1.0, Group B: mean(p) = 0.0. Diff = 1.0
-        res = venturalitica.metrics.calc_demographic_parity(df, target='t', prediction='p', sensitive='s')
-        assert res == 1.0
         
-        # Test Equal Opportunity fallback
-        res_eq = venturalitica.metrics.calc_equal_opportunity(df, target='t', prediction='p', sensitive='s')
-        assert res_eq == 1.0 # Group A TPR=1.0, Group B TPR=0.0 (Wait, Group B s=B has t=0, so TPR is undefined/0 handled)
+        # Test fallbacks
+        from venturalitica.metrics.fairness import calc_demographic_parity, calc_equal_opportunity
+        from venturalitica.metrics.data import calc_disparate_impact
         
-        # Test Disparate Impact fallback
-        res_di = venturalitica.metrics.calc_disparate_impact(df, target='t', sensitive='s')
-        assert res_di == 0.0
+        assert calc_demographic_parity(df, target='t', prediction='p', dimension='s') == 1.0
+        assert calc_equal_opportunity(df, target='t', prediction='p', dimension='s') == 1.0
+        assert calc_disparate_impact(df, target='t', dimension='s') == 0.0
 
 def test_metrics_cleanup():
-    importlib.reload(venturalitica.metrics)
+    # Attempt to restore normalcy
+    if 'fairlearn' in sys.modules:
+        importlib.reload(venturalitica.metrics.data)
+        importlib.reload(venturalitica.metrics.fairness)
+        importlib.reload(venturalitica.metrics.performance)
