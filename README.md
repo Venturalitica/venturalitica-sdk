@@ -174,6 +174,29 @@ venturalitica ui
 - `emissions.csv` (from CodeCarbon)
 - OSCAL policies
 
+## ☁️ Venturalitica Cloud (Coming Soon)
+
+**Enterprise-grade compliance management platform**
+
+While the SDK provides frictionless local enforcement, **Venturalitica Cloud** will offer a complete EU AI Act compliance lifecycle management platform:
+
+### What's Coming
+
+- **Visual Policy Builder**: Create OSCAL policies without writing YAML
+- **Team Collaboration**: Centralized policy management across organizations
+- **Audit Trail**: Immutable compliance history for regulatory inspections
+- **Annex IV Generator**: Auto-generate complete EU AI Act technical documentation
+- **Risk Assessment**: Guided workflows for Articles 9-15 compliance
+- **Integration Hub**: Connect with your existing MLOps and governance tools
+
+### Early Access
+
+Interested in early access to Venturalitica Cloud?
+- **Join the waitlist**: [venturalitica.com/cloud](https://venturalitica.com/cloud) *(coming soon)*
+- **Enterprise inquiries**: Contact us for pilot programs
+
+The SDK will always remain **free and open-source** under Apache 2.0. The cloud platform will offer additional enterprise features for teams managing compliance at scale.
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
