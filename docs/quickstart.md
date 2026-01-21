@@ -55,7 +55,7 @@ Add **one line** to your existing training code:
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
-from venturalitica import enforce  # ← Add this
+import venturalitica as vl  # ← Add this
 
 # Your existing training code
 X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
@@ -65,7 +65,7 @@ model = RandomForestClassifier()
 model.fit(X_train, y_train)
 
 # ← Add this one line
-enforce(
+vl.enforce(
     metrics={"accuracy": model.score(X_test, y_test)},
     policy="risks.oscal.yaml"
 )
@@ -128,7 +128,7 @@ from sklearn.metrics import precision_score, recall_score
 
 predictions = model.predict(X_test)
 
-enforce(
+vl.enforce(
     metrics={
         "accuracy": model.score(X_test, y_test),
         "precision": precision_score(y_test, predictions),
@@ -149,7 +149,7 @@ import pandas as pd
 df_test = pd.DataFrame(X_test)
 df_test['target'] = y_test
 
-enforce(
+vl.enforce(
     data=df_test,
     target='target',
     prediction=model.predict(X_test),
@@ -169,7 +169,7 @@ The SDK will automatically compute:
 # Add a protected attribute
 df_test['gender'] = ['M', 'F'] * (len(df_test) // 2)
 
-enforce(
+vl.enforce(
     data=df_test,
     target='target',
     prediction=model.predict(X_test),
@@ -194,11 +194,8 @@ import mlflow
 
 mlflow.start_run()
 
-# Your training code
-model.fit(X_train, y_train)
-
 # SDK auto-logs to MLflow
-enforce(
+vl.enforce(
     metrics={"accuracy": model.score(X_test, y_test)},
     policy="risks.oscal.yaml"
 )

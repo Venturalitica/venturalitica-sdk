@@ -43,7 +43,9 @@ Functional Roles → Semantic Variables → Physical Columns
 
 **1. Training Script** (defines physical columns):
 ```python
-enforce(
+import venturalitica as vl
+
+vl.enforce(
     data=df,
     target='approved',      # Physical column
     prediction=predictions,
@@ -95,12 +97,12 @@ Same policy, different datasets:
 
 **Project A:**
 ```python
-enforce(data=df_loans, gender='sex', policy='fairness.oscal.yaml')
+vl.enforce(data=df_loans, gender='sex', policy='fairness.oscal.yaml')
 ```
 
 **Project B:**
 ```python
-enforce(data=df_hiring, gender='gender_col', policy='fairness.oscal.yaml')
+vl.enforce(data=df_hiring, gender='gender_col', policy='fairness.oscal.yaml')
 ```
 
 **Same policy, different column names.**
@@ -213,7 +215,7 @@ regardless of historical bias.
 ### The Binding
 
 ```python
-enforce(
+vl.enforce(
     data=df,
     gender='sex_col',      # Bind semantic 'gender' to physical 'sex_col'
     age='age_cat',         # Bind semantic 'age' to physical 'age_cat'
@@ -249,7 +251,7 @@ Metrics expect specific **functional roles**:
 **No predictions yet**, so only check data:
 
 ```python
-enforce(
+vl.enforce(
     data=df_train,
     target='approved',
     gender='gender',
@@ -266,7 +268,7 @@ enforce(
 **Predictions available**, so check model:
 
 ```python
-enforce(
+vl.enforce(
     data=df_test,
     target='approved',
     prediction=predictions,  # ← Now available
@@ -287,7 +289,7 @@ enforce(
 Monitor **multiple** protected attributes:
 
 ```python
-enforce(
+vl.enforce(
     data=df,
     target='approved',
     prediction=predictions,
@@ -323,7 +325,7 @@ The SDK **gracefully handles** missing data:
 
 ```python
 # Pre-training: no 'prediction' column
-enforce(
+vl.enforce(
     data=df_train,
     target='approved',
     gender='gender',
@@ -347,7 +349,7 @@ enforce(
 │ Training Script │  (Physical Layer)
 │   df['sex_col'] │
 └────────┬────────┘
-         │ enforce(gender='sex_col')
+         │ vl.enforce(gender='sex_col')
          ↓
 ┌─────────────────┐
 │   OSCAL Policy  │  (Semantic Layer)

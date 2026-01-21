@@ -8,10 +8,11 @@ This tutorial covers all features of the Venturalitica SDK, from basic policy en
 2. [Core Concepts](#core-concepts)
 3. [Basic Usage: Policy Enforcement](#basic-usage-policy-enforcement)
 4. [Role-Based Binding](#role-based-binding)
-5. [OSCAL Policy Authoring](#oscal-policy-authoring)
-6. [MLOps Integrations](#mlops-integrations)
-7. [CLI Tools](#cli-tools)
-8. [Advanced Features](#advanced-features)
+5. [Green AI & Performance Monitoring](#green-ai--performance-monitoring)
+6. [OSCAL Policy Authoring](#oscal-policy-authoring)
+7. [MLOps Integrations](#mlops-integrations)
+8. [CLI Tools](#cli-tools)
+9. [Advanced Features](#advanced-features)
 
 ---
 
@@ -92,7 +93,7 @@ biased training due to severe Class Imbalance.
 If you already have computed metrics:
 
 ```python
-from venturalitica import enforce
+import venturalitica as vl
 
 # Your pre-computed metrics
 metrics = {
@@ -102,7 +103,7 @@ metrics = {
 }
 
 # Enforce policy
-enforce(
+vl.enforce(
     metrics=metrics,
     policy="governance-baseline.oscal.yaml"
 )
@@ -114,14 +115,14 @@ Let the SDK compute metrics from your data:
 
 ```python
 import pandas as pd
-from venturalitica import enforce
+import venturalitica as vl
 
 # Your training data and predictions
 df = pd.read_csv("loan_data.csv")
 predictions = model.predict(df[features])
 
 # SDK computes and evaluates metrics automatically
-enforce(
+vl.enforce(
     data=df,
     target="approved",           # Column name for ground truth
     prediction=predictions,      # Model predictions
@@ -134,7 +135,9 @@ enforce(
 Enforce multiple policies in a single call:
 
 ```python
-enforce(
+import venturalitica as vl
+
+vl.enforce(
     data=df,
     target="approved",
     prediction=predictions,
@@ -149,6 +152,8 @@ enforce(
 ---
 
 ## Role-Based Binding
+
+Binding is the process of mapping **Semantic Variables** (defined in your policy) to **Physical Columns** (in your DataFrame).
 
 ### Understanding Functional Roles
 
@@ -168,12 +173,13 @@ df.columns
 
 **Your Training Script:**
 ```python
-enforce(
+import venturalitica as vl
+
+vl.enforce(
     data=df,
-    target="approved",        # Maps 'target' role to 'approved' column
-    prediction=predictions,   # Maps 'prediction' role to model output
-    gender="sex_col",         # Maps 'gender' semantic variable to 'sex_col'
-    age="age_cat"            # Maps 'age' semantic variable to 'age_cat'
+    target="approved",    # Map semantic variable 'target' to column 'approved'
+    gender="gender",      # Map semantic variable 'gender' to column 'gender'
+    policy="policy.yaml"
 )
 ```
 
@@ -201,7 +207,7 @@ enforce(
 Monitor multiple protected attributes simultaneously:
 
 ```python
-enforce(
+vl.enforce(
     data=df,
     target="approved",
     prediction=predictions,
@@ -210,6 +216,32 @@ enforce(
     policy="multi-attribute-policy.oscal.yaml"
 )
 ```
+
+---
+
+## Green AI & Performance Monitoring
+
+Venturalitica provides a **transparent tracking mechanism** to collect environmental and performance metrics.
+
+### Using the Monitor
+
+Wrap your training or evaluation code in the `vl.monitor` context manager:
+
+```python
+import venturalitica as vl
+
+with vl.monitor(name="Random Forest Training"):
+    # Your training code
+    model.fit(X_train, y_train)
+```
+
+### What gets tracked?
+- **Duration**: Total execution time of the block.
+- **Carbon Emissions**: CO₂ emitted (if `codecarbon` is installed).
+- **Energy Consumed**: Total energy used (kWh).
+
+### MLOps Auto-Logging
+The `vl.monitor` automatically logs these metrics to MLflow, WandB, or ClearML if they are active.
 
 ---
 
@@ -324,7 +356,7 @@ The SDK automatically detects and logs to active MLOps frameworks.
 
 ```python
 import mlflow
-from venturalitica import enforce
+import venturalitica as vl
 
 mlflow.start_run()
 
@@ -333,7 +365,7 @@ model.fit(X_train, y_train)
 predictions = model.predict(X_test)
 
 # SDK automatically logs to MLflow
-enforce(
+vl.enforce(
     data=df_test,
     target="approved",
     prediction=predictions,
@@ -354,7 +386,7 @@ mlflow.end_run()
 
 ```python
 import wandb
-from venturalitica import enforce
+import venturalitica as vl
 
 wandb.init(project="loan-fairness")
 
@@ -363,7 +395,7 @@ model.fit(X_train, y_train)
 predictions = model.predict(X_test)
 
 # SDK automatically logs to WandB
-enforce(
+vl.enforce(
     data=df_test,
     target="approved",
     prediction=predictions,
@@ -384,7 +416,7 @@ wandb.finish()
 
 ```python
 from clearml import Task
-from venturalitica import enforce
+import venturalitica as vl
 
 task = Task.init(project_name="loan-fairness", task_name="training")
 
@@ -393,7 +425,7 @@ model.fit(X_train, y_train)
 predictions = model.predict(X_test)
 
 # SDK automatically logs to ClearML
-enforce(
+vl.enforce(
     data=df_test,
     target="approved",
     prediction=predictions,
@@ -681,10 +713,10 @@ tracker.stop()  # Writes to emissions.csv
 ### 1. Programmatic Report Generation
 
 ```python
-from venturalitica import enforce
+import venturalitica as vl
 from venturalitica.integrations import generate_report
 
-results = enforce(
+results = vl.enforce(
     data=df,
     target="approved",
     prediction=predictions,
@@ -715,7 +747,7 @@ The SDK gracefully handles missing columns (e.g., during pre-training audits):
 
 ```python
 # Pre-training: no predictions yet
-enforce(
+vl.enforce(
     data=df_train,
     target="approved",
     gender="gender",
@@ -723,7 +755,7 @@ enforce(
 )
 
 # Post-training: full audit
-enforce(
+vl.enforce(
     data=df_test,
     target="approved",
     prediction=predictions,
@@ -737,7 +769,7 @@ enforce(
 ```python
 from venturalitica.core import ComplianceResult
 
-results: List[ComplianceResult] = enforce(
+results: List[ComplianceResult] = vl.enforce(
     data=df,
     target="approved",
     prediction=predictions,

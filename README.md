@@ -54,26 +54,28 @@ assessment-plan:
 
 ```python
 import pandas as pd
+import venturalitica as vl
 from sklearn.ensemble import RandomForestClassifier
-from venturalitica import enforce
 
 # Load your data
 df = pd.read_csv("loan_data.csv")
 X = df.drop(columns=["approved", "gender"])
 y = df["approved"]
 
-# Train your model
-model = RandomForestClassifier()
-model.fit(X, y)
+# Start transparent tracking
+with vl.monitor(name="Training Loan Model"):
+    model = RandomForestClassifier()
+    model.fit(X, y)
+
 predictions = model.predict(X)
 
 # Enforce governance policies
-enforce(
+vl.enforce(
     data=df,
     target="approved",           # Physical column name for target
     prediction=predictions,      # Model predictions
     gender="gender",             # Semantic binding: gender -> physical column
-    policy_path="risks.oscal.yaml"
+    policy="risks.oscal.yaml"
 )
 ```
 
@@ -91,7 +93,9 @@ Evaluating Control 'fair-gender': Demographic parity for gender must be under 10
 
 ## 📚 Documentation
 
-- **[Tutorial](docs/tutorial.md)**: Step-by-step guide to SDK features
+- **[Tutorial](docs/tutorial.md)**: Comprehensive guide to SDK features
+- **[Quickstart](docs/quickstart.md)**: Get started in 5 minutes
+- **[Green AI](docs/green-ai.md)**: Transparent carbon tracking
 - **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)**: Real-world examples with datasets
 
 ## 🎯 Core Concepts
@@ -121,16 +125,15 @@ The SDK integrates seamlessly with popular MLOps platforms:
 
 ```python
 import mlflow
-from venturalitica.integrations import MLflowIntegration
+import venturalitica as vl
 
 # Automatic logging to MLflow
-enforce(
+vl.enforce(
     data=df,
     target="approved",
     prediction=predictions,
     gender="gender",
-    policy_path="risks.oscal.yaml",
-    integration=MLflowIntegration()
+    policy="risks.oscal.yaml"
 )
 ```
 

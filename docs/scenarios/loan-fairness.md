@@ -228,10 +228,9 @@ A model that rejects all applicants is "fair" (0% bias) but useless. We need **b
 
 ```python
 import pandas as pd
+import venturalitica as vl
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from venturalitica import enforce
-from codecarbon import EmissionsTracker
 
 # Load data
 df = pd.read_csv("german_credit.csv")
@@ -243,7 +242,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 # PRE-TRAINING AUDIT: Check data quality
 df_train = pd.concat([X_train, y_train, df.loc[X_train.index, ["gender", "age"]]], axis=1)
-enforce(
+vl.enforce(
     data=df_train,
     target="target",
     gender="gender",
@@ -251,21 +250,16 @@ enforce(
     policy="risks.oscal.yaml"
 )
 
-# TRAINING: Track carbon emissions
-tracker = EmissionsTracker()
-tracker.start()
-
-model = RandomForestClassifier()
-model.fit(X_train, y_train)
-
-emissions = tracker.stop()
-print(f"[Green AI] Carbon emissions: {emissions:.6f} kgCO₂")
+# TRAINING: Track carbon emissions transparently
+with vl.monitor(name="Loan Model Training"):
+    model = RandomForestClassifier()
+    model.fit(X_train, y_train)
 
 # POST-TRAINING AUDIT: Check model fairness
 df_test = pd.concat([X_test, y_test, df.loc[X_test.index, ["gender", "age"]]], axis=1)
 df_test["prediction"] = model.predict(X_test)
 
-enforce(
+vl.enforce(
     data=df_test,
     target="target",
     prediction="prediction",
@@ -290,8 +284,11 @@ Evaluating Control 'credit-data-imbalance': Data Quality: Minority class (reject
 Evaluating Control 'credit-data-bias': Pre-training Fairness: Disparate impact ratio should follow the '80% Rule'...
   ✓ PASS: disparate_impact = 1.00 >= 0.80
 
-[Training] Version v1...
-[Green AI] Carbon emissions: 0.000001 kgCO₂
+[Venturalitica] 🟢 Starting monitor: Loan Model Training
+... (training) ...
+[Venturalitica] 🔴 Monitor stopped: Loan Model Training
+  ⏱  Duration: 1.2s
+  🌱 [Green AI] Carbon emissions: 0.000001 kgCO₂
 
 [Venturalitica] 🛡️ Checking Model Compliance (Gender & Age)...
 

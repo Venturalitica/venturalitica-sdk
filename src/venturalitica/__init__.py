@@ -3,6 +3,47 @@ from .integrations import auto_log
 from pathlib import Path
 from typing import Dict, Union, Any, List, Optional
 from .core import ComplianceResult
+import time
+from contextlib import contextmanager
+
+_SESSION_ENFORCED = False
+
+def _is_enforced():
+    return _SESSION_ENFORCED
+
+@contextmanager
+def monitor(name: str = "Training Task"):
+    """
+    Multimodal Monitor: Extensible probe-based observation platform.
+    Tracks Green AI, Hardware Telemetry, and Security Integrity.
+    """
+    from .probes import CarbonProbe, HardwareProbe, IntegrityProbe, HandshakeProbe
+    
+    probes = [
+        IntegrityProbe(),
+        HardwareProbe(),
+        CarbonProbe(),
+        HandshakeProbe(_is_enforced)
+    ]
+
+    print(f"\n[Venturalitica] 🟢 Starting monitor: {name}")
+    start_time = time.time()
+    
+    for probe in probes:
+        probe.start()
+
+    try:
+        yield
+    finally:
+        duration = time.time() - start_time
+        print(f"[Venturalitica] 🔴 Monitor stopped: {name}")
+        print(f"  ⏱  Duration: {duration:.2f}s")
+        
+        for probe in probes:
+            probe.stop()
+            summary = probe.get_summary()
+            if summary:
+                print(summary)
 
 def enforce(
     data: Any = None,
@@ -15,6 +56,9 @@ def enforce(
     """
     Main entry point for enforcing governance policies.
     """
+    global _SESSION_ENFORCED
+    _SESSION_ENFORCED = True
+    
     policies = [policy] if not isinstance(policy, list) else policy
     all_results = []
 
