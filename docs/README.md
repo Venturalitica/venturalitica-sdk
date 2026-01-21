@@ -57,6 +57,14 @@ Start here if you need **audit-ready documentation**:
 | [CLI Tools](cli-tools.md) | DevOps/Compliance | 15 min | ⭐⭐ |
 | [Advanced Features](advanced.md) | Power Users | 30 min | ⭐⭐⭐⭐ |
 
+### 🧪 Real-World Scenarios
+
+| Scenario | Focus | Time |
+|----------|-------|------|
+| **[Loan Approval Fairness](scenarios/loan-fairness.md)** | EU AI Act, ECOA, Bias | 20 min |
+| **Health Clinical Risk** | GDPR, Patient Safety | Coming Soon |
+| **HR Hiring Bias** | Labor Laws, Fairness | Coming Soon |
+
 ---
 
 ## 🎯 Learning Paths
@@ -86,6 +94,8 @@ Start here if you need **audit-ready documentation**:
 4. [Advanced Features](advanced.md) - Programmatic workflows
 
 ---
+
+For a deep dive into a real-world scenario, check out our **[Loan Approval Fairness Tutorial](scenarios/loan-fairness.md)**.
 
 ## 🔗 External Resources
 
