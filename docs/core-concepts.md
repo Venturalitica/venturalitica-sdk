@@ -2,9 +2,7 @@
 
 **Goal**: Understand how the SDK decouples policies from training code.
 
-> 🔒 **Bruce Schneier (Security)**: "The Handshake is a Policy Firewall. Trust but cryptographically verify."
->
-> 📐 **Martin Fowler (Architecture)**: "Loose coupling between the Dev's repo and the C.O.'s policy allows both to evolve."
+This architecture creates a clear separation between policy definitions and training implementation, allowing both to evolve independently.
 
 ---
 
@@ -373,15 +371,3 @@ enforce(
 - **[OSCAL Authoring](oscal-authoring.md)** - Write your own policies
 - **[Advanced Features](advanced.md)** - Programmatic binding
 
----
-
-## 💡 Committee Insights
-
-### 📐 Martin Fowler (Architecture)
-> "This is textbook Separation of Concerns. The policy layer is completely decoupled from the execution layer."
-
-### 🔒 Bruce Schneier (Security)
-> "The binding creates a cryptographic-like audit trail. You can verify exactly what was checked, when, and how."
-
-### 🎨 Jakob Nielsen (UX)
-> "The educational logs are the 'translation layer' between dev and legal. Brilliant."

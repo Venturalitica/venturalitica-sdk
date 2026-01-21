@@ -2,9 +2,7 @@
 
 **Goal**: Enforce your first governance policy in < 5 minutes.
 
-> 🚀 **Goku's Rule**: "If it adds 5 minutes of data entry, the dev will churn."
->
-> This quickstart is designed to give you an **Aha! Moment** in under 5 minutes.
+This quickstart is designed to give you an **Aha! Moment** in under 5 minutes with zero friction.
 
 ---
 
@@ -123,7 +121,7 @@ The SDK:
 
 ## Next Steps
 
-### Option A: Add More Metrics (Goku's Path)
+### Option A: Add More Metrics (Developer Path)
 
 ```python
 from sklearn.metrics import precision_score, recall_score
@@ -226,19 +224,3 @@ You've completed the quickstart! Choose your next tutorial:
 - **[Core Concepts](core-concepts.md)** - Understand Role-Based Binding
 - **[OSCAL Authoring](oscal-authoring.md)** - Write custom policies
 
----
-
-## 💡 Elena's PLG Insight
-
-> "The Dev is the engine; the C.O. is the buyer. Connect the pain to the budget."
-
-You just experienced the **"engine"** (frictionless enforcement).
-
-**The "pain"** comes when you need to:
-- Write custom OSCAL policies (500+ lines of YAML)
-- Manage organizational policies across teams
-- Generate EU AI Act Annex IV documentation
-
-That's where the **Venturalitica SaaS** becomes the "easy button."
-
-**Time-to-Handshake**: You're already there. 🎯

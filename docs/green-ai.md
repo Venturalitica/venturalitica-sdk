@@ -407,15 +407,3 @@ with open("training_report.md", "w") as f:
 - **[CLI Tools](cli-tools.md)** - Use the dashboard for carbon visualization
 - **[Advanced Features](advanced.md)** - Programmatic carbon budgets
 
----
-
-## 💡 Committee Insights
-
-### 🏛️ Carme Artigas (Regulatory)
-> "Environmental impact documentation is not optional under Article 11. This is your audit trail."
-
-### 📈 Elena Verna (Growth)
-> "Carbon tracking is a viral feature. Devs share their 'green scores' on social media. That's free marketing."
-
-### 🚀 Goku Mohandas (DX)
-> "Two lines of code. That's the bar. CodeCarbon nails it."

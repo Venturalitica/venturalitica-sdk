@@ -6,7 +6,7 @@ Welcome! This documentation is designed to get you from zero to compliant in min
 
 ## 🚀 Quick Navigation
 
-### For Developers (Goku's Path)
+### For Developers (Developer Path)
 Start here if you want to **ship fast** without compliance blocking your sprint:
 
 1. **[5-Minute Quickstart](quickstart.md)** ⚡
@@ -24,7 +24,7 @@ Start here if you want to **ship fast** without compliance blocking your sprint:
    - EU AI Act Article 11 compliance
    - Show stakeholders your environmental impact
 
-### For Compliance Officers (Carme's Path)
+### For Compliance Officers (Compliance Path)
 Start here if you need **audit-ready documentation**:
 
 1. **[OSCAL Policy Authoring](oscal-authoring.md)** 📜
@@ -84,37 +84,6 @@ Start here if you need **audit-ready documentation**:
 2. [Core Concepts](core-concepts.md) - Deep dive into architecture
 3. [OSCAL Authoring](oscal-authoring.md) - Custom policy creation
 4. [Advanced Features](advanced.md) - Programmatic workflows
-
----
-
-## 💡 Key Principles (From the Strategic Committee)
-
-### 🚀 Goku Mohandas (DX)
-> "If it adds 5 minutes of data entry, the dev will churn."
-
-**Our Response:**
-- Zero-config defaults
-- One-line enforcement
-- Auto-detection of MLOps frameworks
-- Educational logs (not cryptic errors)
-
-### 📈 Elena Verna (PLG)
-> "The Dev is the engine; the C.O. is the buyer. Connect the pain to the budget."
-
-**Our Response:**
-- Free SDK creates "pain" (manual OSCAL editing)
-- Dashboard shows the gap (Tab 2: Governance)
-- SaaS is the "easy button"
-- Time-to-Handshake < 1 hour
-
-### 🏛️ Carme Artigas (Regulatory)
-> "Compliance is not a checkbox; it's a verifiable audit trail."
-
-**Our Response:**
-- OSCAL-native (NIST standard)
-- Educational control descriptions
-- Role-based binding for traceability
-- Annex IV auto-generation
 
 ---
 
