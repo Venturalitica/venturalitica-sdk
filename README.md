@@ -134,6 +134,46 @@ enforce(
 )
 ```
 
+**Supported Platforms:**
+- ✅ **MLflow** - Metrics, tags, and artifact logging
+- ✅ **Weights & Biases** - Experiment tracking with governance summaries
+- ✅ **ClearML** - Healthcare/regulated industry MLOps
+
+## 🛠️ CLI Tools
+
+### BOM Scanner
+
+Generate a **CycloneDX ML-BOM** (Machine Learning Bill of Materials):
+
+```bash
+venturalitica scan --target ./my-ml-project
+```
+
+**Detects:**
+- Python dependencies (`requirements.txt`, `pyproject.toml`)
+- ML models (scikit-learn, PyTorch, TensorFlow, XGBoost, etc.)
+- MLOps frameworks (MLflow, WandB, ClearML)
+
+**Output:** `bom.json` - Standardized inventory for supply chain security and EU AI Act compliance.
+
+### Compliance Dashboard
+
+Launch a local **Streamlit dashboard** for interactive governance:
+
+```bash
+venturalitica ui
+```
+
+**Features:**
+- **Technical Check**: BOM viewer + Green AI carbon footprint tracking
+- **Governance & Risks**: EU AI Act compliance gap analysis
+- **Documentation**: Auto-generate Annex IV technical documentation
+
+**Integrates with:**
+- `bom.json` (from scanner)
+- `emissions.csv` (from CodeCarbon)
+- OSCAL policies
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
