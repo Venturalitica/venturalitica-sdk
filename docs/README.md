@@ -1,103 +1,138 @@
 # Venturalitica SDK Documentation
 
-Welcome to the Venturalitica SDK documentation. This directory contains comprehensive guides for using the SDK to integrate AI governance into your ML workflows.
+**Frictionless Governance for AI Systems**
 
-## 📚 Documentation Index
+Welcome! This documentation is designed to get you from zero to compliant in minutes, not days.
 
-### [Tutorial](tutorial.md)
-**Start here!** A comprehensive, step-by-step guide covering all SDK features:
-- Installation and setup
-- Core concepts (Role-based Binding, Educational Audits)
-- Policy enforcement (basic to advanced)
-- OSCAL policy authoring
-- MLOps integrations (MLflow, WandB, ClearML)
-- CLI tools (`scan`, `ui`)
-- Advanced features and customization
+## 🚀 Quick Navigation
 
-### Quick Links
+### For Developers (Goku's Path)
+Start here if you want to **ship fast** without compliance blocking your sprint:
 
-- **[SDK Repository](https://github.com/venturalitica/venturalitica-sdk)** - Source code and issues
-- **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)** - Real-world examples with datasets
-- **[OSCAL Standard](https://pages.nist.gov/OSCAL/)** - Policy definition standard
+1. **[5-Minute Quickstart](quickstart.md)** ⚡
+   - Install → Enforce → Done
+   - Zero config, maximum impact
+   - Your first "Aha! Moment"
 
-## 🚀 Quick Start
+2. **[MLOps Integration Guide](mlops-integration.md)** 🔗
+   - MLflow, WandB, ClearML
+   - One line of code = full compliance logging
+   - No workflow disruption
 
-```bash
-# Install the SDK
-pip install venturalitica-sdk
+3. **[Green AI Guide](green-ai.md)** 🌱
+   - Track carbon footprint with CodeCarbon
+   - EU AI Act Article 11 compliance
+   - Show stakeholders your environmental impact
 
-# Run a sample
-git clone https://github.com/venturalitica/venturalitica-sdk-samples.git
-cd venturalitica-sdk-samples/scenarios/loan-mlflow-sklearn
-uv run python train.py
-```
+### For Compliance Officers (Carme's Path)
+Start here if you need **audit-ready documentation**:
 
-## 📖 Learning Path
+1. **[OSCAL Policy Authoring](oscal-authoring.md)** 📜
+   - Write policies that map to EU AI Act
+   - Educational control descriptions
+   - Reusable templates
 
-1. **Beginners**: Start with the [Tutorial](tutorial.md) sections 1-3
-2. **Intermediate**: Explore [Role-Based Binding](tutorial.md#role-based-binding) and [OSCAL Authoring](tutorial.md#oscal-policy-authoring)
-3. **Advanced**: Dive into [MLOps Integrations](tutorial.md#mlops-integrations) and [Advanced Features](tutorial.md#advanced-features)
+2. **[CLI Tools Guide](cli-tools.md)** 🛠️
+   - Generate ML-BOM (CycloneDX)
+   - Launch compliance dashboard
+   - Auto-generate Annex IV documentation
 
-## 🎯 Use Cases
+### For Everyone
+**[Core Concepts](core-concepts.md)** 🎯
+- Role-Based Binding explained
+- Why semantic variables matter
+- The "Handshake" architecture
 
-### Credit Scoring Fairness
-Ensure loan approval models comply with fair lending regulations.
-- **Sample**: `loan-mlflow-sklearn`
-- **Policies**: Demographic Parity, Disparate Impact (80% Rule)
-- **Regulations**: ECOA, Fair Credit Reporting Act
+---
 
-### Hiring Bias Detection
-Detect and mitigate bias in recruitment models.
-- **Sample**: `hiring-wandb-torch`
-- **Policies**: Gender/Age fairness, Equal Opportunity
-- **Regulations**: EEOC guidelines, EU AI Act
+## 📚 Complete Tutorial Index
 
-### Clinical Risk Assessment
-Validate medical diagnosis models for fairness and accuracy.
-- **Sample**: `health-clearml-sklearn`
-- **Policies**: Sensitivity/Specificity, Clinical accuracy
-- **Regulations**: HIPAA, MDR (Medical Device Regulation)
+| Tutorial | Audience | Time | Complexity |
+|----------|----------|------|------------|
+| [Quickstart](quickstart.md) | Developers | 5 min | ⭐ |
+| [Core Concepts](core-concepts.md) | Everyone | 10 min | ⭐⭐ |
+| [MLOps Integration](mlops-integration.md) | ML Engineers | 15 min | ⭐⭐ |
+| [Green AI](green-ai.md) | Sustainability Teams | 10 min | ⭐⭐ |
+| [OSCAL Authoring](oscal-authoring.md) | Compliance Officers | 20 min | ⭐⭐⭐ |
+| [CLI Tools](cli-tools.md) | DevOps/Compliance | 15 min | ⭐⭐ |
+| [Advanced Features](advanced.md) | Power Users | 30 min | ⭐⭐⭐⭐ |
 
-## 🛠️ SDK Features Overview
+---
 
-### Core Capabilities
-- ✅ **OSCAL-native policy definitions** - Industry-standard compliance
-- ✅ **Role-based semantic binding** - Decouple policies from code
-- ✅ **Educational audit logs** - Explain *why* metrics matter
-- ✅ **Pre/post-training audits** - Data quality + model fairness
-- ✅ **Multi-attribute governance** - Monitor multiple protected attributes
+## 🎯 Learning Paths
 
-### Integrations
-- ✅ **MLflow** - Automatic metric/tag/artifact logging
-- ✅ **Weights & Biases** - Compliance tracking in experiments
-- ✅ **ClearML** - Healthcare/regulated industry MLOps
-- ✅ **Streamlit Dashboard** - Local compliance UI
+### Path 1: Developer Onboarding (PLG Strategy)
+**Goal**: Get value in < 10 minutes, create demand for deeper features
 
-### CLI Tools
-- ✅ **`venturalitica scan`** - Generate ML-BOM (CycloneDX)
-- ✅ **`venturalitica ui`** - Launch compliance dashboard
+1. [Quickstart](quickstart.md) - Install and enforce your first policy
+2. [MLOps Integration](mlops-integration.md) - Integrate with your existing workflow
+3. [Green AI](green-ai.md) - Add carbon tracking (the "wow" moment)
+4. **Handshake Moment**: Realize you need organizational policies → Upgrade to SaaS
 
-## 📊 Supported Metrics
+### Path 2: Compliance-First Onboarding
+**Goal**: Understand governance architecture before implementation
 
-### Performance
-- Accuracy, Precision, Recall, F1-Score
+1. [Core Concepts](core-concepts.md) - Understand the "why"
+2. [OSCAL Authoring](oscal-authoring.md) - Write your policies
+3. [CLI Tools](cli-tools.md) - Generate documentation
+4. [Quickstart](quickstart.md) - Enforce policies in code
 
-### Fairness
-- Demographic Parity Difference
-- Equal Opportunity Difference
-- Disparate Impact (80% Rule)
+### Path 3: Full Stack Mastery
+**Goal**: Become a Venturalitica power user
 
-### Data Quality
-- Class Imbalance
+1. Complete Path 1 (Developer Onboarding)
+2. [Core Concepts](core-concepts.md) - Deep dive into architecture
+3. [OSCAL Authoring](oscal-authoring.md) - Custom policy creation
+4. [Advanced Features](advanced.md) - Programmatic workflows
 
-## 🤝 Contributing
+---
 
-We welcome contributions! Areas of interest:
-- New fairness metrics
-- Additional MLOps integrations
-- Policy templates for specific regulations
-- Documentation improvements
+## 💡 Key Principles (From the Strategic Committee)
 
-## 📄 License
+### 🚀 Goku Mohandas (DX)
+> "If it adds 5 minutes of data entry, the dev will churn."
 
-Apache 2.0 - See [LICENSE](../LICENSE) for details.
+**Our Response:**
+- Zero-config defaults
+- One-line enforcement
+- Auto-detection of MLOps frameworks
+- Educational logs (not cryptic errors)
+
+### 📈 Elena Verna (PLG)
+> "The Dev is the engine; the C.O. is the buyer. Connect the pain to the budget."
+
+**Our Response:**
+- Free SDK creates "pain" (manual OSCAL editing)
+- Dashboard shows the gap (Tab 2: Governance)
+- SaaS is the "easy button"
+- Time-to-Handshake < 1 hour
+
+### 🏛️ Carme Artigas (Regulatory)
+> "Compliance is not a checkbox; it's a verifiable audit trail."
+
+**Our Response:**
+- OSCAL-native (NIST standard)
+- Educational control descriptions
+- Role-based binding for traceability
+- Annex IV auto-generation
+
+---
+
+## 🔗 External Resources
+
+- **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)** - Real-world examples
+- **[OSCAL Documentation](https://pages.nist.gov/OSCAL/)** - Policy standard
+- **[EU AI Act](https://artificialintelligenceact.eu/)** - Regulatory context
+- **[CodeCarbon](https://codecarbon.io/)** - Green AI tracking
+
+---
+
+## 🤝 Need Help?
+
+- **Issues**: [GitHub Issues](https://github.com/venturalitica/venturalitica-sdk/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/venturalitica/venturalitica-sdk/discussions)
+- **Enterprise Support**: Contact us for SaaS onboarding
+
+---
+
+**Next Step**: Choose your path above and start with the first tutorial!
