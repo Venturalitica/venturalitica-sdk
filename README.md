@@ -2,50 +2,148 @@
 
 **Frictionless Governance for AI Systems.**
 
-This SDK allows Data Scientists and ML Engineers to integrate Compliance and Risk Management directly into their workflow, enforcing policies defined in **OSCAL** standard.
+The Venturalitica SDK enables Data Scientists and ML Engineers to integrate compliance and risk management directly into their training workflows. Built on the **OSCAL** (Open Security Controls Assessment Language) standard, it provides semantic policy enforcement with educational audit trails.
 
-## Features
-- **Governance as Code**: Define policies in `risks.oscal.yaml`.
-- **Frictionless Integration**: Works with `sklearn`, `pytorch`, `pandas`.
-- **Green AI**: Track training carbon footprint with `codecarbon` integration.
-- **MLOps Agnostic**: Native adapters for **MLflow** and **Weights & Biases**.
-- **Local Compliance Assistant**: A CLI/UI to manage technical documentation locally.
+## ✨ Key Features
 
-## Installation
+- **Role-Based Policy Binding**: Semantic mapping from policy definitions to your DataFrame columns
+- **Educational Audit Logs**: Control descriptions that explain *why* metrics matter (e.g., "80% Rule", "Class Imbalance")
+- **OSCAL-Native**: Industry-standard policy definitions compatible with NIST frameworks
+- **MLOps Agnostic**: Native adapters for **MLflow**, **Weights & Biases**, and **ClearML**
+- **Pre-training & Post-training Audits**: Validate data quality before training and model fairness after
+- **Robust Metric Execution**: Gracefully handles missing columns for flexible audit scenarios
+
+## 📦 Installation
+
 ```bash
 pip install venturalitica-sdk
-# with metric support
-pip install "venturalitica-sdk[metrics]"
-# with Green AI support
-pip install "venturalitica-sdk[green]"
 ```
 
-## Quick Start (CLI)
-Venturalitica includes a local dashboard to help you generate Technical Documentation (EU AI Act Annex IV).
+## 🚀 Quick Start
 
-1. **Scan your project**
-   ```bash
-   venturalitica scan --target ./my-project
-   ```
-   This generates a `bom.json` (CycloneDX) with your dependencies and detected models.
+### 1. Define Your Policy (OSCAL)
 
-2. **Launch the Dashboard**
-   ```bash
-   venturalitica ui
-   ```
-   Open `http://localhost:8501`. You will see three tabs:
-   - **Technical Check**: Validates code, metrics, and **Carbon Footprint**.
-   - **Governance**: Shows high-level risks (requiring mitigation).
-   - **Documentation**: Generates the Technical Declaration draft.
+Create a `risks.oscal.yaml` file:
 
-## Python API
+```yaml
+assessment-plan:
+  uuid: loan-risk-policy
+  metadata:
+    title: "Loan Approval Fairness Policy"
+  reviewed-controls:
+    control-selections:
+      - include-controls:
+        - control-id: fair-gender
+          description: "Demographic parity for gender must be under 10%"
+          props:
+            - name: metric_key
+              value: demographic_parity_diff
+            - name: threshold
+              value: "0.10"
+            - name: operator
+              value: "<"
+            - name: "input:dimension"
+              value: gender
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+```
+
+### 2. Enforce in Your Training Script
+
 ```python
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from venturalitica import enforce
 
-# In your training script
-accuracy = 0.95
+# Load your data
+df = pd.read_csv("loan_data.csv")
+X = df.drop(columns=["approved", "gender"])
+y = df["approved"]
+
+# Train your model
+model = RandomForestClassifier()
+model.fit(X, y)
+predictions = model.predict(X)
+
+# Enforce governance policies
 enforce(
-    metrics={"accuracy": accuracy},
+    data=df,
+    target="approved",           # Physical column name for target
+    prediction=predictions,      # Model predictions
+    gender="gender",             # Semantic binding: gender -> physical column
     policy_path="risks.oscal.yaml"
 )
 ```
+
+### 3. Review the Audit Log
+
+```
+[Venturalitica] Policy: Loan Approval Fairness Policy
+[Binding] Virtual Role 'dimension' bound to Variable 'gender' (Column: 'gender')
+[Binding] Virtual Role 'target' bound to Variable 'target' (Column: 'approved')
+[Binding] Virtual Role 'prediction' bound to Variable 'prediction' (Column: <predictions>)
+
+Evaluating Control 'fair-gender': Demographic parity for gender must be under 10%
+  ✓ PASS: demographic_parity_diff = 0.08 < 0.10
+```
+
+## 📚 Documentation
+
+- **[Tutorial](docs/tutorial.md)**: Step-by-step guide to SDK features
+- **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)**: Real-world examples with datasets
+
+## 🎯 Core Concepts
+
+### Role-Based Binding
+
+The SDK uses a three-tier mapping system:
+
+1. **Functional Roles** (defined by metrics): `target`, `prediction`, `dimension`
+2. **Semantic Variables** (defined in policies): `gender`, `age_group`, `income`
+3. **Physical Columns** (in your DataFrame): `sex_col`, `age_cat`, `salary`
+
+This decoupling allows policies to evolve independently of your training code.
+
+### Educational Audits
+
+Control descriptions include regulatory context:
+
+```yaml
+- control-id: data-quality-check
+  description: "Data Quality: Minority class should represent at least 20% to avoid Class Imbalance"
+```
+
+## 🔗 MLOps Integration
+
+The SDK integrates seamlessly with popular MLOps platforms:
+
+```python
+import mlflow
+from venturalitica.integrations import MLflowIntegration
+
+# Automatic logging to MLflow
+enforce(
+    data=df,
+    target="approved",
+    prediction=predictions,
+    gender="gender",
+    policy_path="risks.oscal.yaml",
+    integration=MLflowIntegration()
+)
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
+
+## 📄 License
+
+Apache 2.0 - See [LICENSE](LICENSE) for details.
+
+## 🔗 Links
+
+- [Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)
+- [Documentation](docs/)
+- [OSCAL Standard](https://pages.nist.gov/OSCAL/)
