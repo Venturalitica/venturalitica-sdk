@@ -1,0 +1,48 @@
+
+assessment-plan:
+  metadata:
+    title: "Credit Governance Policy"
+  reviewed-controls:
+    control-implementations:
+      - description: "Bias and Performance rules"
+        implemented-requirements:
+          - control-id: class-balance
+            description: "Minority class representation"
+            props:
+              - name: metric_key
+                value: class_imbalance
+              - name: threshold
+                value: "0.2"
+              - name: operator
+                value: gt
+          - control-id: gender-disparate
+            description: "Gender fairness (DI > 0.8)"
+            props:
+              - name: metric_key
+                value: disparate_impact
+              - name: threshold
+                value: "0.8"
+              - name: operator
+                value: gt
+              - name: "input:dimension"
+                value: gender
+          - control-id: age-disparate
+            description: "Age fairness (DI > 0.5)"
+            props:
+              - name: metric_key
+                value: disparate_impact
+              - name: threshold
+                value: "0.5"
+              - name: operator
+                value: gt
+              - name: "input:dimension"
+                value: age
+          - control-id: accuracy-score
+            description: "Model utility (Accuracy > 70%)"
+            props:
+              - name: metric_key
+                value: accuracy_score
+              - name: threshold
+                value: "0.7"
+              - name: operator
+                value: gt

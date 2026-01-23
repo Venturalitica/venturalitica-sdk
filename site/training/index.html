@@ -441,6 +441,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#step-6-automatic-governance-with-vlwrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Automatic Governance with vl.wrap
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -562,6 +573,17 @@
     <span class="md-ellipsis">
       
         Step 5: Including Performance Metrics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-automatic-governance-with-vlwrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Automatic Governance with vl.wrap
       
     </span>
   </a>
@@ -734,6 +756,31 @@ If you see a perfect <code>1.000</code> but expect bias, check your column bindi
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>  ────────────────────────────────────────────────────────────────────────────────────────────────
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>  Audit Summary: ✅ POLICY MET | 3/3 controls passed
 </code></pre></div></p>
+<hr />
+<h2 id="step-6-automatic-governance-with-vlwrap">Step 6: Automatic Governance with <code>vl.wrap</code></h2>
+<p>If you are using <strong>Scikit-Learn</strong>, you can automate the entire audit process by wrapping your model. This ensures that every <code>.fit()</code> and <code>.predict()</code> call is audited against your policy.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Wrap your model</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">base_model</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">governed_model</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">base_model</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;loan-policy.yaml&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># Audits are automated! </span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="c1"># Just provide the raw data for attribution mapping (e.g., gender, age)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="n">governed_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> 
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="n">audit_data</span><span class="o">=</span><span class="n">train_df</span><span class="p">,</span> 
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>    <span class="n">gender</span><span class="o">=</span><span class="s2">&quot;Attribute9&quot;</span><span class="p">,</span> 
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>    <span class="n">age</span><span class="o">=</span><span class="s2">&quot;Attribute13&quot;</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="p">)</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="c1"># Predict also triggers the fairness + performance audit</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="n">predictions</span> <span class="o">=</span> <span class="n">governed_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>    <span class="n">X_test</span><span class="p">,</span> 
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>    <span class="n">audit_data</span><span class="o">=</span><span class="n">test_df</span><span class="p">,</span> 
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>    <span class="n">gender</span><span class="o">=</span><span class="s2">&quot;Attribute9&quot;</span><span class="p">,</span> 
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>    <span class="n">age</span><span class="o">=</span><span class="s2">&quot;Attribute13&quot;</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="p">)</span>
+</code></pre></div>
+<p>This pattern reduces boilerplate and guarantees that no model goes to production without a verified audit trail.</p>
 
 
 

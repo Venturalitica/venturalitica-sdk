@@ -30,29 +30,53 @@ class GovernanceWrapper:
         @functools.wraps(original_method)
         def wrapped(*args, **kwargs):
             from . import enforce
-            
-            # Extract audit_data if provided in kwargs (PLG: developer provides metadata)
+            import inspect
+
+            # 1. Use inspect to separate model kwargs from audit kwargs
+            sig = inspect.signature(original_method)
+            model_kwargs = {}
+            audit_kwargs = {}
+
+            # Always treat 'audit_data' as audit-only
             audit_data = kwargs.pop("audit_data", None)
+
+            for k, v in kwargs.items():
+                if k in sig.parameters or sig.parameters.get("kwargs"):
+                    model_kwargs[k] = v
+                else:
+                    audit_kwargs[k] = v
 
             # Pre-execution: Fit usually implies a data audit
             if method_name == "fit":
-                # Detect dataframe in args if not explicitly provided
-                data = audit_data if audit_data is not None else self._find_dataframe(args, kwargs)
+                data = audit_data if audit_data is not None else self._find_dataframe(args, model_kwargs)
                 if data is not None:
-                    self.last_audit_results = enforce(data=data, policy=self._venturalitica_policy)
+                    # Pass all audit-relevant mappings to enforce
+                    self.last_audit_results = enforce(
+                        data=data, 
+                        policy=self._venturalitica_policy,
+                        **audit_kwargs
+                    )
 
-            # Execute original logic (without audit_data kwarg)
-            result = original_method(*args, **kwargs)
+            # Execute original logic (without audit-only kwargs)
+            result = original_method(*args, **model_kwargs)
 
             # Post-execution: Predict implies a model fairness audit
             if method_name in ["predict", "predict_proba"]:
-                # We need the input data and the prediction
-                data = audit_data if audit_data is not None else self._find_dataframe(args, kwargs)
+                data = audit_data if audit_data is not None else self._find_dataframe(args, model_kwargs)
                 if data is not None:
                     # Inject prediction for the audit
                     data_with_pred = data.copy()
-                    data_with_pred['prediction'] = result
-                    self.last_audit_results = enforce(data=data_with_pred, policy=self._venturalitica_policy)
+                    
+                    # We need to know where to put the prediction. 
+                    # Use 'prediction' key from audit_kwargs if present, else default
+                    pred_col_name = audit_kwargs.get('prediction', 'prediction')
+                    data_with_pred[pred_col_name] = result
+                    
+                    self.last_audit_results = enforce(
+                        data=data_with_pred, 
+                        policy=self._venturalitica_policy,
+                        **audit_kwargs
+                    )
             
             return result
 
