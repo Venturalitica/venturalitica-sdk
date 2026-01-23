@@ -703,10 +703,10 @@
 </code></pre></div></p>
 <blockquote>
 <p>[!WARNING]
-While the training data passed the Gender check (0.81), the model amplified the bias in its predictions (0.70). This is a clear signal to retrain with fairness constraints.</p>
+While the training data failed the Age check (<strong>0.361</strong>), the model's predictions on the test set (<strong>0.600</strong>) managed to pass the policy limit (&gt;0.5). However, this improvement should be closely monitored to ensure it generalizes beyond this specific test slice.</p>
 <p>[!IMPORTANT]
 <strong>Why 0.361 vs 1.000?</strong> 
-If you see a perfect <code>1.000</code> but expect bias, check your column binding. If a column is missing or mismatched, Venturalitica may default to 1.0. Always verify your column names (like <code>Attribute9</code> vs <code>gender</code>) in the <code>enforce()</code> call. v0.2.4 also includes a minimum support filter (N&gt;=5) to ensure statistical significance.</p>
+If you see a perfect <code>1.000</code> but expect bias, check your column binding. If a column is missing or mismatched, Venturalitica may default to 1.0. Always verify your column names (like <code>Attribute9</code> vs <code>gender</code>) in the <code>enforce()</code> call. v0.2.4 also includes a minimum support filter (N&gt;=5) to ensure statistical significance, which contributes to the precise <strong>0.361</strong> reading.</p>
 </blockquote>
 <hr />
 <h2 id="step-5-including-performance-metrics">Step 5: Including Performance Metrics</h2>
