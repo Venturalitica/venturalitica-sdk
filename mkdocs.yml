@@ -41,4 +41,5 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
+  - Training: training.md
   - API Reference: api.md
