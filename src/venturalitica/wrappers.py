@@ -1,4 +1,7 @@
 import functools
+import json
+import os
+from datetime import datetime
 from typing import Any, Dict, Optional, Union
 from pathlib import Path
 
@@ -56,6 +59,12 @@ class GovernanceWrapper:
                         policy=self._venturalitica_policy,
                         **audit_kwargs
                     )
+                    
+                    # [PLG] Runtime Provenance Capture
+                    try:
+                        self._save_run_metadata(data, model_kwargs)
+                    except Exception as e:
+                        print(f"⚠ Failed to save run metadata: {e}")
 
             # Execute original logic (without audit-only kwargs)
             result = original_method(*args, **model_kwargs)
@@ -92,6 +101,34 @@ class GovernanceWrapper:
             if isinstance(val, pd.DataFrame):
                 return val
         return None
+
+    def _save_run_metadata(self, data, model_kwargs):
+        """
+        Captures runtime facts (provenance) for the Compliance Graph.
+        """
+        import pandas as pd
+        
+        meta = {
+            "timestamp": datetime.now().isoformat(),
+            "model": {
+                "class": self._venturalitica_model.__class__.__name__,
+                "module": self._venturalitica_model.__class__.__module__
+            },
+            "data": {
+                "rows": len(data) if hasattr(data, "__len__") else 0,
+                "columns": list(data.columns) if isinstance(data, pd.DataFrame) else []
+            },
+            "audit_results": [r.metric_key + ": " + ("PASS" if r.passed else "FAIL") for r in self.last_audit_results]
+        }
+        
+        # Try to get hyperparameters
+        if hasattr(self._venturalitica_model, "get_params"):
+             meta["model"]["params"] = self._venturalitica_model.get_params()
+             
+        # Save to disk
+        os.makedirs(".venturalitica", exist_ok=True)
+        with open(".venturalitica/latest_run.json", "w") as f:
+            json.dump(meta, f, indent=2, default=str)
 
 def wrap(model: Any, policy: Optional[Union[str, Path]] = None) -> GovernanceWrapper:
     """

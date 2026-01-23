@@ -32,6 +32,8 @@ dependencies = [
     "streamlit>=1.30.0",
     "compliance-trestle>=3.4.0",
     "ucimlrepo>=0.0.3",
+    "langgraph>=0.6.11",
+    "langchain-ollama>=0.3.10",
 ]
 
 [project.urls]

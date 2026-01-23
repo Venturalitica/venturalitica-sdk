@@ -4,6 +4,7 @@ from typing import Optional
 import os
 import json
 import webbrowser
+import subprocess
 from venturalitica.scanner import BOMScanner
 from venturalitica.client import VenturaliticaClient, save_credentials, load_credentials
 

@@ -5,6 +5,9 @@ from pathlib import Path
 import os
 import json
 import time
+import asyncio
+from venturalitica.graph.workflow import create_compliance_graph
+from langchain_core.messages import HumanMessage
 
 # --- UI CONFIGURATION ---
 st.set_page_config(
@@ -15,33 +18,69 @@ st.set_page_config(
 
 # --- STYLING ---
 st.markdown("""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
 <style>
+    /* Global Body Font: Roboto */
+    html, body, [class*="st-"], .stMarkdown, p, span, div, li, a {
+        font-family: 'Roboto', sans-serif !important;
+        color: #1f2937 !important;
+    }
+    
+    /* Headers: Roboto Slab */
+    h1, h2, h3, h4, h5, h6, .stTitle, [data-testid="stHeader"] h1, [data-testid="stMarkdownContainer"] h1, 
+    [data-testid="stMarkdownContainer"] h2, [data-testid="stMarkdownContainer"] h3 {
+        font-family: 'Roboto Slab', serif !important;
+        font-weight: 700 !important;
+        color: #111827 !important;
+    }
+
     .main {
-        background-color: #f8f9fa;
+        background-color: #fefefe;
     }
-    .stButton>button {
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+    
+    /* Metrics: Roboto Slab for values */
+    [data-testid="stMetricValue"] {
+        font-family: 'Roboto Slab', serif !important;
+        font-weight: 700 !important;
     }
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    
+    [data-testid="stMetricLabel"] {
+        font-family: 'Roboto', sans-serif !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.8rem;
+        color: #6b7280; /* slate-500 */
     }
+
+    /* Premium Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        font-family: 'Roboto', sans-serif !important;
+        font-weight: 500 !important;
+    }
+
+    /* Custom Color Wrappers */
     .compliance-pass {
-        color: #28a745;
-        font-weight: bold;
+        color: #0369a1 !important; /* sky-700 */
+        font-weight: 600;
     }
     .compliance-fail {
-        color: #dc3545;
-        font-weight: bold;
+        color: #b91c1c !important; /* red-700 */
+        font-weight: 600;
     }
+    
+    /* Box Styling */
     .annex-box {
-        background-color: white;
-        padding: 20px;
+        background-color: #f9fafb;
+        padding: 24px;
         border-radius: 12px;
-        border: 1px solid #e0e0e0;
-        margin-bottom: 20px;
+        border: 1px solid #e5e7eb;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -54,39 +93,76 @@ def load_cached_results():
             return json.load(f)
     return None
 
-def generate_annex_iv_draft(bom, results):
+async def run_compliance_graph(target_dir, container):
     """
-    Simulated LLM scan of the project to generate Annex IV.2 sections.
+    Orchestrates the LangGraph workflow and streams updates to the UI.
     """
-    time.sleep(1.5) # Simulate thinking
+    graph = create_compliance_graph(model_name=st.session_state.get('model_name', 'mistral'))
     
-    # 1. System Elements (from BOM)
-    components = bom.get('components', [])
-    model_names = [c['name'] for c in components if c['type'] == 'machine-learning-model']
-    
-    # 2. Results Summary
-    passed_count = sum(1 for r in results if r.get('passed')) if results else 0
-    total_count = len(results) if results else 0
-    
-    draft = {
-        "title": "Technical Documentation: Annex IV.2 (Draft)",
-        "intended_purpose": "General credit risk assessment for consumer loans.",
-        "hardware": "Cloud-based deployment on virtualized CPU instances.",
-        "input_data": "Structured financial data including age, occupation, and credit history.",
-        "description": f"The AI System is based on {', '.join(model_names) if model_names else 'standard ML architectures'}. "
-                       f"It incorporates {len(components)} technical modules. "
-                       f"Local validation shows {passed_count}/{total_count} compliance controls passed.",
-        "risk_system": "The system includes automated bias detection and drift monitoring via Venturalitica SDK."
+    initial_state = {
+        "project_root": target_dir,
+        "bom": {},
+        "runtime_meta": {},
+        "sections": {},
+        "final_markdown": ""
     }
-    return draft
+    
+    container.info("🚀 Launching Compliance-RAG...")
+    
+    # Stream the graph execution
+    async for event in graph.astream(initial_state):
+        for node, data in event.items():
+            if node == "scanner":
+                container.success("✅ Application scanned.")
+                with container.expander("BOM Details"):
+                    st.json(data.get("bom", {}))
+            elif node == "planner":
+                container.info("🗺️ Planning documentation structure...")
+            elif node.startswith("writer_"):
+                section = node.split("_")[1]
+                container.markdown(f"✍️ **Drafted Section {section}**")
+            elif node == "compiler":
+                container.success("📄 Document compiled successfully!")
+                return data.get("final_markdown")
+                
+    return None
+
+def _parse_bom(bom):
+    """Parses BOM into actionable metrics and lists."""
+    if not bom:
+        return {}, [], []
+    
+    components = bom.get('components', [])
+    ml_models = [c for c in components if c.get('type') == 'machine-learning-model']
+    libs = [c for c in components if c.get('type') == 'library']
+    
+    licenses = set()
+    for c in components:
+        for lic in c.get('licenses', []):
+            if isinstance(lic, dict) and 'license' in lic:
+                licenses.add(lic['license'].get('id', 'Unknown'))
+            elif isinstance(lic, str):
+                licenses.add(lic)
+                
+    metrics = {
+        "total": len(components),
+        "models": len(ml_models),
+        "licenses": len(licenses)
+    }
+    return metrics, ml_models, libs
 
 # --- MAIN RENDER ---
 def render_dashboard():
     # Header with Logo/Title
-    col1, col2 = st.columns([0.1, 0.9])
-    with col1:
-        st.write("# 🛡️")
-    with col2:
+    logo_path = "/home/morganrcu/proyectos/venturalitica-integration/landing/public/vl.svg"
+    
+    col_logo, col_title = st.columns([0.1, 0.9])
+    with col_logo:
+        if os.path.exists(logo_path):
+            st.image(logo_path, width=64)
+        else:
+            st.write("# 🛡️")
+    with col_title:
         st.title("Venturalitica Local Compliance")
         st.markdown("*Empowering developers to build compliant AI by design.*")
 
@@ -122,53 +198,87 @@ def render_dashboard():
         st.header("Technical verification")
         
         c1, c2, c3 = st.columns(3)
-        if 'bom' in st.session_state:
-            comp_count = len(st.session_state['bom'].get('components', []))
-            c1.metric("Modules Found", comp_count)
+        
+        # 0. Load Data
+        bom = st.session_state.get('bom')
+        results = st.session_state.get('results')
+        runtime_meta = st.session_state.get('runtime_meta')
+        
+        if bom:
+            metrics, models, libs = _parse_bom(bom)
+            c1.metric("Dependencies", metrics['total'])
+            c2.metric("ML Models (Static)", metrics['models'])
+            
+            # UNIQUE LICENSES from components
+            unique_lics = metrics.get('licenses', 0)
+            c3.metric("Licenses", unique_lics)
         else:
-            c1.metric("Modules Found", "0")
+            c1.metric("Dependencies", "0")
+            c2.metric("ML Models", "0")
+            c3.metric("Licenses", "0")
             
-        if results:
-            passed = sum(1 for r in results if r.get('passed'))
-            total = len(results)
-            c2.metric("Controls Eval", f"{passed}/{total}")
-            
-            # GENERATE BADGE
-            status = 'passing' if passed == total else 'failing'
-            badge_path = Path("compliance_badge.svg")
-            generate_compliance_badge(status, policy_name="Local Audit", output_path=badge_path)
-            
-            with c3:
-                st.write("**Compliance Badge**")
-                st.image("compliance_badge.svg")
-                with open("compliance_badge.svg", "rb") as f:
-                    st.download_button("Download Badge", f, "compliance_badge.svg", "image/svg+xml")
-        else:
-            c2.metric("Controls Eval", "N/A")
-            c3.metric("EU AI Act Status", "Waiting")
-
         st.divider()
         
         col_left, col_right = st.columns(2)
         
         with col_left:
-            st.subheader("📦 Module Inventory (BOM)")
-            if 'bom' in st.session_state:
-                st.json(st.session_state['bom'], expanded=False)
+            st.subheader("🤖 AI Architecture")
+            if runtime_meta:
+                 model_info = runtime_meta.get("model", {})
+                 with st.container(border=True):
+                     st.markdown(f"**Primary Model:** `{model_info.get('class', 'Unknown')}`")
+                     st.markdown(f"**Framework:** `{model_info.get('module', 'Unknown')}`")
+                     if 'params' in runtime_meta:
+                         with st.expander("Hyperparameters", expanded=False):
+                             st.json(runtime_meta['params'])
+            elif 'bom' in st.session_state:
+                st.info("No runtime metadata found. Using static scan results.")
+                if models:
+                    for m in models:
+                        st.write(f"- {m['name']} (Detected in {m.get('description', 'source')})")
             else:
-                st.info("Run scan in sidebar to populate BOM.")
+                st.info("Run scan to see architecture.")
+
+            st.subheader("📦 Module Inventory")
+            if 'bom' in st.session_state:
+                sub_tabs = st.tabs(["Supply Chain", "Raw BOM"])
+                with sub_tabs[0]:
+                    if libs:
+                        lib_df = [{"Library": l['name'], "Version": l.get('version', 'N/A')} for l in libs]
+                        st.dataframe(lib_df, use_container_width=True, hide_index=True)
+                with sub_tabs[1]:
+                    st.json(st.session_state['bom'], expanded=False)
 
         with col_right:
-            st.subheader("🍃 Sustainability")
+            st.subheader("🍃 Sustainability Tracker")
             emissions_path = os.path.join(target_dir, "emissions.csv")
             if os.path.exists(emissions_path):
                 import pandas as pd
-                df = pd.read_csv(emissions_path)
-                last_run = df.iloc[-1]
-                st.success(f"Tracked: {last_run['emissions']:.4f} kgCO2")
-                st.caption(f"Last record: {last_run['timestamp'] if 'timestamp' in last_run else 'Recently'}")
+                try:
+                    df = pd.read_csv(emissions_path)
+                    last_run = df.iloc[-1]
+                    st.metric("Total CO2 Emissions", f"{last_run['emissions'] * 1000:.4f} gCO2")
+                    st.markdown(f"**Compute:** {last_run['cpu_model'] if 'cpu_model' in last_run else 'Cloud Instance'}")
+                    st.markdown(f"**Duration:** {last_run['duration'] if 'duration' in last_run else 'N/A'}s")
+                    
+                    # Small area chart for emissions over time
+                    if len(df) > 1:
+                        st.area_chart(df['emissions'])
+                except Exception as e:
+                    st.error(f"Error reading emissions: {e}")
             else:
-                st.warning("No emissions data found (CodeCarbon not used).")
+                st.warning("No emissions data found. Run pipeline with `codecarbon` enabled.")
+
+            st.subheader("🎖️ Compliance Status")
+            if results:
+                passed = sum(1 for r in results if r.get('passed'))
+                total = len(results)
+                status = 'passing' if passed == total else 'failing'
+                badge_path = Path("compliance_badge.svg")
+                generate_compliance_badge(status, policy_name="Local Audit", output_path=badge_path)
+                st.image("compliance_badge.svg")
+            else:
+                st.info("Waiting for audit results...")
 
     # TAB 2: Policy Enforcement
     with tab_gov:
@@ -205,61 +315,33 @@ def render_dashboard():
                 "risk_system": ""
             }
 
-        # SMART SCAN BUTTON (The "Aha!" Moment)
-        if st.button("✨ Smart Draft with LLM Scan", type="primary", use_container_width=True):
-            if 'bom' not in st.session_state:
-                st.error("Please run a local scan first to provide context.")
-            else:
-                with st.spinner("LLM scanning project artifacts..."):
-                    draft = generate_annex_iv_draft(st.session_state['bom'], results)
-                    st.session_state['annex_draft'] = draft
-                    st.success("Draft generated based on code analysis and audit results!")
+        # MODEL SELECTION
+        st.session_state['model_name'] = st.selectbox("Select Local LLM", ["mistral", "llama3", "phi3"], index=0)
+
+        # SMART SCAN BUTTON (Real AI)
+        if st.button("✨ Smart Draft with Compliance-RAG", type="primary", use_container_width=True):
+            status_container = st.container()
+            with st.spinner("Orchestrating AI Agents..."):
+                # Run async graph in sync streamlit
+                final_md = asyncio.run(run_compliance_graph(target_dir, status_container))
+                if final_md:
+                    st.session_state['annex_full_md'] = final_md
+                    st.success("Draft generated by Mistral (Local)!")
 
         st.divider()
         
         # EDITOR
         st.markdown("### 📝 Annex IV.2 Editor")
         
-        draft = st.session_state['annex_draft']
-        
-        colA, colB = st.columns(2)
-        with colA:
-            st.write("**1. General Description**")
-            purpose = st.text_area("Intended Purpose", value=draft.get("intended_purpose", ""), height=100)
-            hardware = st.text_area("Hardware & Resources", value=draft.get("hardware", ""), height=100)
-            
-        with colB:
-            st.write("**2. System Details**")
-            description = st.text_area("Technical Architecture", value=draft.get("description", ""), height=100)
-            risk = st.text_area("Risk Management System", value=draft.get("risk_system", ""), height=100)
-
-        # UPDATE LOCAL STATE
-        st.session_state['annex_draft']["intended_purpose"] = purpose
-        st.session_state['annex_draft']["hardware"] = hardware
-        st.session_state['annex_draft']["description"] = description
-        st.session_state['annex_draft']["risk_system"] = risk
+        full_text = st.session_state.get('annex_full_md', "")
+        edited_text = st.text_area("Full Document", value=full_text, height=600)
+        st.session_state['annex_full_md'] = edited_text
 
         # EXPORT
         st.divider()
         if st.button("💾 Export to Markdown (Annex_IV.md)"):
-            content = f"""# EU AI Act: Annex IV Technical Documentation
-Generated by Venturalitica Assistant
-
-## 1. General description
-**Intended Purpose:**
-{purpose}
-
-**Hardware:**
-{hardware}
-
-## 2. Technical implementation
-{description}
-
-## 3. Risk management system
-{risk}
-"""
             with open("Annex_IV.md", "w") as f:
-                f.write(content)
+                f.write(st.session_state.get('annex_full_md', ""))
             st.success("Document exported to `Annex_IV.md` in project root.")
             st.toast("Documentation Ready!")
 
