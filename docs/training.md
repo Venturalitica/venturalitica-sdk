@@ -61,12 +61,16 @@ vl.enforce(
 ```
 
 **Real Output:**
-```
-[Venturalitica] 🛡 Enforcing policy: loan-policy.yaml
-  ❌ FAIL | Controls: 2/3 passed
-    ✓ [imbalance] Minority ratio... 0.429 (Limit: >0.2)
-    ✓ [gender-bias] Disparate impact... 0.818 (Limit: >0.8)
-    ✗ [age-bias] Age disparity... 0.286 (Limit: >0.5)
+```text
+[Venturalitica v0.2.4] 🛡  Enforcing policy: loan-policy.yaml
+
+  CONTROL                DESCRIPTION                            ACTUAL     LIMIT      RESULT
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  imbalance              Minority ratio                         0.431      > 0.2      ✅ PASS
+  gender-bias            Disparate impact                       0.836      > 0.8      ✅ PASS
+  age-bias               Age disparity                          0.361      > 0.5      ❌ FAIL
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  Audit Summary: ❌ VIOLATION | 2/3 controls passed
 ```
 
 ---
@@ -105,20 +109,24 @@ vl.enforce(
 ```
 
 **Real Output:**
-```
-[Venturalitica] 🛡 Enforcing policy: loan-policy.yaml
-  ❌ FAIL | Controls: 1/3 passed
-    ✓ [imbalance] Minority ratio... 0.418 (Limit: >0.2)
-    ✗ [gender-bias] Disparate impact... 0.703 (Limit: >0.8)
-    ✗ [age-bias] Age disparity... 0.000 (Limit: >0.5)
+```text
+[Venturalitica v0.2.4] 🛡  Enforcing policy: loan-policy.yaml
+
+  CONTROL                DESCRIPTION                            ACTUAL     LIMIT      RESULT
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  imbalance              Minority ratio                         0.418      > 0.2      ✅ PASS
+  gender-bias            Disparate impact                       0.905      > 0.8      ✅ PASS
+  age-bias               Age disparity                          0.600      > 0.5      ✅ PASS
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  Audit Summary: ✅ POLICY MET | 3/3 controls passed
 ```
 
 > [!WARNING]
 > While the training data passed the Gender check (0.81), the model amplified the bias in its predictions (0.70). This is a clear signal to retrain with fairness constraints.
 
 > [!IMPORTANT]
-> **Why 0.286 vs 1.000?** 
-> If you see a perfect `1.000` but expect bias, check your column binding. If a column is missing or mismatched, Venturalitica may default to 1.0. Always verify your column names (like `Attribute9` vs `gender`) in the `enforce()` call.
+> **Why 0.361 vs 1.000?** 
+> If you see a perfect `1.000` but expect bias, check your column binding. If a column is missing or mismatched, Venturalitica may default to 1.0. Always verify your column names (like `Attribute9` vs `gender`) in the `enforce()` call. v0.2.4 also includes a minimum support filter (N>=5) to ensure statistical significance.
 
 ---
 

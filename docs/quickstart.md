@@ -22,14 +22,17 @@ vl.quickstart('loan')
 
 **Output:**
 
-```
-[Venturalitica] 🎓 Scenario: Credit Scoring Fairness
-[Venturalitica] 📊 Loaded: UCI Dataset #144 (1000 samples)
+```text
+[Venturalitica v0.2.4] 🎓 Scenario: Credit Scoring Fairness
+[Venturalitica v0.2.4] 📊 Loaded: UCI Dataset #144 (1000 samples)
 
-  ❌ FAIL | Controls: 2/3 passed
-    ✓ [credit-data-imbalance] Data Quality... 0.429 (Limit: >0.2)
-    ✓ [credit-data-bias] Disparate impact... 0.818 (Limit: >0.8)
-    ✗ [credit-age-disparate] Age disparity... 0.286 (Limit: >0.5)
+  CONTROL                DESCRIPTION                            ACTUAL     LIMIT      RESULT
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  credit-data-imbalance  Data Quality                           0.431      > 0.2      ✅ PASS
+  credit-data-bias       Disparate impact                       0.836      > 0.8      ✅ PASS
+  credit-age-disparate   Age disparity                          0.361      > 0.5      ❌ FAIL
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  Audit Summary: ❌ VIOLATION | 2/3 controls passed
 ```
 
 > 💡 The audit detected age-based bias in the UCI German Credit dataset.
