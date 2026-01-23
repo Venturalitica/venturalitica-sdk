@@ -6,7 +6,8 @@ def merge_dicts(a: Dict, b: Dict) -> Dict:
 
 class SectionDraft(TypedDict):
     content: str
-    status: str  # "draftery", "completed", "error"
+    status: str  # "drafting", "completed", "error"
+    feedback: Optional[str]
 
 class ComplianceState(TypedDict):
     """
@@ -19,6 +20,8 @@ class ComplianceState(TypedDict):
     
     # Internal
     sections: Annotated[Dict[str, SectionDraft], merge_dicts] # Keyed by "2.a", "2.b", etc.
+    revision_count: int
+    critic_verdict: str # "APPROVE" or "REVISE"
     
     # Output
     final_markdown: Optional[str]
