@@ -6,7 +6,7 @@ Integrate fairness and performance checks into your ML workflow.
 
 ## Overview
 
-> 📓 **Interactive Version**: You can run this tutorial in a Jupyter Notebook: [01-training-tutorial.ipynb](file:///home/morganrcu/proyectos/venturalitica-integration/packages/venturalitica-sdk/notebooks/01-training-tutorial.ipynb)
+> 📓 **Interactive Version**: You can run this tutorial in a Jupyter Notebook: [01-training-tutorial.ipynb](https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/01-training-tutorial.ipynb)
 
 | Phase | Check | Function |
 |:--|:--|:--|
