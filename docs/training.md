@@ -122,11 +122,11 @@ vl.enforce(
 ```
 
 > [!WARNING]
-> While the training data passed the Gender check (0.81), the model amplified the bias in its predictions (0.70). This is a clear signal to retrain with fairness constraints.
+> While the training data failed the Age check (**0.361**), the model's predictions on the test set (**0.600**) managed to pass the policy limit (>0.5). However, this improvement should be closely monitored to ensure it generalizes beyond this specific test slice.
 
 > [!IMPORTANT]
 > **Why 0.361 vs 1.000?** 
-> If you see a perfect `1.000` but expect bias, check your column binding. If a column is missing or mismatched, Venturalitica may default to 1.0. Always verify your column names (like `Attribute9` vs `gender`) in the `enforce()` call. v0.2.4 also includes a minimum support filter (N>=5) to ensure statistical significance.
+> If you see a perfect `1.000` but expect bias, check your column binding. If a column is missing or mismatched, Venturalitica may default to 1.0. Always verify your column names (like `Attribute9` vs `gender`) in the `enforce()` call. v0.2.4 also includes a minimum support filter (N>=5) to ensure statistical significance, which contributes to the precise **0.361** reading.
 
 ---
 
