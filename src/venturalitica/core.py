@@ -82,6 +82,16 @@ class GovernanceValidator:
                 print(f"    [Binding] Virtual Role '{role}' bound to Variable '{var}' (Column: '{actual_col}')")
                 
             try:
+                from .metrics import METRIC_METADATA
+                meta = METRIC_METADATA.get(metric_key, {})
+                required = meta.get('required_roles', [])
+                
+                # Check if all required roles are bound to actual columns
+                missing_roles = [r for r in required if eval_context.get(r, "MISSING") == "MISSING"]
+                if missing_roles:
+                    print(f"    [Skip] Control '{ctrl.id}' requires {missing_roles} which are not provided. Skipping.")
+                    continue
+
                 # Execute the metric function with role-mapped columns
                 actual = calc_fn(data, **eval_context)
                 passed = self._check_condition(actual, ctrl.operator, ctrl.threshold)
@@ -96,8 +106,9 @@ class GovernanceValidator:
                     passed=passed,
                     severity=ctrl.severity
                 ))
-            except (ValueError, TypeError):
+            except (ValueError, TypeError) as e:
                 # Expected if columns are missing for a specific metric
+                print(f"    [Skip] Evaluation failed for {metric_key}: {e}")
                 continue
             except Exception as e:
                 print(f"⚠ [Venturalitica] Unexpected error evaluating {metric_key}: {e}")
