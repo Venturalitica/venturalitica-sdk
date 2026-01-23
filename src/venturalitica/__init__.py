@@ -94,8 +94,35 @@ def enforce(
 
             if data is not None:
                 mapping = {}
-                if target in data.columns: mapping['target'] = target
-                if prediction in data.columns: mapping['prediction'] = prediction
+                
+                # [PLG] Robust Column Discovery for critical roles
+                actual_target = target if target in data.columns else None
+                if not actual_target:
+                    # Common industry names for targets
+                    target_cands = [
+                        'target', 'class', 'label', 'y', 'true_label', 
+                        'ground_truth', 'approved', 'default', 'outcome'
+                    ]
+                    for cand in target_cands:
+                        if cand in data.columns:
+                            actual_target = cand
+                            break
+                
+                actual_prediction = prediction if prediction in data.columns else None
+                if not actual_prediction:
+                    # Common industry names for predictions
+                    pred_cands = [
+                        'prediction', 'pred', 'y_pred', 'predictions', 
+                        'score', 'proba', 'output'
+                    ]
+                    for cand in pred_cands:
+                        if cand in data.columns:
+                            actual_prediction = cand
+                            break
+
+                if actual_target: mapping['target'] = actual_target
+                if actual_prediction: mapping['prediction'] = actual_prediction
+                
                 mapping.update(attributes)
                 results = validator.compute_and_evaluate(data, mapping)
             elif metrics is not None:

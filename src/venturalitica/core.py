@@ -64,12 +64,12 @@ class GovernanceValidator:
                 # [PLG] Auto-Binding: Smart discovery based on variable synonyms
                 if not actual_col:
                     synonyms = {
-                        'gender': ['sex', 'gender', 'sexo'],
-                        'age': ['age', 'age_group', 'edad'],
+                        'gender': ['sex', 'gender', 'sexo', 'Attribute9'],
+                        'age': ['age', 'age_group', 'edad', 'Attribute13'],
                         'race': ['race', 'ethnicity', 'raza'],
-                        'target': ['target', 'class', 'label', 'y', 'true_label'],
-                        'prediction': ['prediction', 'pred', 'y_pred'],
-                        'dimension': ['sex', 'gender', 'age', 'race']
+                        'target': ['target', 'class', 'label', 'y', 'true_label', 'ground_truth', 'approved', 'default', 'outcome'],
+                        'prediction': ['prediction', 'pred', 'y_pred', 'predictions', 'score', 'proba', 'output'],
+                        'dimension': ['sex', 'gender', 'age', 'race', 'Attribute9', 'Attribute13']
                     }
                     if var in data.columns:
                         actual_col = var
