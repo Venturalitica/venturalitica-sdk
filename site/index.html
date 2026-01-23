@@ -320,10 +320,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#get-started" class="md-nav__link">
+  <a href="#quickstart-in-60-seconds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Get Started
+        ⚡️ Quickstart in 60 Seconds
       
     </span>
   </a>
@@ -331,10 +331,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tutorials-examples" class="md-nav__link">
+  <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tutorials &amp; Examples
+        🛡 Key Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#explore-tutorials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Explore Tutorials
       
     </span>
   </a>
@@ -345,7 +356,7 @@
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        ⚙️ Installation
       
     </span>
   </a>
@@ -468,10 +479,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#get-started" class="md-nav__link">
+  <a href="#quickstart-in-60-seconds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Get Started
+        ⚡️ Quickstart in 60 Seconds
       
     </span>
   </a>
@@ -479,10 +490,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tutorials-examples" class="md-nav__link">
+  <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tutorials &amp; Examples
+        🛡 Key Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#explore-tutorials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Explore Tutorials
       
     </span>
   </a>
@@ -493,7 +515,7 @@
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        ⚙️ Installation
       
     </span>
   </a>
@@ -522,26 +544,61 @@
 
 <h1 id="venturalitica">Venturalitica</h1>
 <p><strong>Frictionless Governance for AI.</strong></p>
-<p>Detect bias in your datasets with one line of code.</p>
+<p>Venturalitica is a lightweight Python SDK designed to enforce policies, audit fairness, and track environmental impact in your ML workflows with zero friction.</p>
+<hr />
+<h2 id="quickstart-in-60-seconds">⚡️ Quickstart in 60 Seconds</h2>
+<p>Detect bias in your datasets or models with one line of code.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Auto-download UCI data and run bias audit</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Auto-download UCI data, load policy, and run bias audit</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">results</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">quickstart</span><span class="p">(</span><span class="s1">&#39;loan&#39;</span><span class="p">)</span>
 </code></pre></div>
 <hr />
-<h2 id="get-started">Get Started</h2>
-<p>→ <strong><a href="quickstart/">60-Second Quickstart</a></strong> - Your first bias audit</p>
+<h2 id="key-features">🛡 Key Features</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Bias Detection</strong></td>
+<td style="text-align: left;">Quantitative fairness audits (Disparate Impact, Class Balance).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Integrity Checks</strong></td>
+<td style="text-align: left;">Immutable audit trails and model fingerprints.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Green AI</strong></td>
+<td style="text-align: left;">Native carbon emission and energy consumption tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Policy as Code</strong></td>
+<td style="text-align: left;">Define governance rules in standard OSCAL/YAML formats.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Framework Agnostic</strong></td>
+<td style="text-align: left;">Works with Scikit-learn, PyTorch, TensorFlow, and more.</td>
+</tr>
+</tbody>
+</table>
 <hr />
-<h2 id="tutorials-examples">Tutorials &amp; Examples</h2>
-<p>Explore our interactive Jupyter notebooks:
-- <strong><a href="https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/00-quickstart.ipynb">Notebook: 00-Quickstart</a></strong> - Fast one-liner audit.
-- <strong><a href="https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/01-training-tutorial.ipynb">Notebook: 01-Training</a></strong> - Full ML workflow integration.</p>
+<h2 id="explore-tutorials">📚 Explore Tutorials</h2>
+<p>Start with our interactive Jupyter notebooks:</p>
+<ul>
+<li><strong><a href="https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/00-quickstart.ipynb">00: Quickstart</a></strong> - Fast one-liner audit on the German Credit dataset.</li>
+<li><strong><a href="https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/01-training-tutorial.ipynb">01: Training Workflow</a></strong> - Learn how to audit data before training and verify models post-training.</li>
+</ul>
 <hr />
-<h2 id="installation">Installation</h2>
+<h2 id="installation">⚙️ Installation</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>venturalitica
 </code></pre></div>
 <hr />
-<p>© 2026 Venturalitica | <a href="https://github.com/Venturalitica/venturalitica-sdk">GitHub</a></p>
+<p><a href="quickstart/">Quickstart Guide</a> | <a href="api/">API Reference</a> | <a href="https://github.com/Venturalitica/venturalitica-sdk">GitHub</a></p>
+<p>© 2026 Venturalitica | Built for Responsible AI</p>
 
 
 
