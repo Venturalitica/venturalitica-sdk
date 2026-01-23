@@ -442,10 +442,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-6-automatic-governance-with-vlwrap" class="md-nav__link">
+  <a href="#step-6-automatic-governance-with-vlwrap-experimental" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 6: Automatic Governance with vl.wrap
+        Step 6: Automatic Governance with vl.wrap (Experimental)
       
     </span>
   </a>
@@ -580,10 +580,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-6-automatic-governance-with-vlwrap" class="md-nav__link">
+  <a href="#step-6-automatic-governance-with-vlwrap-experimental" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 6: Automatic Governance with vl.wrap
+        Step 6: Automatic Governance with vl.wrap (Experimental)
       
     </span>
   </a>
@@ -757,7 +757,11 @@ If you see a perfect <code>1.000</code> but expect bias, check your column bindi
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>  Audit Summary: ✅ POLICY MET | 3/3 controls passed
 </code></pre></div></p>
 <hr />
-<h2 id="step-6-automatic-governance-with-vlwrap">Step 6: Automatic Governance with <code>vl.wrap</code></h2>
+<h2 id="step-6-automatic-governance-with-vlwrap-experimental">Step 6: Automatic Governance with <code>vl.wrap</code> (Experimental)</h2>
+<blockquote>
+<p>[!WARNING]
+<strong>Experimental Feature</strong>: <code>vl.wrap</code> is currently in preview. Its API and behavior may change in future versions. Use with caution.</p>
+</blockquote>
 <p>If you are using <strong>Scikit-Learn</strong>, you can automate the entire audit process by wrapping your model. This ensures that every <code>.fit()</code> and <code>.predict()</code> call is audited against your policy.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Wrap your model</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">base_model</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
