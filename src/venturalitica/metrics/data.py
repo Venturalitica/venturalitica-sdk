@@ -9,12 +9,15 @@ except ImportError:
     HAS_FAIRLEARN = False
 
 def calc_disparate_impact(df: pd.DataFrame, **kwargs) -> float:
-    # If prediction is available, use it as the outcome for DI, otherwise use target
     target = kwargs.get('target')
     dim = kwargs.get('dimension')
-    outcome = kwargs.get('prediction') if kwargs.get('prediction') != "MISSING" else target
+    pred = kwargs.get('prediction')
+    
+    # Audit outcome: use prediction if provided and valid, else use target (data audit)
+    outcome = pred if (pred and pred != "MISSING") else target
     
     if not all([outcome, dim]) or any(v in [None, "MISSING"] for v in [outcome, dim]):
+        # We return 1.0 only if dimension is missing, but core should have skipped it
         return 1.0
         
     if outcome not in df.columns or dim not in df.columns:

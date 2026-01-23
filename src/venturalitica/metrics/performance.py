@@ -5,6 +5,10 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 def calc_accuracy(df: pd.DataFrame, **kwargs) -> float:
     target = kwargs.get('target')
     pred = kwargs.get('prediction')
+    if not all([target, pred]) or any(v in [None, "MISSING"] for v in [target, pred]):
+        return 0.0
+    if target not in df.columns or pred not in df.columns:
+        return 0.0
     return float(accuracy_score(df[target], df[pred]))
 
 def calc_precision(df: pd.DataFrame, **kwargs) -> float:

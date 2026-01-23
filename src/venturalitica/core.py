@@ -110,12 +110,15 @@ class GovernanceValidator:
                     passed=passed,
                     severity=ctrl.severity
                 ))
-            except (ValueError, TypeError) as e:
+            except (ValueError, TypeError, KeyError) as e:
                 # Expected if columns are missing for a specific metric
-                print(f"    [Skip] Evaluation failed for {metric_key}: {e}")
+                # We log it explicitly to help user identify mapping issues
+                print(f"    [Skip] Control '{ctrl.id}' ({metric_key}) skipped: {e}")
                 continue
             except Exception as e:
-                print(f"⚠ [Venturalitica] Unexpected error evaluating {metric_key}: {e}")
+                print(f"⚠ [Venturalitica] Error evaluating {metric_key}: {e}")
+                import traceback
+                # traceback.print_exc() # Uncomment for deep debugging
                 
         return results
 
