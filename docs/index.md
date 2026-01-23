@@ -19,6 +19,14 @@ results = vl.quickstart('loan')
 
 ---
 
+## Tutorials & Examples
+
+Explore our interactive Jupyter notebooks:
+- **[Notebook: 00-Quickstart](https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/00-quickstart.ipynb)** - Fast one-liner audit.
+- **[Notebook: 01-Training](https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/01-training-tutorial.ipynb)** - Full ML workflow integration.
+
+---
+
 ## Installation
 
 ```bash
