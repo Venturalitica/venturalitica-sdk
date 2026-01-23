@@ -4,7 +4,7 @@
     "description": "Minority class representation",
     "metric_key": "class_imbalance",
     "threshold": 0.2,
-    "actual_value": 0.43112701252236135,
+    "actual_value": 0.41843971631205673,
     "operator": "gt",
     "passed": true,
     "severity": "low"
@@ -14,7 +14,7 @@
     "description": "Gender fairness (DI > 0.8)",
     "metric_key": "disparate_impact",
     "threshold": 0.8,
-    "actual_value": 0.8361990950226245,
+    "actual_value": 0.905349794238683,
     "operator": "gt",
     "passed": true,
     "severity": "low"
@@ -24,9 +24,9 @@
     "description": "Age fairness (DI > 0.5)",
     "metric_key": "disparate_impact",
     "threshold": 0.5,
-    "actual_value": 0.3333333333333333,
+    "actual_value": 0.6,
     "operator": "gt",
-    "passed": false,
+    "passed": true,
     "severity": "low"
   },
   {
@@ -34,9 +34,9 @@
     "description": "Model utility (Accuracy > 70%)",
     "metric_key": "accuracy_score",
     "threshold": 0.7,
-    "actual_value": 0.0,
+    "actual_value": 0.795,
     "operator": "gt",
-    "passed": false,
+    "passed": true,
     "severity": "low"
   }
 ]

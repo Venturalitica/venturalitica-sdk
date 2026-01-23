@@ -1,3 +1,4 @@
+__version__ = "0.2.2"
 from .core import GovernanceValidator
 from .integrations import auto_log
 from pathlib import Path
@@ -92,10 +93,9 @@ def enforce(
             results = []
 
             if data is not None:
-                mapping = {
-                    'target': target, 
-                    'prediction': prediction
-                }
+                mapping = {}
+                if target in data.columns: mapping['target'] = target
+                if prediction in data.columns: mapping['prediction'] = prediction
                 mapping.update(attributes)
                 results = validator.compute_and_evaluate(data, mapping)
             elif metrics is not None:
