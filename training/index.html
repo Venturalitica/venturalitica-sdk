@@ -723,6 +723,17 @@ If you see a perfect <code>1.000</code> but expect bias, check your column bindi
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gt</span>
 </code></pre></div>
 <p>Venturalitica supports: <code>accuracy</code>, <code>precision</code>, <code>recall</code>, and <code>f1</code>.</p>
+<p><strong>Example Output with Performance:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>[Venturalitica v0.2.4] 🛡  Enforcing policy: tutorial_policy.yaml
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  CONTROL                DESCRIPTION                            ACTUAL     LIMIT      RESULT
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  ────────────────────────────────────────────────────────────────────────────────────────────────
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  gender-disparate       Gender fairness (DI &gt; 0.8)             0.905      &gt; 0.8      ✅ PASS
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  age-disparate          Age fairness (DI &gt; 0.5)                0.600      &gt; 0.5      ✅ PASS
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>  accuracy-check         Accuracy &gt; 70%                         0.795      &gt; 0.7      ✅ PASS
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>  ────────────────────────────────────────────────────────────────────────────────────────────────
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>  Audit Summary: ✅ POLICY MET | 3/3 controls passed
+</code></pre></div></p>
 
 
 
