@@ -37,3 +37,10 @@ def calc_f1(df: pd.DataFrame, **kwargs) -> float:
     if target not in df.columns or pred not in df.columns:
         return 0.0
     return float(f1_score(df[target], df[pred], zero_division=0))
+
+def calc_mean(df: pd.DataFrame, **kwargs) -> float:
+    """Generic mean calculation for benchmark scores (bias, preference, etc.)"""
+    target = kwargs.get('target')
+    if not target or target == "MISSING" or target not in df.columns:
+        return 0.0
+    return float(df[target].mean())

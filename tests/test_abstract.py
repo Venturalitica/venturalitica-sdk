@@ -22,3 +22,10 @@ def test_abstract_storage():
     s.list_policies()
     s.get_policy("any")
     s.store_policy("any")
+
+def test_base_storage_errors():
+    s = BaseStorage()
+    with pytest.raises(NotImplementedError):
+        s.list_policies()
+    with pytest.raises(NotImplementedError):
+        s.get_policy("any")

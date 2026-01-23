@@ -4,9 +4,32 @@ from pathlib import Path
 from typing import Dict, Union, Any, List, Optional
 from .core import ComplianceResult
 import time
+import json
+import os
+import json
+import os
 from contextlib import contextmanager
+from dataclasses import asdict
+import numpy as np
+from datetime import datetime
 
-_SESSION_ENFORCED = False
+# Custom JSON encoder para tipos complejos
+class VenturaliticaJSONEncoder(json.JSONEncoder):
+    """Encoder que maneja tipos complejos de numpy, pandas y datetime"""
+    def default(self, obj):
+        if isinstance(obj, (np.bool_, np.integer, np.floating)):
+            return obj.item()
+        if isinstance(obj, (datetime,)):
+            return obj.isoformat()
+        try:
+            # Intenta para pandas Timestamp y Series
+            if hasattr(obj, 'isoformat'):
+                return obj.isoformat()
+            if hasattr(obj, 'tolist'):
+                return obj.tolist()
+        except:
+            pass
+        return super().default(obj)
 
 def _is_enforced():
     return _SESSION_ENFORCED
@@ -92,6 +115,17 @@ def enforce(
     if all_results:
         auto_log(all_results)
         
+        # Cache results for CLI push
+        try:
+            os.makedirs(".venturalitica", exist_ok=True)
+            results_path = ".venturalitica/results.json"
+            with open(results_path, "w") as f:
+                serializable_results = [asdict(r) for r in all_results]
+                json.dump(serializable_results, f, indent=2, cls=VenturaliticaJSONEncoder)
+            print(f"  ✓ Results cached for 'venturalitica push'")
+        except Exception as e:
+            print(f"  ⚠ Failed to cache results: {e}")
+            
     return all_results
 
 def _print_summary(results: List[ComplianceResult], is_data_only: bool):
@@ -105,3 +139,32 @@ def _print_summary(results: List[ComplianceResult], is_data_only: bool):
     for r in results:
         mark = "✓" if r.passed else "✗"
         print(f"    {mark} [{r.control_id}] {r.description[:40]}...: {r.actual_value:.3f} (Limit: {r.operator}{r.threshold})")
+
+def save_audit_results(results: List[ComplianceResult], path: str = ".venturalitica/results.json"):
+    """
+    Manually persists audit results to a JSON file for later processing by the CLI.
+    """
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    with open(path, "w") as f:
+        serializable_results = [asdict(r) for r in results]
+        json.dump(serializable_results, f, indent=2, cls=VenturaliticaJSONEncoder)
+    print(f"  ✓ Results saved to {path}")
+
+# Import public API
+from .wrappers import wrap
+from .badges import generate_compliance_badge, generate_metric_badge
+from .quickstart import quickstart, load_sample, list_scenarios
+
+# Public API
+__all__ = [
+    'monitor',
+    'enforce',
+    'wrap',
+    'save_audit_results',
+    'generate_compliance_badge',
+    'generate_metric_badge',
+    'ComplianceResult',
+    'quickstart',
+    'load_sample',
+    'list_scenarios',
+]

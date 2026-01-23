@@ -1,0 +1,32 @@
+[
+  {
+    "control_id": "credit-data-imbalance",
+    "description": "Data Quality: Minority class (rejected loans) should represent at least 20% of the dataset to avoid biased training due to severe Class Imbalance.",
+    "metric_key": "class_imbalance",
+    "threshold": 0.2,
+    "actual_value": 0.42857142857142855,
+    "operator": "gt",
+    "passed": true,
+    "severity": "low"
+  },
+  {
+    "control_id": "credit-data-bias",
+    "description": "Pre-training Fairness: Disparate impact ratio should follow the standard '80% Rule' (Four-Fifths Rule), ensuring favorable loan outcomes are representative across groups.",
+    "metric_key": "disparate_impact",
+    "threshold": 0.8,
+    "actual_value": 0.8179104477611939,
+    "operator": "gt",
+    "passed": true,
+    "severity": "low"
+  },
+  {
+    "control_id": "credit-age-disparate",
+    "description": "Disparate impact ratio for raw age (Proxy for seniority)",
+    "metric_key": "disparate_impact",
+    "threshold": 0.5,
+    "actual_value": 0.2857142857142857,
+    "operator": "gt",
+    "passed": false,
+    "severity": "low"
+  }
+]

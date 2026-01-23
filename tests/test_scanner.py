@@ -62,3 +62,12 @@ def test_scanner_with_pyproject_error(tmp_path):
     # Should not raise, just return early from _scan_pyproject
     scanner._scan_pyproject()
     assert len(scanner.bom.components) == 0
+
+def test_scanner_with_syntax_error(tmp_path):
+    code_file = tmp_path / "bad.py"
+    code_file.write_text("invalid syntax (")
+    
+    scanner = BOMScanner(str(tmp_path))
+    # Should not raise, just skip the file
+    scanner._scan_models()
+    assert len(scanner.bom.components) == 0

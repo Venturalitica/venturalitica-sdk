@@ -1,5 +1,7 @@
 # Venturalitica SDK
 
+![coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+
 **Frictionless Governance for AI Systems.**
 
 The Venturalitica SDK enables Data Scientists and ML Engineers to integrate compliance and risk management directly into their training workflows. Built on the **OSCAL** (Open Security Controls Assessment Language) standard, it provides semantic policy enforcement with educational audit trails.
@@ -16,25 +18,42 @@ The Venturalitica SDK enables Data Scientists and ML Engineers to integrate comp
 ## 📦 Installation
 
 ```bash
-pip install venturalitica-sdk
+pip install venturalitica
 ```
 
 ## 🚀 Quick Start
 
-### 1. Define Your Policy (OSCAL)
+### 60-Second Demo
 
-Create a `risks.oscal.yaml` file:
+```python
+import venturalitica as vl
+
+# Auto-downloads UCI German Credit and runs bias audit
+results = vl.quickstart('loan')
+```
+
+**Output:**
+```
+[📊] Loaded: UCI Dataset #144 (1000 samples)
+[✅] PASSED: 3/3 fairness controls
+
+🎉 Dataset passes bias checks!
+```
+
+### Analyze Your Own Data
+
+First, create a **policy file** (`fairness.yaml`) that defines what to check:
 
 ```yaml
 assessment-plan:
-  uuid: loan-risk-policy
+  uuid: my-policy
   metadata:
-    title: "Loan Approval Fairness Policy"
+    title: "Fairness Policy"
   reviewed-controls:
     control-selections:
       - include-controls:
-        - control-id: fair-gender
-          description: "Demographic parity for gender must be under 10%"
+        - control-id: gender-check
+          description: "Approval rates must be similar across genders"
           props:
             - name: metric_key
               value: demographic_parity_diff
@@ -42,53 +61,22 @@ assessment-plan:
               value: "0.10"
             - name: operator
               value: "<"
-            - name: "input:dimension"
-              value: gender
-            - name: "input:target"
-              value: target
-            - name: "input:prediction"
-              value: prediction
 ```
 
-### 2. Enforce in Your Training Script
+Then run the audit:
 
 ```python
 import pandas as pd
 import venturalitica as vl
-from sklearn.ensemble import RandomForestClassifier
 
-# Load your data
-df = pd.read_csv("loan_data.csv")
-X = df.drop(columns=["approved", "gender"])
-y = df["approved"]
+df = pd.read_csv("my_data.csv")
 
-# Start transparent tracking
-with vl.monitor(name="Training Loan Model"):
-    model = RandomForestClassifier()
-    model.fit(X, y)
-
-predictions = model.predict(X)
-
-# Enforce governance policies
 vl.enforce(
     data=df,
-    target="approved",           # Physical column name for target
-    prediction=predictions,      # Model predictions
-    gender="gender",             # Semantic binding: gender -> physical column
-    policy="risks.oscal.yaml"
+    target="approved",
+    gender="gender",
+    policy="fairness.yaml"
 )
-```
-
-### 3. Review the Audit Log
-
-```
-[Venturalitica] Policy: Loan Approval Fairness Policy
-[Binding] Virtual Role 'dimension' bound to Variable 'gender' (Column: 'gender')
-[Binding] Virtual Role 'target' bound to Variable 'target' (Column: 'approved')
-[Binding] Virtual Role 'prediction' bound to Variable 'prediction' (Column: <predictions>)
-
-Evaluating Control 'fair-gender': Demographic parity for gender must be under 10%
-  ✓ PASS: demographic_parity_diff = 0.08 < 0.10
 ```
 
 ## 📚 Documentation

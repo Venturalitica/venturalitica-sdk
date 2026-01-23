@@ -54,7 +54,29 @@ class GovernanceValidator:
             # Policy Binding and Attribute Alignment logs
             eval_context = {}
             for role, var in ctrl.input_mapping.items():
-                actual_col = context_mapping.get(var, "MISSING")
+                actual_col = context_mapping.get(var)
+                
+                # [PLG] Auto-Binding: Smart discovery based on variable synonyms
+                if not actual_col:
+                    synonyms = {
+                        'gender': ['sex', 'gender', 'sexo'],
+                        'age': ['age', 'age_group', 'edad'],
+                        'race': ['race', 'ethnicity', 'raza'],
+                        'target': ['target', 'class', 'label', 'y', 'true_label'],
+                        'prediction': ['prediction', 'pred', 'y_pred'],
+                        'dimension': ['sex', 'gender', 'age', 'race']
+                    }
+                    if var in data.columns:
+                        actual_col = var
+                    else:
+                        for cand in synonyms.get(var, []) + synonyms.get(role, []):
+                            if cand in data.columns:
+                                actual_col = cand
+                                break
+                
+                if not actual_col:
+                    actual_col = "MISSING"
+
                 eval_context[role] = actual_col
                 print(f"    [Binding] Virtual Role '{role}' bound to Variable '{var}' (Column: '{actual_col}')")
                 

@@ -1,223 +1,106 @@
-# 5-Minute Quickstart
+# 60-Second Quickstart
 
-**Goal**: Enforce your first governance policy in < 5 minutes.
-
-This quickstart is designed to give you an **Aha! Moment** in under 5 minutes with zero friction.
+**Goal**: Your first bias audit in under 60 seconds.
 
 ---
 
-## Step 1: Install (30 seconds)
+## Step 1: Install
 
 ```bash
-pip install venturalitica-sdk
-```
-
-That's it. No config files, no setup wizards.
-
----
-
-## Step 2: Get a Sample Policy (30 seconds)
-
-Download a pre-made OSCAL policy:
-
-```bash
-curl -O https://raw.githubusercontent.com/venturalitica/venturalitica-sdk-samples/main/policies/loan/risks.oscal.yaml
-```
-
-Or use this minimal example (`risks.oscal.yaml`):
-
-```yaml
-assessment-plan:
-  uuid: quickstart-policy
-  metadata:
-    title: "Quickstart Fairness Policy"
-  reviewed-controls:
-    control-selections:
-      - include-controls:
-        - control-id: accuracy-check
-          description: "Model must achieve at least 80% accuracy"
-          props:
-            - name: metric_key
-              value: accuracy
-            - name: threshold
-              value: "0.80"
-            - name: operator
-              value: ">="
+pip install venturalitica
 ```
 
 ---
 
-## Step 3: Enforce in Your Training Script (2 minutes)
-
-Add **one line** to your existing training code:
+## Step 2: Run Your First Audit
 
 ```python
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split
-import venturalitica as vl  # ← Add this
+import venturalitica as vl
 
-# Your existing training code
-X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-model = RandomForestClassifier()
-model.fit(X_train, y_train)
-
-# ← Add this one line
-vl.enforce(
-    metrics={"accuracy": model.score(X_test, y_test)},
-    policy="risks.oscal.yaml"
-)
-```
-
----
-
-## Step 4: Run and See the Magic (1 minute)
-
-```bash
-python train.py
+vl.quickstart('loan')
 ```
 
 **Output:**
 
 ```
-[Venturalitica] 🛡  Enforcing policy: risks.oscal.yaml
+[Venturalitica] 🎓 Scenario: Credit Scoring Fairness
+[Venturalitica] 📊 Loaded: UCI Dataset #144 (1000 samples)
 
-Evaluating Control 'accuracy-check': Model must achieve at least 80% accuracy
-  ✓ PASS: accuracy = 0.85 >= 0.80
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 Compliance Summary
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ PASSED: 1/1 controls
-Policy: Quickstart Fairness Policy
+  ❌ FAIL | Controls: 2/3 passed
+    ✓ [credit-data-imbalance] Data Quality... 0.429 (Limit: >0.2)
+    ✓ [credit-data-bias] Disparate impact... 0.818 (Limit: >0.8)
+    ✗ [credit-age-disparate] Age disparity... 0.286 (Limit: >0.5)
 ```
 
----
-
-## 🎉 Aha! Moment
-
-You just:
-1. ✅ Enforced a governance policy
-2. ✅ Got an educational audit log
-3. ✅ Didn't change your workflow
-
-**Time elapsed**: ~4 minutes
+> 💡 The audit detected age-based bias in the UCI German Credit dataset.
 
 ---
 
-## What Just Happened?
+## Step 3: What's Happening Under the Hood
 
-The SDK:
-1. Loaded your OSCAL policy (`risks.oscal.yaml`)
-2. Evaluated your accuracy metric against the threshold
-3. Printed a human-readable compliance report
-4. **Auto-logged to MLflow/WandB/ClearML** (if you're using them)
+The `quickstart()` function is a wrapper that:
 
-**Zero config. Zero friction.**
+1. **Downloads data** from UCI Machine Learning Repository
+2. **Loads a policy** that defines fairness rules
+3. **Calls `enforce()`** to run the audit
 
----
-
-## Next Steps
-
-### Option A: Add More Metrics (Developer Path)
+Here's the equivalent code:
 
 ```python
-from sklearn.metrics import precision_score, recall_score
+from ucimlrepo import fetch_ucirepo
+import venturalitica as vl
 
-predictions = model.predict(X_test)
+# 1. Load UCI German Credit dataset
+dataset = fetch_ucirepo(id=144)
+df = dataset.data.features
+df['class'] = dataset.data.targets
 
+# 2. Run audit with policy
 vl.enforce(
-    metrics={
-        "accuracy": model.score(X_test, y_test),
-        "precision": precision_score(y_test, predictions),
-        "recall": recall_score(y_test, predictions)
-    },
+    data=df,
+    target="class",
+    gender="Attribute9",
+    age="Attribute13",
     policy="risks.oscal.yaml"
 )
 ```
 
-### Option B: Auto-Compute Metrics (Even Easier)
+### The Policy File
 
-Let the SDK compute metrics for you:
+The policy (`risks.oscal.yaml`) defines the rules:
 
-```python
-import pandas as pd
-
-# Convert to DataFrame
-df_test = pd.DataFrame(X_test)
-df_test['target'] = y_test
-
-vl.enforce(
-    data=df_test,
-    target='target',
-    prediction=model.predict(X_test),
-    policy="risks.oscal.yaml"
-)
+```yaml
+assessment-plan:
+  uuid: credit-risk-policy
+  metadata:
+    title: "Credit Scoring Fairness"
+  reviewed-controls:
+    control-selections:
+      - include-controls:
+        - control-id: credit-data-bias
+          description: "Disparate impact ratio must be > 0.8 (80% rule)"
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: threshold
+              value: "0.8"
+            - name: operator
+              value: ">"
+            - name: "input:dimension"
+              value: gender
+            - name: "input:target"
+              value: target
 ```
 
-The SDK will automatically compute:
-- Accuracy
-- Precision
-- Recall
-- F1-Score
-
-### Option C: Add Fairness Checks
-
-```python
-# Add a protected attribute
-df_test['gender'] = ['M', 'F'] * (len(df_test) // 2)
-
-vl.enforce(
-    data=df_test,
-    target='target',
-    prediction=model.predict(X_test),
-    gender='gender',  # ← Semantic binding
-    policy="fairness-policy.oscal.yaml"
-)
-```
-
-Now the SDK will also check:
-- Demographic Parity
-- Equal Opportunity
-- Disparate Impact (80% Rule)
+Each control defines:
+- **metric_key**: What to measure (`disparate_impact`)
+- **threshold**: The limit (`0.8`)
+- **operator**: How to compare (`>`)
+- **inputs**: Which columns to use
 
 ---
 
-## 🔥 Power User Tip: MLOps Auto-Logging
+## What's Next?
 
-If you're using MLflow, WandB, or ClearML, the SDK **automatically logs** compliance results:
-
-```python
-import mlflow
-
-mlflow.start_run()
-
-# SDK auto-logs to MLflow
-vl.enforce(
-    metrics={"accuracy": model.score(X_test, y_test)},
-    policy="risks.oscal.yaml"
-)
-
-mlflow.end_run()
-```
-
-**What gets logged:**
-- Metrics: `governance.accuracy-check.score = 1.0`
-- Tags: `governance.accuracy-check = PASS`
-- Artifact: `governance_report.md`
-
-**Zero extra code.**
-
----
-
-## 📚 What's Next?
-
-You've completed the quickstart! Choose your next tutorial:
-
-- **[MLOps Integration](mlops-integration.md)** - Deep dive into MLflow/WandB/ClearML
-- **[Green AI Guide](green-ai.md)** - Add carbon footprint tracking
-- **[Core Concepts](core-concepts.md)** - Understand Role-Based Binding
-- **[OSCAL Authoring](oscal-authoring.md)** - Write custom policies
-
+- **[API Reference](api.md)** - Full documentation
+- **Create your own policy** - Copy the YAML above and modify thresholds

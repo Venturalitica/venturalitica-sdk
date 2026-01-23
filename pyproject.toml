@@ -1,8 +1,26 @@
 [project]
-name = "venturalitica-sdk"
+name = "venturalitica"
 version = "0.1.0"
-description = "Frictionless Governance for AI"
+description = "Frictionless Governance for AI. Enforce policies in your ML training with one line of code."
 requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Venturalitica", email = "hello@venturalitica.com"}
+]
+keywords = ["ai", "governance", "fairness", "mlops", "eu-ai-act", "oscal", "compliance"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "PyYAML>=6.0",
     "pandas>=2.0.0",
@@ -13,7 +31,14 @@ dependencies = [
     "rich>=13.0.0",
     "streamlit>=1.30.0",
     "compliance-trestle>=3.4.0",
+    "ucimlrepo>=0.0.3",
 ]
+
+[project.urls]
+Homepage = "https://venturalitica.com"
+Documentation = "https://venturalitica.github.io/venturalitica-sdk/"
+Repository = "https://github.com/Venturalitica/venturalitica-sdk"
+Changelog = "https://github.com/Venturalitica/venturalitica-sdk/releases"
 
 [project.scripts]
 venturalitica = "venturalitica.cli:app"
@@ -26,7 +51,7 @@ torch = [
     "torch>=2.0.0",
 ]
 full = [
-    "venturalitica-sdk[metrics,torch]",
+    "venturalitica[metrics,torch]",
 ]
 green = [
     "codecarbon>=2.3.0",
