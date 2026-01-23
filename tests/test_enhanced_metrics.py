@@ -6,13 +6,13 @@ and privacy metrics (k-anonymity, l-diversity, t-closeness, data minimization)
 import pytest
 import pandas as pd
 import numpy as np
-from venturalitica.metrics.fairness import (
+from venturalitica.fairness.metrics import (
     calc_demographic_parity,
     calc_equal_opportunity,
     calc_equalized_odds_ratio,
     calc_predictive_parity,
 )
-from venturalitica.metrics.privacy import (
+from venturalitica.privacy.metrics import (
     calc_k_anonymity,
     calc_l_diversity,
     calc_t_closeness,

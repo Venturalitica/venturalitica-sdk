@@ -18,70 +18,16 @@ st.set_page_config(
 
 # --- STYLING ---
 st.markdown("""
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
 <style>
-    /* Global Body Font: Roboto */
-    html, body, [class*="st-"], .stMarkdown, p, span, div, li, a {
-        font-family: 'Roboto', sans-serif !important;
-        color: #1f2937 !important;
-    }
+    /* Minimal Customization - Safe Reset */
     
-    /* Headers: Roboto Slab */
-    h1, h2, h3, h4, h5, h6, .stTitle, [data-testid="stHeader"] h1, [data-testid="stMarkdownContainer"] h1, 
-    [data-testid="stMarkdownContainer"] h2, [data-testid="stMarkdownContainer"] h3 {
-        font-family: 'Roboto Slab', serif !important;
-        font-weight: 700 !important;
-        color: #111827 !important;
-    }
-
-    .main {
-        background-color: #fefefe;
-    }
+    /* Custom Color Wrappers for Audit Results */
+    .compliance-pass { color: #0369a1; font-weight: 600; }
+    .compliance-fail { color: #b91c1c; font-weight: 600; }
     
-    /* Metrics: Roboto Slab for values */
-    [data-testid="stMetricValue"] {
-        font-family: 'Roboto Slab', serif !important;
-        font-weight: 700 !important;
-    }
+    /* Subtle Background Adjustment */
+    .main { background-color: #fefefe; }
     
-    [data-testid="stMetricLabel"] {
-        font-family: 'Roboto', sans-serif !important;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-size: 0.8rem;
-        color: #6b7280; /* slate-500 */
-    }
-
-    /* Premium Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 24px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        font-family: 'Roboto', sans-serif !important;
-        font-weight: 500 !important;
-    }
-
-    /* Custom Color Wrappers */
-    .compliance-pass {
-        color: #0369a1 !important; /* sky-700 */
-        font-weight: 600;
-    }
-    .compliance-fail {
-        color: #b91c1c !important; /* red-700 */
-        font-weight: 600;
-    }
-    
-    /* Box Styling */
-    .annex-box {
-        background-color: #f9fafb;
-        padding: 24px;
-        border-radius: 12px;
-        border: 1px solid #e5e7eb;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -123,9 +69,10 @@ async def run_compliance_graph(target_dir, container):
                 container.markdown(f"✍️ **Drafted Section {section}**")
             elif node == "compiler":
                 container.success("📄 Document compiled successfully!")
-                return data.get("final_markdown")
+                # MODIFIED: Return tuple of (full_markdown, sections_dict)
+                return data.get("final_markdown"), data.get("sections", {})
                 
-    return None
+    return None, {}
 
 def _parse_bom(bom):
     """Parses BOM into actionable metrics and lists."""
@@ -289,7 +236,9 @@ def render_dashboard():
             for r in results:
                 status_class = "compliance-pass" if r.get('passed') else "compliance-fail"
                 mark = "✅" if r.get('passed') else "❌"
-                with st.expander(f"{mark} {r.get('control_id')} | {r.get('description')[:60]}..."):
+                # Clean up expander title to avoid overlap
+                label = f"{mark} {r.get('control_id')} | {r.get('description')[:50]}..."
+                with st.expander(label):
                     st.write(f"**Metric:** {r.get('metric_key')}")
                     st.write(f"**Value:** {r.get('actual_value'):.4f} (Threshold: {r.get('operator')}{r.get('threshold')})")
                     if not r.get('passed'):
@@ -307,13 +256,8 @@ def render_dashboard():
         st.markdown("Generate compliant documentation for the **EU AI Act Annex IV**.")
         
         # State management for Annex
-        if 'annex_draft' not in st.session_state:
-            st.session_state['annex_draft'] = {
-                "intended_purpose": "",
-                "hardware": "",
-                "description": "",
-                "risk_system": ""
-            }
+        if 'annex_sections' not in st.session_state:
+            st.session_state['annex_sections'] = {}
 
         # MODEL SELECTION
         st.session_state['model_name'] = st.selectbox("Select Local LLM", ["mistral", "llama3", "phi3"], index=0)
@@ -323,19 +267,46 @@ def render_dashboard():
             status_container = st.container()
             with st.spinner("Orchestrating AI Agents..."):
                 # Run async graph in sync streamlit
-                final_md = asyncio.run(run_compliance_graph(target_dir, status_container))
-                if final_md:
-                    st.session_state['annex_full_md'] = final_md
+                # MODIFIED: Expecting tuple (markdown, sections)
+                ret_val = asyncio.run(run_compliance_graph(target_dir, status_container))
+                if ret_val:
+                    # Handle legacy return or new tuple
+                    if isinstance(ret_val, tuple):
+                        final_md, sections = ret_val
+                        st.session_state['annex_full_md'] = final_md
+                        st.session_state['annex_sections'] = sections
+                    else:
+                        st.session_state['annex_full_md'] = ret_val
+                    
                     st.success("Draft generated by Mistral (Local)!")
 
         st.divider()
         
-        # EDITOR
+        # EDITOR (Multi-Section)
         st.markdown("### 📝 Annex IV.2 Editor")
         
-        full_text = st.session_state.get('annex_full_md', "")
-        edited_text = st.text_area("Full Document", value=full_text, height=600)
-        st.session_state['annex_full_md'] = edited_text
+        sections = st.session_state.get('annex_sections', {})
+        if sections:
+            # If we have structured sections, show them individually
+            sorted_keys = sorted(sections.keys())
+            compiled_md = ""
+            
+            for key in sorted_keys:
+                content = sections[key]
+                st.markdown(f"#### {key}")
+                new_content = st.text_area(f"Edit {key}", value=content, height=300, key=f"editor_{key}")
+                sections[key] = new_content
+                compiled_md += f"\n\n{new_content}"
+            
+            # Update full markdown state from individual parts
+            st.session_state['annex_full_md'] = compiled_md
+            st.session_state['annex_sections'] = sections
+            
+        else:
+            # Fallback for empty state or legacy string
+            full_text = st.session_state.get('annex_full_md', "")
+            edited_text = st.text_area("Full Document (Single View)", value=full_text, height=600)
+            st.session_state['annex_full_md'] = edited_text
 
         # EXPORT
         st.divider()
