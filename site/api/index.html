@@ -404,19 +404,19 @@
   <a href="#core-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core Functions
+        🚀 Core Functions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Core Functions">
+    <nav class="md-nav" aria-label="🚀 Core Functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#quickstart" class="md-nav__link">
+  <a href="#quickstartscenario-verbosetrue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        quickstart
+        quickstart(scenario, verbose=True)
       
     </span>
   </a>
@@ -424,10 +424,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#enforce" class="md-nav__link">
+  <a href="#enforcedata-target-predictionnone-policynone-attributes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        enforce
+        enforce(data, target, prediction=None, policy=None, **attributes)
       
     </span>
   </a>
@@ -435,10 +435,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#wrap" class="md-nav__link">
+  <a href="#wrapmodel-policy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        wrap
+        wrap(model, policy)
       
     </span>
   </a>
@@ -446,10 +446,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#monitor" class="md-nav__link">
+  <a href="#monitorname" class="md-nav__link">
     <span class="md-ellipsis">
       
-        monitor
+        monitor(name)
       
     </span>
   </a>
@@ -465,19 +465,19 @@
   <a href="#utility-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Utility Functions
+        🛠 Utility Functions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Utility Functions">
+    <nav class="md-nav" aria-label="🛠 Utility Functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#list_scenarios" class="md-nav__link">
     <span class="md-ellipsis">
       
-        list_scenarios
+        list_scenarios()
       
     </span>
   </a>
@@ -485,10 +485,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#load_sample" class="md-nav__link">
+  <a href="#load_samplescenario" class="md-nav__link">
     <span class="md-ellipsis">
       
-        load_sample
+        load_sample(scenario)
       
     </span>
   </a>
@@ -538,19 +538,19 @@
   <a href="#core-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core Functions
+        🚀 Core Functions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Core Functions">
+    <nav class="md-nav" aria-label="🚀 Core Functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#quickstart" class="md-nav__link">
+  <a href="#quickstartscenario-verbosetrue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        quickstart
+        quickstart(scenario, verbose=True)
       
     </span>
   </a>
@@ -558,10 +558,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#enforce" class="md-nav__link">
+  <a href="#enforcedata-target-predictionnone-policynone-attributes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        enforce
+        enforce(data, target, prediction=None, policy=None, **attributes)
       
     </span>
   </a>
@@ -569,10 +569,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#wrap" class="md-nav__link">
+  <a href="#wrapmodel-policy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        wrap
+        wrap(model, policy)
       
     </span>
   </a>
@@ -580,10 +580,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#monitor" class="md-nav__link">
+  <a href="#monitorname" class="md-nav__link">
     <span class="md-ellipsis">
       
-        monitor
+        monitor(name)
       
     </span>
   </a>
@@ -599,19 +599,19 @@
   <a href="#utility-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Utility Functions
+        🛠 Utility Functions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Utility Functions">
+    <nav class="md-nav" aria-label="🛠 Utility Functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#list_scenarios" class="md-nav__link">
     <span class="md-ellipsis">
       
-        list_scenarios
+        list_scenarios()
       
     </span>
   </a>
@@ -619,10 +619,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#load_sample" class="md-nav__link">
+  <a href="#load_samplescenario" class="md-nav__link">
     <span class="md-ellipsis">
       
-        load_sample
+        load_sample(scenario)
       
     </span>
   </a>
@@ -655,91 +655,118 @@
 
 
 <h1 id="api-reference">API Reference</h1>
-<h2 id="core-functions">Core Functions</h2>
-<h3 id="quickstart">quickstart</h3>
-<p>Run a pre-configured bias audit demo.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">results</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">quickstart</span><span class="p">(</span><span class="s1">&#39;loan&#39;</span><span class="p">)</span>
-</code></pre></div>
-<p><strong>Parameters:</strong>
-- <code>scenario</code> (str): One of <code>'loan'</code>, <code>'hiring'</code>, <code>'health'</code>
-- <code>verbose</code> (bool): Show detailed output (default: True)</p>
+<p>Venturalitica provides a simple, unified interface for AI governance.</p>
+<hr />
+<h2 id="core-functions">🚀 Core Functions</h2>
+<h3 id="quickstartscenario-verbosetrue"><code>quickstart(scenario, verbose=True)</code></h3>
+<p>Run a pre-configured bias audit demo on a standard dataset.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>scenario</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Predefined scenario: <code>'loan'</code>, <code>'hiring'</code>, <code>'health'</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>verbose</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Whether to print the structured table report to the console.</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Returns:</strong> <code>List[ComplianceResult]</code></p>
 <hr />
-<h3 id="enforce">enforce</h3>
-<p>Audit data or model predictions for bias.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Data audit (pre-training)</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">vl</span><span class="o">.</span><span class="n">enforce</span><span class="p">(</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">target</span><span class="o">=</span><span class="s2">&quot;approved&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">gender</span><span class="o">=</span><span class="s2">&quot;gender&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;policy.yaml&quot;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">)</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1"># Model audit (post-training)</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">vl</span><span class="o">.</span><span class="n">enforce</span><span class="p">(</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">target</span><span class="o">=</span><span class="s2">&quot;approved&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="n">prediction</span><span class="o">=</span><span class="n">predictions</span><span class="p">,</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="n">gender</span><span class="o">=</span><span class="s2">&quot;gender&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>    <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;policy.yaml&quot;</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="p">)</span>
-</code></pre></div>
-<p><strong>Parameters:</strong>
-- <code>data</code> (DataFrame): Your dataset
-- <code>target</code> (str): Column with ground truth
-- <code>prediction</code> (str or array): Model predictions (optional for data-only audit)
-- <code>policy</code> (str): Path to OSCAL policy file
-- <code>**attributes</code>: Protected attributes (e.g., <code>gender="col_name"</code>)</p>
+<h3 id="enforcedata-target-predictionnone-policynone-attributes"><code>enforce(data, target, prediction=None, policy=None, **attributes)</code></h3>
+<p>The main entry point for auditing datasets and models.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>data</code></td>
+<td style="text-align: left;"><code>DataFrame</code></td>
+<td style="text-align: left;">Pandas DataFrame containing features, targets, and optionally predictions.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>target</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Name of the column with ground truth labels.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>prediction</code></td>
+<td style="text-align: left;"><code>str\|array</code></td>
+<td style="text-align: left;">(Optional) Column name or array of model predictions.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>policy</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Path to the OSCAL/YAML policy file.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>**attributes</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Mappings for protected variables (e.g., <code>gender="attr9"</code>, <code>age="age_col"</code>).</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Returns:</strong> <code>List[ComplianceResult]</code></p>
+<blockquote>
+<p>[!NOTE]
+If <code>prediction</code> is omitted, fairness metrics automatically fall back to using <code>target</code> to audit data bias.</p>
+</blockquote>
 <hr />
-<h3 id="wrap">wrap</h3>
-<p>Automatically audit on <code>fit()</code> and <code>predict()</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.ensemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomForestClassifier</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">model</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">RandomForestClassifier</span><span class="p">(),</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;policy.yaml&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Auto-audits on fit</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">audit_data</span><span class="o">=</span><span class="n">df_train</span><span class="p">)</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Auto-audits on predict</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">audit_data</span><span class="o">=</span><span class="n">df_test</span><span class="p">)</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Get results</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">model</span><span class="o">.</span><span class="n">last_audit_results</span>
-</code></pre></div>
-<p><strong>Parameters:</strong>
-- <code>model</code>: Any sklearn-compatible model
-- <code>policy</code> (str): Path to OSCAL policy file</p>
-<p><strong>Returns:</strong> <code>GovernanceWrapper</code> (behaves like original model)</p>
+<h3 id="wrapmodel-policy"><code>wrap(model, policy)</code></h3>
+<p>Transparently audit your model during Scikit-Learn standard workflows.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>model</code></td>
+<td style="text-align: left;"><code>object</code></td>
+<td style="text-align: left;">Any Scikit-learn compatible classifier or regressor.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>policy</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">Path to the policy for evaluation.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>GovernanceWrapper</code> (Preserves original API like <code>.fit()</code> and <code>.predict()</code>).</p>
 <hr />
-<h3 id="monitor">monitor</h3>
-<p>Context manager for tracking training.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">with</span> <span class="n">vl</span><span class="o">.</span><span class="n">monitor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;My Training&quot;</span><span class="p">):</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<h3 id="monitorname"><code>monitor(name)</code></h3>
+<p>A context manager to track training metrics, hardware health, and environmental impact.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">with</span> <span class="n">vl</span><span class="o">.</span><span class="n">monitor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;CreditModel-v1&quot;</span><span class="p">):</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 </code></pre></div>
-<p><strong>Tracks:</strong>
-- Duration
-- CO2 emissions (if CodeCarbon installed)
-- Hardware telemetry</p>
+<p><strong>Collected Telemetry:</strong>
+- <strong>⏱ Duration</strong>: Execution time of the block.
+- <strong>🌱 Emissions</strong>: Carbon footprint (requires <code>codecarbon</code>).
+- <strong>🛡 Stability</strong>: Model fingerprinting and integrity verification.</p>
 <hr />
-<h2 id="utility-functions">Utility Functions</h2>
-<h3 id="list_scenarios">list_scenarios</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">vl</span><span class="o">.</span><span class="n">list_scenarios</span><span class="p">()</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="p">{</span><span class="s1">&#39;loan&#39;</span><span class="p">:</span> <span class="s1">&#39;Credit scoring fairness&#39;</span><span class="p">,</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a> <span class="s1">&#39;hiring&#39;</span><span class="p">:</span> <span class="s1">&#39;Recruitment equity&#39;</span><span class="p">,</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a> <span class="s1">&#39;health&#39;</span><span class="p">:</span> <span class="s1">&#39;Clinical diagnosis fairness&#39;</span><span class="p">}</span>
-</code></pre></div>
-<h3 id="load_sample">load_sample</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">df</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">load_sample</span><span class="p">(</span><span class="s1">&#39;loan&#39;</span><span class="p">)</span>
-</code></pre></div>
-<p>Loads UCI dataset for the given scenario.</p>
+<h2 id="utility-functions">🛠 Utility Functions</h2>
+<h3 id="list_scenarios"><code>list_scenarios()</code></h3>
+<p>Returns a dictionary of available scenarios and their descriptions.</p>
+<h3 id="load_samplescenario"><code>load_sample(scenario)</code></h3>
+<p>Loads the corresponding UCI dataset for a scenario as a Pandas DataFrame.</p>
 
 
 

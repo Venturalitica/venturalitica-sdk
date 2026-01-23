@@ -162,3 +162,34 @@ Venturalitica supports: `accuracy`, `precision`, `recall`, and `f1`.
   ────────────────────────────────────────────────────────────────────────────────────────────────
   Audit Summary: ✅ POLICY MET | 3/3 controls passed
 ```
+
+---
+
+## Step 6: Automatic Governance with `vl.wrap`
+
+If you are using **Scikit-Learn**, you can automate the entire audit process by wrapping your model. This ensures that every `.fit()` and `.predict()` call is audited against your policy.
+
+```python
+# Wrap your model
+base_model = RandomForestClassifier(n_estimators=100, random_state=42)
+governed_model = vl.wrap(base_model, policy="loan-policy.yaml")
+
+# Audits are automated! 
+# Just provide the raw data for attribution mapping (e.g., gender, age)
+governed_model.fit(
+    X_train, y_train, 
+    audit_data=train_df, 
+    gender="Attribute9", 
+    age="Attribute13"
+)
+
+# Predict also triggers the fairness + performance audit
+predictions = governed_model.predict(
+    X_test, 
+    audit_data=test_df, 
+    gender="Attribute9", 
+    age="Attribute13"
+)
+```
+
+This pattern reduces boilerplate and guarantees that no model goes to production without a verified audit trail.
