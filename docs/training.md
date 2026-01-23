@@ -13,30 +13,38 @@ Integrate fairness and performance checks into your ML workflow.
 
 ---
 
-## Step 1: Load Data
+## Step 1: Load and Prepare Data
+
+Since the German Credit dataset contains categorical strings, we must encode them before training.
 
 ```python
 from ucimlrepo import fetch_ucirepo
 from sklearn.model_selection import train_test_split
+import pandas as pd
 
 # Fetch UCI German Credit
 dataset = fetch_ucirepo(id=144)
 df = dataset.data.features.copy()
 df['class'] = dataset.data.targets
 
-# Split
+# Split raw data for the audit
 train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
-X_train = train_df.drop(columns=['class'])
-y_train = train_df['class']
-X_test = test_df.drop(columns=['class'])
-y_test = test_df['class']
+
+# Encode data for Scikit-Learn training
+df_encoded = pd.get_dummies(df.drop(columns=['class']))
+X_train, X_test, y_train, y_test = train_test_split(
+    df_encoded, 
+    df['class'].values.ravel(), 
+    test_size=0.2, 
+    random_state=42
+)
 ```
 
 ---
 
 ## Step 2: Pre-Training Audit (Data Bias)
 
-Check training data for bias **before** you train:
+Check your training data for bias **before** starting the compute-heavy training phase.
 
 ```python
 import venturalitica as vl
@@ -44,148 +52,90 @@ import venturalitica as vl
 vl.enforce(
     data=train_df,
     target="class",
-    gender="Attribute9",
-    policy="data-policy.yaml"
+    gender="Attribute9",  # Gender/Status column
+    age="Attribute13",    # Age column
+    policy="loan-policy.yaml"
 )
 ```
 
-### data-policy.yaml
-
-```yaml
-assessment-plan:
-  uuid: data-bias-policy
-  metadata:
-    title: "Training Data Quality"
-  reviewed-controls:
-    control-selections:
-      - include-controls:
-        - control-id: class-balance
-          description: "Minority class must be >20%"
-          props:
-            - name: metric_key
-              value: minority_ratio
-            - name: threshold
-              value: "0.2"
-            - name: operator
-              value: ">"
-        - control-id: gender-disparate
-          description: "Disparate impact >0.8 (80% rule)"
-          props:
-            - name: metric_key
-              value: disparate_impact
-            - name: threshold
-              value: "0.8"
-            - name: operator
-              value: ">"
-            - name: "input:dimension"
-              value: gender
-            - name: "input:target"
-              value: target
+**Real Output:**
+```
+[Venturalitica] 🛡 Enforcing policy: loan-policy.yaml
+  ❌ FAIL | Controls: 2/3 passed
+    ✓ [imbalance] Minority ratio... 0.429 (Limit: >0.2)
+    ✓ [gender-bias] Disparate impact... 0.818 (Limit: >0.8)
+    ✗ [age-bias] Age disparity... 0.286 (Limit: >0.5)
 ```
 
 ---
 
-## Step 3: Train Model
+## Step 3: Train and Evaluate
 
 ```python
 from sklearn.ensemble import RandomForestClassifier
 
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
+
+# Get predictions on test set
+predictions = model.predict(X_test)
 ```
 
 ---
 
 ## Step 4: Post-Training Audit (Fairness + Performance)
 
-Check model predictions on **test data**:
+Audit the model's behavior on unseen data.
 
 ```python
-# Get predictions
-predictions = model.predict(X_test)
+# Create audit dataframe (raw features + predictions)
+test_audit_df = df.iloc[test_df.index].copy()
+test_audit_df['prediction'] = predictions
 
-# Prepare test dataframe
-test_df_with_pred = test_df.copy()
-test_df_with_pred['prediction'] = predictions
-
-# Audit fairness AND performance
 vl.enforce(
-    data=test_df_with_pred,
+    data=test_audit_df,
     target="class",
     prediction="prediction",
     gender="Attribute9",
-    policy="model-policy.yaml"
+    age="Attribute13",
+    policy="loan-policy.yaml"
 )
 ```
 
-### model-policy.yaml
+**Real Output:**
+```
+[Venturalitica] 🛡 Enforcing policy: loan-policy.yaml
+  ❌ FAIL | Controls: 1/3 passed
+    ✓ [imbalance] Minority ratio... 0.418 (Limit: >0.2)
+    ✗ [gender-bias] Disparate impact... 0.703 (Limit: >0.8)
+    ✗ [age-bias] Age disparity... 0.000 (Limit: >0.5)
+```
+
+> [!WARNING]
+> While the training data passed the Gender check (0.81), the model amplified the bias in its predictions (0.70). This is a clear signal to retrain with fairness constraints.
+
+> [!IMPORTANT]
+> **Why 0.286 vs 1.000?** 
+> If you see a perfect `1.000` but expect bias, check your column binding. If a column is missing or mismatched, Venturalitica may default to 1.0. Always verify your column names (like `Attribute9` vs `gender`) in the `enforce()` call.
+
+---
+
+## Step 5: Including Performance Metrics
+
+It makes perfect sense to audit performance alongside fairness. If you "fix" bias but destroy the model's utility (e.g., 20% accuracy), the system is still failing.
+
+You can define performance thresholds in the same policy:
 
 ```yaml
-assessment-plan:
-  uuid: model-fairness-policy
-  metadata:
-    title: "Model Fairness & Performance"
-  reviewed-controls:
-    control-selections:
-      - include-controls:
-        # Performance checks
-        - control-id: accuracy-check
-          description: "Model accuracy must be >70%"
-          props:
-            - name: metric_key
-              value: accuracy
-            - name: threshold
-              value: "0.7"
-            - name: operator
-              value: ">"
-        - control-id: precision-check
-          description: "Precision must be >60%"
-          props:
-            - name: metric_key
-              value: precision
-            - name: threshold
-              value: "0.6"
-            - name: operator
-              value: ">"
-        # Fairness checks
-        - control-id: equal-opportunity
-          description: "Equal opportunity difference <10%"
-          props:
-            - name: metric_key
-              value: equal_opportunity_diff
-            - name: threshold
-              value: "0.1"
-            - name: operator
-              value: "<"
-            - name: "input:dimension"
-              value: gender
-            - name: "input:target"
-              value: target
-            - name: "input:prediction"
-              value: prediction
+- control-id: accuracy-threshold
+  description: "Model must achieve at least 75% accuracy"
+  props:
+    - name: metric_key
+      value: accuracy
+    - name: threshold
+      value: "0.75"
+    - name: operator
+      value: gt
 ```
 
----
-
-## Example Output
-
-```
-[Venturalitica] 🛡  Enforcing policy: model-policy.yaml
-  ✅ PASS | Controls: 3/3 passed
-    ✓ [accuracy-check] Model accuracy... 0.76 (Limit: >0.7)
-    ✓ [precision-check] Precision... 0.68 (Limit: >0.6)
-    ✓ [equal-opportunity] Equal opportunity... 0.08 (Limit: <0.1)
-```
-
----
-
-## Summary
-
-```
-┌─────────────┬─────────────────────┬──────────────────────┐
-│ Phase       │ What to Check       │ Policy File          │
-├─────────────┼─────────────────────┼──────────────────────┤
-│ Pre-train   │ Data bias           │ data-policy.yaml     │
-│ Post-train  │ Fairness + Accuracy │ model-policy.yaml    │
-└─────────────┴─────────────────────┴──────────────────────┘
-```
+Venturalitica supports: `accuracy`, `precision`, `recall`, and `f1`.
