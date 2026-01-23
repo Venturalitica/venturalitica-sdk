@@ -1,4 +1,4 @@
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 from .core import GovernanceValidator
 from .integrations import auto_log
 from pathlib import Path
@@ -87,7 +87,7 @@ def enforce(
     all_results = []
 
     for p in policies:
-        print(f"\n[Venturalitica] 🛡  Enforcing policy: {p}")
+        print(f"\n[Venturalitica v{__version__}] 🛡  Enforcing policy: {p}")
         try:
             validator = GovernanceValidator(str(p))
             results = []
@@ -129,16 +129,36 @@ def enforce(
     return all_results
 
 def _print_summary(results: List[ComplianceResult], is_data_only: bool):
-    """Prints a concise summary to the console."""
+    """Prints a beautiful table summary to the console."""
+    if not results:
+        return
+
+    # ANSI colors for premium terminal feel
+    C_G, C_R, C_Y, C_B, C_0 = "\033[92m", "\033[91m", "\033[93m", "\033[1m", "\033[0m"
+
     passed = sum(1 for r in results if r.passed)
     total = len(results)
     
-    status = "✅ PASS" if passed == total else "❌ FAIL"
-    print(f"  {status} | Controls: {passed}/{total} passed")
-    
+    # Table Header
+    print(f"\n  {C_B}{'CONTROL':<22} {'DESCRIPTION':<38} {'ACTUAL':<10} {'LIMIT':<10} {'RESULT'}{C_0}")
+    print(f"  {'─' * 96}")
+
     for r in results:
-        mark = "✓" if r.passed else "✗"
-        print(f"    {mark} [{r.control_id}] {r.description[:40]}...: {r.actual_value:.3f} (Limit: {r.operator}{r.threshold})")
+        res_label = f"{C_G}✅ PASS{C_0}" if r.passed else f"{C_R}❌ FAIL{C_0}"
+        
+        # Map operator to symbol
+        op_map = {'gt': '>', 'lt': '<', 'ge': '>=', 'le': '<=', 'eq': '==', 'ne': '!='}
+        limit_str = f"{op_map.get(r.operator, r.operator)} {r.threshold}"
+        
+        # Clean description and ID
+        desc = (r.description[:35] + '...') if len(r.description) > 35 else r.description
+        ctrl_id = (r.control_id[:20])
+        
+        print(f"  {ctrl_id:<22} {desc:<38} {r.actual_value:<10.3f} {limit_str:<10} {res_label}")
+
+    print(f"  {'─' * 96}")
+    verdict = f"{C_G}✅ POLICY MET{C_0}" if passed == total else f"{C_R}❌ VIOLATION{C_0}"
+    print(f"  {C_B}Audit Summary: {verdict} | {passed}/{total} controls passed{C_0}\n")
 
 def save_audit_results(results: List[ComplianceResult], path: str = ".venturalitica/results.json"):
     """
