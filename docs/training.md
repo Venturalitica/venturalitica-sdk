@@ -149,3 +149,16 @@ You can define performance thresholds in the same policy:
 ```
 
 Venturalitica supports: `accuracy`, `precision`, `recall`, and `f1`.
+
+**Example Output with Performance:**
+```text
+[Venturalitica v0.2.4] 🛡  Enforcing policy: tutorial_policy.yaml
+
+  CONTROL                DESCRIPTION                            ACTUAL     LIMIT      RESULT
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  gender-disparate       Gender fairness (DI > 0.8)             0.905      > 0.8      ✅ PASS
+  age-disparate          Age fairness (DI > 0.5)                0.600      > 0.5      ✅ PASS
+  accuracy-check         Accuracy > 70%                         0.795      > 0.7      ✅ PASS
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  Audit Summary: ✅ POLICY MET | 3/3 controls passed
+```

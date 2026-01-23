@@ -2,32 +2,45 @@
 
 **Frictionless Governance for AI.**
 
-Detect bias in your datasets with one line of code.
+Venturalitica is a lightweight Python SDK designed to enforce policies, audit fairness, and track environmental impact in your ML workflows with zero friction.
+
+---
+
+## ⚡️ Quickstart in 60 Seconds
+
+Detect bias in your datasets or models with one line of code.
 
 ```python
 import venturalitica as vl
 
-# Auto-download UCI data and run bias audit
+# Auto-download UCI data, load policy, and run bias audit
 results = vl.quickstart('loan')
 ```
 
 ---
 
-## Get Started
+## 🛡 Key Features
 
-→ **[60-Second Quickstart](quickstart.md)** - Your first bias audit
-
----
-
-## Tutorials & Examples
-
-Explore our interactive Jupyter notebooks:
-- **[Notebook: 00-Quickstart](https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/00-quickstart.ipynb)** - Fast one-liner audit.
-- **[Notebook: 01-Training](https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/01-training-tutorial.ipynb)** - Full ML workflow integration.
+| Feature | Description |
+| :--- | :--- |
+| **Bias Detection** | Quantitative fairness audits (Disparate Impact, Class Balance). |
+| **Integrity Checks** | Immutable audit trails and model fingerprints. |
+| **Green AI** | Native carbon emission and energy consumption tracking. |
+| **Policy as Code** | Define governance rules in standard OSCAL/YAML formats. |
+| **Framework Agnostic** | Works with Scikit-learn, PyTorch, TensorFlow, and more. |
 
 ---
 
-## Installation
+## 📚 Explore Tutorials
+
+Start with our interactive Jupyter notebooks:
+
+- **[00: Quickstart](https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/00-quickstart.ipynb)** - Fast one-liner audit on the German Credit dataset.
+- **[01: Training Workflow](https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/01-training-tutorial.ipynb)** - Learn how to audit data before training and verify models post-training.
+
+---
+
+## ⚙️ Installation
 
 ```bash
 pip install venturalitica
@@ -35,4 +48,6 @@ pip install venturalitica
 
 ---
 
-© 2026 Venturalitica | [GitHub](https://github.com/Venturalitica/venturalitica-sdk)
+[Quickstart Guide](quickstart.md) | [API Reference](api.md) | [GitHub](https://github.com/Venturalitica/venturalitica-sdk)
+
+© 2026 Venturalitica | Built for Responsible AI
