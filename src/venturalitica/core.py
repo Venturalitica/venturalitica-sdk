@@ -52,7 +52,8 @@ class GovernanceValidator:
             print(f"  Evaluating Control '{ctrl.id}': {ctrl.description[:50]}...")
             
             # Policy Binding and Attribute Alignment logs
-            eval_context = {}
+            eval_context = {k: v for k, v in context_mapping.items() if k in ['target', 'prediction']}
+            
             for role, var in ctrl.input_mapping.items():
                 actual_col = context_mapping.get(var)
                 
