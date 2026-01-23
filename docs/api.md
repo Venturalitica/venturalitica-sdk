@@ -38,7 +38,10 @@ The main entry point for auditing datasets and models.
 
 ---
 
-### `wrap(model, policy)`
+### `wrap(model, policy)` (Experimental)
+
+> [!CAUTION]
+> **PREVIEW**: This function is experimental and its API might change.
 
 Transparently audit your model during Scikit-Learn standard workflows.
 

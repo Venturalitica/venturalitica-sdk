@@ -165,7 +165,10 @@ Venturalitica supports: `accuracy`, `precision`, `recall`, and `f1`.
 
 ---
 
-## Step 6: Automatic Governance with `vl.wrap`
+## Step 6: Automatic Governance with `vl.wrap` (Experimental)
+
+> [!WARNING]
+> **Experimental Feature**: `vl.wrap` is currently in preview. Its API and behavior may change in future versions. Use with caution.
 
 If you are using **Scikit-Learn**, you can automate the entire audit process by wrapping your model. This ensures that every `.fit()` and `.predict()` call is audited against your policy.
 

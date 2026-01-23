@@ -95,6 +95,13 @@ class GovernanceWrapper:
 
 def wrap(model: Any, policy: Optional[Union[str, Path]] = None) -> GovernanceWrapper:
     """
-    Transparently wraps an ML model with Venturalitica governance.
+    [EXPERIMENTAL] Transparently wraps an ML model with Venturalitica governance.
+    Note: This is an experimental feature and may change or be removed in future versions.
     """
+    import warnings
+    warnings.warn(
+        "vl.wrap is an experimental feature and its API may change in future versions.",
+        UserWarning,
+        stacklevel=2
+    )
     return GovernanceWrapper(model, policy)
