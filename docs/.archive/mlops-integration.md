@@ -1,6 +1,6 @@
 # MLOps Integrations
 
-Venturalitica SDK is designed to fit seamlessly into your existing machine learning workflow. It automatically detects and logs governance results to popular MLOps frameworks.
+Venturalítica SDK is designed to fit seamlessly into your existing machine learning workflow. It automatically detects and logs governance results to popular MLOps frameworks.
 
 ## Automatic Framework Detection
 

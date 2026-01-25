@@ -1,10 +1,10 @@
-# Venturalitica SDK
+# Venturalítica SDK
 
 ![coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 
 **Frictionless Governance for AI Systems.**
 
-The Venturalitica SDK enables Data Scientists and ML Engineers to integrate compliance and risk management directly into their training workflows. Built on the **OSCAL** (Open Security Controls Assessment Language) standard, it provides semantic policy enforcement with educational audit trails.
+The Venturalítica SDK enables Data Scientists and ML Engineers to integrate compliance and risk management directly into their training workflows. Built on the **OSCAL** (Open Security Controls Assessment Language) standard, it provides semantic policy enforcement with educational audit trails.
 
 ## ✨ Key Features
 
@@ -13,12 +13,14 @@ The Venturalitica SDK enables Data Scientists and ML Engineers to integrate comp
 - **OSCAL-Native**: Industry-standard policy definitions compatible with NIST frameworks
 - **MLOps Agnostic**: Native adapters for **MLflow**, **Weights & Biases**, and **ClearML**
 - **Pre-training & Post-training Audits**: Validate data quality before training and model fairness after
+- **Regulatory Traceability Matrix**: Visual mapping of evidence to **EU AI Act Articles 9-15**
+- **Annex IV Generator**: Auto-draft Technical Documentation from your technical evidence
 - **Robust Metric Execution**: Gracefully handles missing columns for flexible audit scenarios
 
 ## 📦 Installation
 
 ```bash
-pip install venturalitica
+pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
 ```
 
 ## 🚀 Quick Start
@@ -81,10 +83,11 @@ vl.enforce(
 
 ## 📚 Documentation
 
-- **[Tutorial](docs/tutorial.md)**: Comprehensive guide to SDK features
-- **[Quickstart](docs/quickstart.md)**: Get started in 5 minutes
-- **[Green AI](docs/green-ai.md)**: Transparent carbon tracking
-- **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)**: Real-world examples with datasets
+- **[Tutorial: Zero-Setup Audit](docs/tutorials/local-audit.md)**: "Hello World" - Scan & Visualize in 2 minutes
+- **[Tutorial: Training Integration](docs/training.md)**: Add compliance checks to your Python code
+- **[Concept: The Regulatory Map](docs/compliance-dashboard.md)**: Understanding the Dashboard (Art 9-15)
+- **[Concept: Evidence Collection](docs/evidence-collection.md)**: How to record your audits
+- **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)**: Real-world examples
 
 ## 🎯 Core Concepts
 
@@ -149,27 +152,37 @@ venturalitica scan --target ./my-ml-project
 
 ### Compliance Dashboard
 
-Launch a local **Streamlit dashboard** for interactive governance:
+Launch the **Local Regulatory Map** to interpret your evidence:
 
 ```bash
 venturalitica ui
 ```
 
+**[Read the Guide: Understanding the Dashboard](docs/compliance-dashboard.md)**
+
 **Features:**
-- **Technical Check**: BOM viewer + Green AI carbon footprint tracking
-- **Governance & Risks**: EU AI Act compliance gap analysis
-- **Documentation**: Auto-generate Annex IV technical documentation
+*   **Article 9-15 Walk**: A sequential check of Risk, Data, Transparency, and Oversight.
+*   **Sequential Verification**: See exactly which technical artifact satisfies which legal article.
+*   **Annex IV Draft**: Generate the PDF-ready markdown file with `venturalitica doc`.
 
 **Integrates with:**
-- `bom.json` (from scanner)
-- `emissions.csv` (from CodeCarbon)
-- OSCAL policies
+*   `bom.json` (from scanner)
+*   `emissions.csv` (from CodeCarbon)
+*   OSCAL policies
 
-## ☁️ Venturalitica Cloud (Coming Soon)
+## 🔒 Data Sovereignty & Privacy
+
+Venturalítica follows a strict **Local-First** architecture.
+
+*   **No Cloud Uploads**: `vl.enforce()` and `vl.quickstart()` run entirely on your local machine. Your datasets never leave your environment.
+*   **Telemetry**: Usage metrics (if enabled) are strictly metadata (e.g., performance, error rates) and contain **NO PII**.
+*   **Compliance Data**: All evidence (`trace_*.json`) is stored locally in `.venturalitica/`. You own your compliance data.
+
+## ☁️ Venturalítica Cloud (Coming Soon)
 
 **Enterprise-grade EU AI Act & ISO 42001 compliance management**
 
-While the SDK provides frictionless local enforcement, **Venturalitica Cloud** will offer a complete compliance lifecycle management platform for **EU AI Act** and **ISO 42001**:
+While the SDK provides frictionless local enforcement, **Venturalítica Cloud** will offer a complete compliance lifecycle management platform for **EU AI Act** and **ISO 42001**:
 
 ### What's Coming
 
@@ -183,7 +196,7 @@ While the SDK provides frictionless local enforcement, **Venturalitica Cloud** w
 
 ### Early Access
 
-Interested in early access to Venturalitica Cloud?
+Interested in early access to Venturalítica Cloud?
 - **Join the waitlist**: [venturalitica.com/cloud](https://venturalitica.com/cloud) *(coming soon)*
 - **Enterprise inquiries**: Contact us for pilot programs
 

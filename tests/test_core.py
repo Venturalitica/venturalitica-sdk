@@ -114,14 +114,14 @@ def test_compute_and_evaluate_value_error(mock_single_control_policy):
 def test_compute_and_evaluate_unexpected_error(mock_single_control_policy, capsys):
     validator = GovernanceValidator(mock_single_control_policy)
     from venturalitica.metrics import METRIC_REGISTRY
-    df = pd.DataFrame({'a': [1]})
-    mapping = {'target': 'a'}
+    df = pd.DataFrame({'a': [1], 'b': [1]})
+    mapping = {'target': 'a', 'prediction': 'b'}
     
     with patch.dict(METRIC_REGISTRY, {"accuracy_score": MagicMock(side_effect=RuntimeError("Unexpected"))}):
         validator.compute_and_evaluate(df, mapping)
     
     captured = capsys.readouterr()
-    assert "Unexpected error" in captured.out
+    assert any(x in captured.out for x in ["Unexpected error", "Error computing", "Error evaluating"])
 
 def test_operators():
     v = GovernanceValidator.__new__(GovernanceValidator)

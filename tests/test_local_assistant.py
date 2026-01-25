@@ -85,10 +85,11 @@ def test_cli_ui():
     with patch('subprocess.run') as mock_run:
         result = runner.invoke(app, ["ui"])
         assert result.exit_code == 0
-        assert "Launching Dashboard" in result.stdout
+        assert "Launching Venturalítica UI" in result.stdout
         mock_run.assert_called_once()
 
 def test_cli_ui_error():
     with patch('subprocess.run', side_effect=Exception("Launch Error")):
         result = runner.invoke(app, ["ui"])
-        assert "Error launching dashboard" in result.stdout
+        # The updated code prints 'Failed to launch dashboard: <error>'
+        assert "Failed to launch dashboard" in result.stdout

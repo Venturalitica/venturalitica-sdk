@@ -26,7 +26,7 @@ if df['sex_col'].value_counts()['M'] / len(df) > 0.6:
 
 ## The Solution: Role-Based Binding
 
-**Venturalitica Approach** (✅ Good):
+**Venturalítica Approach** (✅ Good):
 
 ### Three-Tier Mapping
 

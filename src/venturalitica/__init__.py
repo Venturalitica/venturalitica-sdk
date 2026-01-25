@@ -1,4 +1,4 @@
-__version__ = "0.2.4"
+__version__ = "0.3.0"
 from .core import GovernanceValidator
 from .integrations import auto_log
 from pathlib import Path
@@ -15,7 +15,7 @@ import numpy as np
 from datetime import datetime
 
 # Custom JSON encoder para tipos complejos
-class VenturaliticaJSONEncoder(json.JSONEncoder):
+class VenturalíticaJSONEncoder(json.JSONEncoder):
     """Encoder que maneja tipos complejos de numpy, pandas y datetime"""
     def default(self, obj):
         if isinstance(obj, (np.bool_, np.integer, np.floating)):
@@ -50,7 +50,7 @@ def monitor(name: str = "Training Task"):
         HandshakeProbe(_is_enforced)
     ]
 
-    print(f"\n[Venturalitica] 🟢 Starting monitor: {name}")
+    print(f"\n[Venturalítica] 🟢 Starting monitor: {name}")
     start_time = time.time()
     
     for probe in probes:
@@ -60,7 +60,7 @@ def monitor(name: str = "Training Task"):
         yield
     finally:
         duration = time.time() - start_time
-        print(f"[Venturalitica] 🔴 Monitor stopped: {name}")
+        print(f"[Venturalítica] 🔴 Monitor stopped: {name}")
         print(f"  ⏱  Duration: {duration:.2f}s")
         
         for probe in probes:
@@ -87,7 +87,7 @@ def enforce(
     all_results = []
 
     for p in policies:
-        print(f"\n[Venturalitica v{__version__}] 🛡  Enforcing policy: {p}")
+        print(f"\n[Venturalítica v{__version__}] 🛡  Enforcing policy: {p}")
         try:
             validator = GovernanceValidator(str(p))
             results = []
@@ -142,14 +142,14 @@ def enforce(
     if all_results:
         auto_log(all_results)
         
-        # Cache results for CLI push
+        # Cache results for Local Dashboard
         try:
             os.makedirs(".venturalitica", exist_ok=True)
             results_path = ".venturalitica/results.json"
             with open(results_path, "w") as f:
                 serializable_results = [asdict(r) for r in all_results]
-                json.dump(serializable_results, f, indent=2, cls=VenturaliticaJSONEncoder)
-            print(f"  ✓ Results cached for 'venturalitica push'")
+                json.dump(serializable_results, f, indent=2, cls=VenturalíticaJSONEncoder)
+            print(f"  ✓ Results cached. Run 'venturalitica ui' to see the Compliance Dashboard.")
         except Exception as e:
             print(f"  ⚠ Failed to cache results: {e}")
             
@@ -194,11 +194,11 @@ def save_audit_results(results: List[ComplianceResult], path: str = ".venturalit
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, "w") as f:
         serializable_results = [asdict(r) for r in results]
-        json.dump(serializable_results, f, indent=2, cls=VenturaliticaJSONEncoder)
+        json.dump(serializable_results, f, indent=2, cls=VenturalíticaJSONEncoder)
     print(f"  ✓ Results saved to {path}")
 
 # Import public API
-from .wrappers import wrap
+from .wrappers import wrap, tracecollector
 from .badges import generate_compliance_badge, generate_metric_badge
 from .quickstart import quickstart, load_sample, list_scenarios
 
@@ -207,6 +207,7 @@ __all__ = [
     'monitor',
     'enforce',
     'wrap',
+    'tracecollector',
     'save_audit_results',
     'generate_compliance_badge',
     'generate_metric_badge',

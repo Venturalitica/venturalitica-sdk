@@ -82,7 +82,7 @@ SAMPLE_SCENARIOS = {
 
 def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceResult]:
     """
-    One-liner to experience Venturalitica with pre-configured data and policies.
+    One-liner to experience Venturalítica with pre-configured data and policies.
     
     This is the fastest way to understand the SDK's value proposition.
     Perfect for demos, tutorials, and first-time users.
@@ -98,9 +98,9 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
         >>> import venturalitica as vl
         >>> results = vl.quickstart('loan')
         
-        [Venturalitica] 🎓 Scenario: Credit Scoring Fairness
-        [Venturalitica] 📊 Loaded: 1000 loans
-        [Venturalitica] 🛡️  Policy: EU AI Act - Fair Lending
+        [Venturalítica] 🎓 Scenario: Credit Scoring Fairness
+        [Venturalítica] 📊 Loaded: 1000 loans
+        [Venturalítica] 🛡️  Policy: EU AI Act - Fair Lending
         
         ╭─────────── Compliance Audit Results ───────────╮
         │ Control  │ Metric               │ Value │ Status │
@@ -117,14 +117,14 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
     config = SAMPLE_SCENARIOS[scenario]
     
     if verbose:
-        print(f"\n[Venturalitica] 🎓 Scenario: {config['name']}")
-        print(f"[Venturalitica] 📖 {config['description']}")
+        print(f"\n[Venturalítica] 🎓 Scenario: {config['name']}")
+        print(f"[Venturalítica] 📖 {config['description']}")
     
     # Load sample data
     df = load_sample(scenario, verbose=verbose)
     
     if verbose:
-        print(f"[Venturalitica] 🛡️  Policy: {config['policy']}")
+        print(f"[Venturalítica] 🛡️  Policy: {config['policy']}")
         print()
     
     # Build policy path
@@ -144,7 +144,11 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
     
     # Enforce policy
     attrs = {**config['protected_attrs'], 'target': config['target']}
-    results = enforce(data=df, policy=str(policy_path), **attrs)
+    
+    # [v0.3] Auto-Trace: Capture runtime evidence (AST/BOM) for the UI
+    from .wrappers import tracecollector
+    with tracecollector(f"quickstart_{scenario}"):
+        results = enforce(data=df, policy=str(policy_path), **attrs)
     
     if verbose:
         print_aha_moment(scenario, results)
@@ -168,7 +172,7 @@ def load_sample(name: str, verbose: bool = True) -> pd.DataFrame:
     
     Example:
         >>> df = vl.load_sample('loan')
-        [Venturalitica] 📊 Loaded: UCI German Credit (1000 samples)
+        [Venturalítica] 📊 Loaded: UCI German Credit (1000 samples)
     """
     if name not in SAMPLE_SCENARIOS:
         available = ', '.join(SAMPLE_SCENARIOS.keys())
@@ -185,7 +189,7 @@ def load_sample(name: str, verbose: bool = True) -> pd.DataFrame:
             df[config['target']] = dataset.data.targets
             
             if verbose:
-                print(f"[Venturalitica] 📊 Loaded: UCI Dataset #{config['uci_id']} ({len(df)} samples)")
+                print(f"[Venturalítica] 📊 Loaded: UCI Dataset #{config['uci_id']} ({len(df)} samples)")
             
             return df
         except ImportError:
@@ -210,7 +214,7 @@ def load_sample(name: str, verbose: bool = True) -> pd.DataFrame:
     df = pd.read_csv(dataset_path)
     
     if verbose:
-        print(f"[Venturalitica] 📊 Loaded: {len(df)} samples from {name} scenario")
+        print(f"[Venturalítica] 📊 Loaded: {len(df)} samples from {name} scenario")
     
     return df
 

@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&display=swap');
+
+/* Venturalítica SaaS Branding */
+
+:root {
+    /* Colors */
+    --md-primary-fg-color: #0B3260;
+    --md-primary-fg-color--light: #163d69;
+    --md-primary-fg-color--dark: #082c5b;
+
+    --md-accent-fg-color: #EBB024;
+    --md-accent-fg-color--transparent: rgba(235, 176, 36, 0.1);
+
+    /* Typography */
+    --md-text-font-family: "Roboto", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    --md-code-font-family: "Roboto Mono", SFMono-Regular, Consolas, Menlo, monospace;
+}
+
+/* Heading Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: "Roboto Slab", serif;
+    font-weight: 700;
+}
+
+/* Professional touch for admonitions */
+.md-typeset .admonition.important,
+.md-typeset admonition.important {
+    border-left-color: var(--md-accent-fg-color);
+}
+
+.md-typeset .admonition.important>.admonition-title,
+.md-typeset admonition.important>.admonition-title {
+    background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* Custom header logo sizing */
+.md-header__button.md-logo img {
+    height: 1.5rem;
+    width: auto;
+}

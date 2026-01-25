@@ -80,6 +80,18 @@ class BOMScanner:
 
         # Standard PEP 621 dependencies
         project = data.get("project", {})
+        
+        # Try to get project license for the root component
+        license_info = project.get("license")
+        root_license = None
+        if isinstance(license_info, dict):
+            root_license = license_info.get("text") or license_info.get("file")
+        elif isinstance(license_info, str):
+            root_license = license_info
+            
+        if root_license:
+            self._add_component(project.get("name", "root"), project.get("version"), ComponentType.LIBRARY, licenses=[root_license])
+
         for dep in project.get("dependencies", []):
             self._add_dependency_str(dep)
             
@@ -97,7 +109,11 @@ class BOMScanner:
 
     def _scan_models(self) -> None:
         """Scans .py files for ML model definitions using AST."""
-        for root, _, files in os.walk(self.target_dir):
+        EXCLUDE_DIRS = {".venv", "venv", "__pycache__", ".git", ".ipynb_checkpoints"}
+        for root, dirs, files in os.walk(self.target_dir):
+            # Prune excluded directories
+            dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
+            
             for file in files:
                 if file.endswith(".py"):
                     self._analyze_python_file(os.path.join(root, file))
@@ -136,13 +152,21 @@ class BOMScanner:
         name: str, 
         version: Optional[str], 
         type: ComponentType,
-        description: Optional[str] = None
+        description: Optional[str] = None,
+        licenses: Optional[list] = None
     ) -> None:
         """Helper to add a component to the BOM."""
+        from cyclonedx.model.license import License
+        
         component = Component(
             name=name,
             version=version,
             type=type,
             description=description
         )
+        
+        if licenses:
+            for lic_name in licenses:
+                component.licenses.add(License(name=lic_name))
+                
         self.bom.components.add(component)

@@ -11,14 +11,17 @@ Tests cover:
 import pytest
 import pandas as pd
 import numpy as np
-from venturalitica.metrics.multiclass import (
+import pytest
+import pandas as pd
+import numpy as np
+from venturalitica.fairness.multiclass import (
     calc_weighted_demographic_parity_multiclass,
     calc_macro_equal_opportunity_multiclass,
     calc_micro_equalized_odds_multiclass,
     calc_predictive_parity_multiclass,
     calc_multiclass_fairness_report,
 )
-from venturalitica.metrics.causal import (
+from venturalitica.causal.metrics import (
     calc_path_decomposition,
     calc_counterfactual_fairness,
     calc_fairness_through_awareness,

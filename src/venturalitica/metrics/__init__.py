@@ -1,5 +1,5 @@
-from .performance import calc_accuracy, calc_precision, calc_recall, calc_f1, calc_mean
-from .fairness import (
+from venturalitica.performance import calc_accuracy, calc_precision, calc_recall, calc_f1, calc_mean
+from venturalitica.fairness import (
     calc_demographic_parity, 
     calc_equal_opportunity,
     calc_equalized_odds_ratio,
@@ -9,16 +9,16 @@ from .fairness import (
     calc_multiclass_confusion_metrics,
     HAS_FAIRLEARN
 )
-from .data import calc_disparate_impact, calc_class_imbalance
-from .privacy import calc_k_anonymity, calc_l_diversity, calc_t_closeness, calc_data_minimization_score
-from .multiclass import (
+from venturalitica.quality import calc_disparate_impact, calc_class_imbalance
+from venturalitica.privacy import calc_k_anonymity, calc_l_diversity, calc_t_closeness, calc_data_minimization_score
+from venturalitica.fairness import (
     calc_weighted_demographic_parity_multiclass,
     calc_macro_equal_opportunity_multiclass,
     calc_micro_equalized_odds_multiclass,
     calc_predictive_parity_multiclass,
     calc_multiclass_fairness_report,
 )
-from .causal import (
+from venturalitica.causal import (
     calc_path_decomposition,
     calc_counterfactual_fairness,
     calc_fairness_through_awareness,

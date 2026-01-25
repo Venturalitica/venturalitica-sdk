@@ -36,4 +36,4 @@ def test_cli_ui_keyboard_interrupt():
 def test_cli_ui_exception():
     with patch("subprocess.run", side_effect=Exception("Launch fail")):
         result = runner.invoke(app, ["ui"])
-    assert "Error launching dashboard: Launch fail" in result.stdout
+    assert "Failed to launch dashboard: Launch fail" in result.stdout

@@ -91,7 +91,7 @@ Before implementing controls, we perform a risk assessment to prioritize our gov
 
 ---
 
-## The Solution: Venturalitica SDK
+## The Solution: Venturalítica SDK
 
 ### Step 1: Understand the Risks
 
@@ -276,7 +276,7 @@ vl.enforce(
 ### Example Output
 
 ```
-[Venturalitica] 🛡️ Checking Training Data for Bias (Gender & Age)...
+[Venturalítica] 🛡️ Checking Training Data for Bias (Gender & Age)...
 
 Evaluating Control 'credit-data-imbalance': Data Quality: Minority class (rejected loans) should represent at least 20%...
   ✓ PASS: class_imbalance = 0.43 >= 0.20
@@ -284,13 +284,13 @@ Evaluating Control 'credit-data-imbalance': Data Quality: Minority class (reject
 Evaluating Control 'credit-data-bias': Pre-training Fairness: Disparate impact ratio should follow the '80% Rule'...
   ✓ PASS: disparate_impact = 1.00 >= 0.80
 
-[Venturalitica] 🟢 Starting monitor: Loan Model Training
+[Venturalítica] 🟢 Starting monitor: Loan Model Training
 ... (training) ...
-[Venturalitica] 🔴 Monitor stopped: Loan Model Training
+[Venturalítica] 🔴 Monitor stopped: Loan Model Training
   ⏱  Duration: 1.2s
   🌱 [Green AI] Carbon emissions: 0.000001 kgCO₂
 
-[Venturalitica] 🛡️ Checking Model Compliance (Gender & Age)...
+[Venturalítica] 🛡️ Checking Model Compliance (Gender & Age)...
 
 Evaluating Control 'credit-fair-1': Fairness Audit: Demographic Parity Difference must be under 10%...
   ✓ PASS: demographic_parity_diff = 0.00 < 0.10
