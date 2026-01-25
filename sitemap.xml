@@ -2,18 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://venturalitica.github.io/venturalitica-sdk/</loc>
-         <lastmod>2026-01-23</lastmod>
+         <lastmod>2026-01-25</lastmod>
     </url>
     <url>
          <loc>https://venturalitica.github.io/venturalitica-sdk/api/</loc>
-         <lastmod>2026-01-23</lastmod>
+         <lastmod>2026-01-25</lastmod>
+    </url>
+    <url>
+         <loc>https://venturalitica.github.io/venturalitica-sdk/compliance-dashboard/</loc>
+         <lastmod>2026-01-25</lastmod>
+    </url>
+    <url>
+         <loc>https://venturalitica.github.io/venturalitica-sdk/compliance-gap/</loc>
+         <lastmod>2026-01-25</lastmod>
+    </url>
+    <url>
+         <loc>https://venturalitica.github.io/venturalitica-sdk/evidence-collection/</loc>
+         <lastmod>2026-01-25</lastmod>
     </url>
     <url>
          <loc>https://venturalitica.github.io/venturalitica-sdk/quickstart/</loc>
-         <lastmod>2026-01-23</lastmod>
+         <lastmod>2026-01-25</lastmod>
     </url>
     <url>
          <loc>https://venturalitica.github.io/venturalitica-sdk/training/</loc>
-         <lastmod>2026-01-23</lastmod>
+         <lastmod>2026-01-25</lastmod>
     </url>
 </urlset>

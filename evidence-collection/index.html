@@ -10,11 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://venturalitica.github.io/venturalitica-sdk/api/">
+        <link rel="canonical" href="https://venturalitica.github.io/venturalitica-sdk/evidence-collection/">
       
       
-        <link rel="prev" href="../compliance-gap/">
+        <link rel="prev" href="../compliance-dashboard/">
       
+      
+        <link rel="next" href="../compliance-gap/">
       
       
         
@@ -25,7 +27,7 @@
     
     
       
-        <title>📕 API Reference - Venturalítica</title>
+        <title>📼 Evidence Recording (Black Box) - Venturalítica</title>
       
     
     
@@ -78,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-reference" class="md-skip">
+        <a href="#evidence-collection-the-black-box-recorder" class="md-skip">
           Skip to content
         </a>
       
@@ -117,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              📕 API Reference
+              📼 Evidence Recording (Black Box)
             
           </span>
         </div>
@@ -466,8 +468,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -478,13 +482,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
@@ -505,7 +507,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -548,10 +550,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../evidence-collection/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📼 Evidence Recording (Black Box)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -567,6 +596,87 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-ways-to-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two Ways to Record
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two Ways to Record">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-the-automatic-wrapper-vlwrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Automatic Wrapper (vl.wrap)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-the-trace-collector-vltracecollector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The Trace Collector (vl.tracecollector)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-does-the-evidence-go" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where does the evidence go?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compliance-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compliance Impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -611,8 +721,6 @@
       
   
   
-    
-  
   
   
     
@@ -625,11 +733,13 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
@@ -650,7 +760,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -665,37 +775,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    📕 API Reference
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
         
   
   
@@ -711,126 +794,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#core-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🚀 Core Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🚀 Core Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#quickstartscenario-verbosetrue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        quickstart(scenario, verbose=True)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#enforcedata-target-predictionnone-policynone-attributes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        enforce(data, target, prediction=None, policy=None, **attributes)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#wrapmodel-policy-experimental" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        wrap(model, policy) (Experimental)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#monitorname" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        monitor(name)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#utility-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🛠 Utility Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🛠 Utility Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#list_scenarios" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        list_scenarios()
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#load_samplescenario" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        load_sample(scenario)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -870,22 +833,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#core-functions" class="md-nav__link">
+  <a href="#two-ways-to-record" class="md-nav__link">
     <span class="md-ellipsis">
       
-        🚀 Core Functions
+        Two Ways to Record
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🚀 Core Functions">
+    <nav class="md-nav" aria-label="Two Ways to Record">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#quickstartscenario-verbosetrue" class="md-nav__link">
+  <a href="#1-the-automatic-wrapper-vlwrap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        quickstart(scenario, verbose=True)
+        1. The Automatic Wrapper (vl.wrap)
       
     </span>
   </a>
@@ -893,32 +856,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#enforcedata-target-predictionnone-policynone-attributes" class="md-nav__link">
+  <a href="#2-the-trace-collector-vltracecollector" class="md-nav__link">
     <span class="md-ellipsis">
       
-        enforce(data, target, prediction=None, policy=None, **attributes)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#wrapmodel-policy-experimental" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        wrap(model, policy) (Experimental)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#monitorname" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        monitor(name)
+        2. The Trace Collector (vl.tracecollector)
       
     </span>
   </a>
@@ -931,41 +872,24 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#utility-functions" class="md-nav__link">
+  <a href="#where-does-the-evidence-go" class="md-nav__link">
     <span class="md-ellipsis">
       
-        🛠 Utility Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🛠 Utility Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#list_scenarios" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        list_scenarios()
+        Where does the evidence go?
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#load_samplescenario" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#compliance-impact" class="md-nav__link">
     <span class="md-ellipsis">
       
-        load_sample(scenario)
+        Compliance Impact
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -989,125 +913,53 @@
   
 
 
-<h1 id="api-reference">API Reference</h1>
-<p>Venturalítica provides a simple, unified interface for AI governance.</p>
-<hr />
-<h2 id="core-functions">🚀 Core Functions</h2>
-<h3 id="quickstartscenario-verbosetrue"><code>quickstart(scenario, verbose=True)</code></h3>
-<p>Run a pre-configured bias audit demo on a standard dataset.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Parameter</th>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>scenario</code></td>
-<td style="text-align: left;"><code>str</code></td>
-<td style="text-align: left;">Predefined scenario: <code>'loan'</code>, <code>'hiring'</code>, <code>'health'</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>verbose</code></td>
-<td style="text-align: left;"><code>bool</code></td>
-<td style="text-align: left;">Whether to print the structured table report to the console.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>List[ComplianceResult]</code></p>
-<hr />
-<h3 id="enforcedata-target-predictionnone-policynone-attributes"><code>enforce(data, target, prediction=None, policy=None, **attributes)</code></h3>
-<p>The main entry point for auditing datasets and models.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Parameter</th>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>data</code></td>
-<td style="text-align: left;"><code>DataFrame</code></td>
-<td style="text-align: left;">Pandas DataFrame containing features, targets, and optionally predictions.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>target</code></td>
-<td style="text-align: left;"><code>str</code></td>
-<td style="text-align: left;">Name of the column with ground truth labels.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>prediction</code></td>
-<td style="text-align: left;"><code>str\|array</code></td>
-<td style="text-align: left;">(Optional) Column name or array of model predictions.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>policy</code></td>
-<td style="text-align: left;"><code>str</code></td>
-<td style="text-align: left;">Path to the OSCAL/YAML policy file.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>**attributes</code></td>
-<td style="text-align: left;"><code>str</code></td>
-<td style="text-align: left;">Mappings for protected variables (e.g., <code>gender="attr9"</code>, <code>age="age_col"</code>).</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>List[ComplianceResult]</code></p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If <code>prediction</code> is omitted, fairness metrics automatically fall back to using <code>target</code> to audit data bias.</p>
-</div>
-<hr />
-<h3 id="wrapmodel-policy-experimental"><code>wrap(model, policy)</code> (Experimental)</h3>
-<div class="admonition danger">
-<p class="admonition-title">PREVIEW</p>
-<p>This function is experimental and its API might change.</p>
-</div>
-<p>Transparently audit your model during Scikit-Learn standard workflows.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Parameter</th>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>model</code></td>
-<td style="text-align: left;"><code>object</code></td>
-<td style="text-align: left;">Any Scikit-learn compatible classifier or regressor.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>policy</code></td>
-<td style="text-align: left;"><code>str</code></td>
-<td style="text-align: left;">Path to the policy for evaluation.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong> <code>GovernanceWrapper</code> (Preserves original API like <code>.fit()</code> and <code>.predict()</code>).</p>
-<hr />
-<h3 id="monitorname"><code>monitor(name)</code></h3>
-<p>A context manager to track training metrics, hardware health, and environmental impact.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">with</span> <span class="n">vl</span><span class="o">.</span><span class="n">monitor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;CreditModel-v1&quot;</span><span class="p">):</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<h1 id="evidence-collection-the-black-box-recorder">Evidence Collection: The Black Box Recorder</h1>
+<p>While <strong>Policies</strong> (the Enforcer) stop bad models from reaching production, <strong>Evidence Collection</strong> (the Recorder) ensures you can prove exactly what happened during training. This is your "Black Box" flight recorder for AI.</p>
+<p>In Venturalítica, evidence collection is distinct from policy enforcement. You can record evidence without blocking a deployment, or enforce strictly without saving traces. However, for full EU AI Act compliance (Article 12: Record-Keeping), you need both.</p>
+<h2 id="two-ways-to-record">Two Ways to Record</h2>
+<h3 id="1-the-automatic-wrapper-vlwrap">1. The Automatic Wrapper (<code>vl.wrap</code>)</h3>
+<p>The easiest way to collect evidence is to wrap your estimator. This automatically hooks into <code>.fit()</code> and <code>.predict()</code> to capture inputs, outputs, and metadata.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.ensemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomForestClassifier</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 1. Wrap the model</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">model</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">RandomForestClassifier</span><span class="p">(),</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;my_policy.yaml&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># 2. Train as usual (Evidence is auto-collected)</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">audit_data</span><span class="o">=</span><span class="n">train_df</span><span class="p">,</span> <span class="n">gender</span><span class="o">=</span><span class="s2">&quot;sex&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><strong>Collected Telemetry:</strong></p>
+<p><strong>What is recorded?</strong>
+*   <strong>Timestamp</strong>: Precise start/end times.
+*   <strong>Model Config</strong>: Hyperparameters (<code>n_estimators</code>, <code>max_depth</code>, etc.).
+*   <strong>Data Shape</strong>: Number of rows/columns used.
+*   <strong>Code Context</strong>: The filename and AST analysis of the script that called <code>fit</code>.</p>
+<h3 id="2-the-trace-collector-vltracecollector">2. The Trace Collector (<code>vl.tracecollector</code>)</h3>
+<p>For custom training loops (e.g., PyTorch, TensorFlow) or complex pipelines where <code>fit()</code> isn't enough, use the context manager.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Start the recording session</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">with</span> <span class="n">vl</span><span class="o">.</span><span class="n">tracecollector</span><span class="p">(</span><span class="s2">&quot;custom_training_run&quot;</span><span class="p">):</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="c1"># Your custom logic here</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">train_custom_model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">evaluate_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># Evidence is saved to .venturalitica/trace_custom_training_run.json</span>
+</code></pre></div>
+<h2 id="where-does-the-evidence-go">Where does the evidence go?</h2>
+<p>All evidence is secured locally in the <code>.venturalitica/</code> directory:</p>
 <ul>
-<li><strong>⏱ Duration</strong>: Execution time of the block.</li>
-<li><strong>🌱 Emissions</strong>: Carbon footprint (requires <code>codecarbon</code>).</li>
-<li><strong>🛡 Stability</strong>: Model fingerprinting and integrity verification.</li>
+<li><strong><code>results.json</code></strong>: The outcome of your policy audits (Pass/Fail).</li>
+<li><strong><code>trace_{name}.json</code></strong>: The execution metadata (timestamps, code analysis).</li>
+<li><strong><code>bom.json</code></strong>: The software supply chain inventory (dependencies).</li>
 </ul>
-<hr />
-<h2 id="utility-functions">🛠 Utility Functions</h2>
-<h3 id="list_scenarios"><code>list_scenarios()</code></h3>
-<p>Returns a dictionary of available scenarios and their descriptions.</p>
-<h3 id="load_samplescenario"><code>load_sample(scenario)</code></h3>
-<p>Loads the corresponding UCI dataset for a scenario as a Pandas DataFrame.</p>
+<h2 id="compliance-impact">Compliance Impact</h2>
+<p>For <strong>Article 12 (EU AI Act)</strong>, this evidence is mandatory. The Venturalítica Dashboard reads these files to prove:
+1.  <strong>Traceability</strong>: "We know exactly which code and data produced Model v1.0."
+2.  <strong>Integrity</strong>: "The evidence has not been tampered with" (via SHA-256 anchoring).</p>
+<div class="admonition tip">
+<p class="admonition-title">View Your Traces</p>
+<p>After running your training script, launch the dashboard (<code>venturalitica ui</code>) to visualize these traces in the <strong>Article 12</strong> section.</p>
+</div>
 
 
 
