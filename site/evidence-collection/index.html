@@ -27,7 +27,7 @@
     
     
       
-        <title>📼 Evidence Recording (Black Box) - Venturalitica</title>
+        <title>📼 Evidence Recording (Black Box) - Venturalítica</title>
       
     
     
@@ -100,7 +100,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Venturalitica" class="md-header__button md-logo" aria-label="Venturalitica" data-md-component="logo">
+    <a href=".." title="Venturalítica" class="md-header__button md-logo" aria-label="Venturalítica" data-md-component="logo">
       
   <img src="../assets/logo.svg" alt="logo">
 
@@ -113,7 +113,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Venturalitica
+            Venturalítica
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -237,12 +237,12 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Venturalitica" class="md-nav__button md-logo" aria-label="Venturalitica" data-md-component="logo">
+    <a href=".." title="Venturalítica" class="md-nav__button md-logo" aria-label="Venturalítica" data-md-component="logo">
       
   <img src="../assets/logo.svg" alt="logo">
 
     </a>
-    Venturalitica
+    Venturalítica
   </label>
   
     <div class="md-nav__source">
@@ -915,7 +915,7 @@
 
 <h1 id="evidence-collection-the-black-box-recorder">Evidence Collection: The Black Box Recorder</h1>
 <p>While <strong>Policies</strong> (the Enforcer) stop bad models from reaching production, <strong>Evidence Collection</strong> (the Recorder) ensures you can prove exactly what happened during training. This is your "Black Box" flight recorder for AI.</p>
-<p>In Venturalitica, evidence collection is distinct from policy enforcement. You can record evidence without blocking a deployment, or enforce strictly without saving traces. However, for full EU AI Act compliance (Article 12: Record-Keeping), you need both.</p>
+<p>In Venturalítica, evidence collection is distinct from policy enforcement. You can record evidence without blocking a deployment, or enforce strictly without saving traces. However, for full EU AI Act compliance (Article 12: Record-Keeping), you need both.</p>
 <h2 id="two-ways-to-record">Two Ways to Record</h2>
 <h3 id="1-the-automatic-wrapper-vlwrap">1. The Automatic Wrapper (<code>vl.wrap</code>)</h3>
 <p>The easiest way to collect evidence is to wrap your estimator. This automatically hooks into <code>.fit()</code> and <code>.predict()</code> to capture inputs, outputs, and metadata.</p>
@@ -953,13 +953,13 @@
 <li><strong><code>bom.json</code></strong>: The software supply chain inventory (dependencies).</li>
 </ul>
 <h2 id="compliance-impact">Compliance Impact</h2>
-<p>For <strong>Article 12 (EU AI Act)</strong>, this evidence is mandatory. The Venturalitica Dashboard reads these files to prove:
+<p>For <strong>Article 12 (EU AI Act)</strong>, this evidence is mandatory. The Venturalítica Dashboard reads these files to prove:
 1.  <strong>Traceability</strong>: "We know exactly which code and data produced Model v1.0."
 2.  <strong>Integrity</strong>: "The evidence has not been tampered with" (via SHA-256 anchoring).</p>
-<blockquote>
-<p>[!TIP]
-<strong>View Your Traces</strong>: After running your training script, launch the dashboard (<code>venturalitica ui</code>) to visualize these traces in the <strong>Article 12</strong> section.</p>
-</blockquote>
+<div class="admonition tip">
+<p class="admonition-title">View Your Traces</p>
+<p>After running your training script, launch the dashboard (<code>venturalitica ui</code>) to visualize these traces in the <strong>Article 12</strong> section.</p>
+</div>
 
 
 

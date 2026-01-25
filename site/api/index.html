@@ -25,7 +25,7 @@
     
     
       
-        <title>📕 API Reference - Venturalitica</title>
+        <title>📕 API Reference - Venturalítica</title>
       
     
     
@@ -98,7 +98,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Venturalitica" class="md-header__button md-logo" aria-label="Venturalitica" data-md-component="logo">
+    <a href=".." title="Venturalítica" class="md-header__button md-logo" aria-label="Venturalítica" data-md-component="logo">
       
   <img src="../assets/logo.svg" alt="logo">
 
@@ -111,7 +111,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Venturalitica
+            Venturalítica
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -235,12 +235,12 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Venturalitica" class="md-nav__button md-logo" aria-label="Venturalitica" data-md-component="logo">
+    <a href=".." title="Venturalítica" class="md-nav__button md-logo" aria-label="Venturalítica" data-md-component="logo">
       
   <img src="../assets/logo.svg" alt="logo">
 
     </a>
-    Venturalitica
+    Venturalítica
   </label>
   
     <div class="md-nav__source">
@@ -990,7 +990,7 @@
 
 
 <h1 id="api-reference">API Reference</h1>
-<p>Venturalitica provides a simple, unified interface for AI governance.</p>
+<p>Venturalítica provides a simple, unified interface for AI governance.</p>
 <hr />
 <h2 id="core-functions">🚀 Core Functions</h2>
 <h3 id="quickstartscenario-verbosetrue"><code>quickstart(scenario, verbose=True)</code></h3>
@@ -1057,16 +1057,16 @@
 </tbody>
 </table>
 <p><strong>Returns:</strong> <code>List[ComplianceResult]</code></p>
-<blockquote>
-<p>[!NOTE]
-If <code>prediction</code> is omitted, fairness metrics automatically fall back to using <code>target</code> to audit data bias.</p>
-</blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If <code>prediction</code> is omitted, fairness metrics automatically fall back to using <code>target</code> to audit data bias.</p>
+</div>
 <hr />
 <h3 id="wrapmodel-policy-experimental"><code>wrap(model, policy)</code> (Experimental)</h3>
-<blockquote>
-<p>[!CAUTION]
-<strong>PREVIEW</strong>: This function is experimental and its API might change.</p>
-</blockquote>
+<div class="admonition danger">
+<p class="admonition-title">PREVIEW</p>
+<p>This function is experimental and its API might change.</p>
+</div>
 <p>Transparently audit your model during Scikit-Learn standard workflows.</p>
 <table>
 <thead>
