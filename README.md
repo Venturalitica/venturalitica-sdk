@@ -13,6 +13,8 @@ The Venturalitica SDK enables Data Scientists and ML Engineers to integrate comp
 - **OSCAL-Native**: Industry-standard policy definitions compatible with NIST frameworks
 - **MLOps Agnostic**: Native adapters for **MLflow**, **Weights & Biases**, and **ClearML**
 - **Pre-training & Post-training Audits**: Validate data quality before training and model fairness after
+- **Regulatory Traceability Matrix**: Visual mapping of evidence to **EU AI Act Articles 9-15**
+- **Annex IV Generator**: Auto-draft Technical Documentation from your technical evidence
 - **Robust Metric Execution**: Gracefully handles missing columns for flexible audit scenarios
 
 ## 📦 Installation
@@ -81,10 +83,11 @@ vl.enforce(
 
 ## 📚 Documentation
 
-- **[Tutorial](docs/tutorial.md)**: Comprehensive guide to SDK features
-- **[Quickstart](docs/quickstart.md)**: Get started in 5 minutes
-- **[Green AI](docs/green-ai.md)**: Transparent carbon tracking
-- **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)**: Real-world examples with datasets
+- **[Tutorial: Zero-Setup Audit](docs/tutorials/local-audit.md)**: "Hello World" - Scan & Visualize in 2 minutes
+- **[Tutorial: Training Integration](docs/training.md)**: Add compliance checks to your Python code
+- **[Concept: The Regulatory Map](docs/compliance-dashboard.md)**: Understanding the Dashboard (Art 9-15)
+- **[Concept: Evidence Collection](docs/evidence-collection.md)**: How to record your audits
+- **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)**: Real-world examples
 
 ## 🎯 Core Concepts
 
@@ -149,21 +152,23 @@ venturalitica scan --target ./my-ml-project
 
 ### Compliance Dashboard
 
-Launch a local **Streamlit dashboard** for interactive governance:
+Launch the **Local Regulatory Map** to interpret your evidence:
 
 ```bash
 venturalitica ui
 ```
 
+**[Read the Guide: Understanding the Dashboard](docs/compliance-dashboard.md)**
+
 **Features:**
-- **Technical Check**: BOM viewer + Green AI carbon footprint tracking
-- **Governance & Risks**: EU AI Act compliance gap analysis
-- **Documentation**: Auto-generate Annex IV technical documentation
+*   **Article 9-15 Walk**: A sequential check of Risk, Data, Transparency, and Oversight.
+*   **Sequential Verification**: See exactly which technical artifact satisfies which legal article.
+*   **Annex IV Draft**: Generate the PDF-ready markdown file with `venturalitica doc`.
 
 **Integrates with:**
-- `bom.json` (from scanner)
-- `emissions.csv` (from CodeCarbon)
-- OSCAL policies
+*   `bom.json` (from scanner)
+*   `emissions.csv` (from CodeCarbon)
+*   OSCAL policies
 
 ## ☁️ Venturalitica Cloud (Coming Soon)
 

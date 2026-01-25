@@ -10,25 +10,31 @@
       
       
       
+        <link rel="canonical" href="https://venturalitica.github.io/venturalitica-sdk/tutorials/local-audit/">
       
+      
+        <link rel="prev" href="../../quickstart/">
+      
+      
+        <link rel="next" href="../../training/">
       
       
         
       
       
-      <link rel="icon" href="/venturalitica-sdk/assets/favicon.svg">
+      <link rel="icon" href="../../assets/favicon.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>Venturalitica</title>
+        <title>⚡ Zero-Setup Audit (Local) - Venturalitica</title>
       
     
     
-      <link rel="stylesheet" href="/venturalitica-sdk/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/venturalitica-sdk/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -47,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL("/venturalitica-sdk/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -71,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#tutorial-your-first-local-audit" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -83,9 +94,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/venturalitica-sdk/." title="Venturalitica" class="md-header__button md-logo" aria-label="Venturalitica" data-md-component="logo">
+    <a href="../.." title="Venturalitica" class="md-header__button md-logo" aria-label="Venturalitica" data-md-component="logo">
       
-  <img src="/venturalitica-sdk/assets/logo.svg" alt="logo">
+  <img src="../../assets/logo.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -102,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              ⚡ Zero-Setup Audit (Local)
             
           </span>
         </div>
@@ -220,9 +231,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/venturalitica-sdk/." title="Venturalitica" class="md-nav__button md-logo" aria-label="Venturalitica" data-md-component="logo">
+    <a href="../.." title="Venturalitica" class="md-nav__button md-logo" aria-label="Venturalitica" data-md-component="logo">
       
-  <img src="/venturalitica-sdk/assets/logo.svg" alt="logo">
+  <img src="../../assets/logo.svg" alt="logo">
 
     </a>
     Venturalitica
@@ -249,7 +260,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/venturalitica-sdk/." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -273,8 +284,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -285,13 +298,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
@@ -312,7 +323,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -330,7 +341,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/venturalitica-sdk/quickstart/" class="md-nav__link">
+      <a href="../../quickstart/" class="md-nav__link">
         
   
   
@@ -355,10 +366,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/venturalitica-sdk/tutorials/local-audit/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚡ Zero-Setup Audit (Local)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -374,6 +412,81 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-scan-the-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Scan the Project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-launch-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Launch the Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-generate-the-technical-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Generate the Technical File
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -447,7 +560,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/venturalitica-sdk/training/" class="md-nav__link">
+      <a href="../../training/" class="md-nav__link">
         
   
   
@@ -536,7 +649,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/venturalitica-sdk/compliance-dashboard/" class="md-nav__link">
+      <a href="../../compliance-dashboard/" class="md-nav__link">
         
   
   
@@ -564,7 +677,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/venturalitica-sdk/evidence-collection/" class="md-nav__link">
+      <a href="../../evidence-collection/" class="md-nav__link">
         
   
   
@@ -653,7 +766,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/venturalitica-sdk/api/" class="md-nav__link">
+      <a href="../../api/" class="md-nav__link">
         
   
   
@@ -698,6 +811,71 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-scan-the-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Scan the Project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-launch-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Launch the Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-generate-the-technical-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Generate the Technical File
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -710,8 +888,82 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+  
+  
+
+
+<h1 id="tutorial-your-first-local-audit">Tutorial: Your First Local Audit</h1>
+<p>This tutorial demonstrates the "Zero-Setup" power of Venturalitica. You will audit a project folder without writing a single line of Python training code.</p>
+<p><strong>Goal</strong>: Generate a compliance report for an existing project directory.</p>
+<hr />
+<h2 id="prerequisites">Prerequisites</h2>
+<ol>
+<li>Install the SDK:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>venturalitica
+</code></pre></div></li>
+<li>Have a project folder ready (e.g., <code>my-ml-project/</code>) containing some <code>.py</code> files and a <code>requirements.txt</code>.</li>
+</ol>
+<hr />
+<h2 id="step-1-scan-the-project">Step 1: Scan the Project</h2>
+<p>The scanner acts like an automated auditor. It reads your file structure to inventory your "Software Bill of Materials" (SBOM).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>my-ml-project
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>venturalitica<span class="w"> </span>scan
+</code></pre></div>
+<p><strong>Output</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Scanning target: .
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>✓ BOM generated: ./bom.json
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Found 42 components.
+</code></pre></div></p>
+<p><strong>What just happened?</strong>
+*   Venturalitica parsed your dependencies (<code>numpy</code>, <code>pandas</code>, <code>scikit-learn</code>).
+*   It detected your ML models (e.g., <code>RandomForestClassifier</code>) by analyzing your source code (AST).
+*   It saved everything into a standard <code>bom.json</code> file.</p>
+<hr />
+<h2 id="step-2-launch-the-dashboard">Step 2: Launch the Dashboard</h2>
+<p>Now that you have evidence (the SBOM), let's inspect it.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>venturalitica<span class="w"> </span>ui
+</code></pre></div>
+<p>This opens the <strong>Compliance Dashboard</strong> in your browser (<code>http://localhost:8501</code>).</p>
+<p><strong>What to look for</strong>:
+1.  Navigate to <strong>Article 11 (Documentation)</strong>.
+2.  You should see your <strong>Software Bill of Materials</strong> marked as <strong>PRESENT</strong>.
+3.  Check <strong>Article 15 (Security)</strong>: Are there any known vulnerabilities in your dependencies?</p>
+<hr />
+<h2 id="step-3-generate-the-technical-file">Step 3: Generate the Technical File</h2>
+<p>Finally, let's create the official document required by the EU AI Act (Annex IV).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>venturalitica<span class="w"> </span>doc<span class="w"> </span>--output<span class="w"> </span>technical_file_draft.md
+</code></pre></div>
+<p><strong>Output</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>📄 Generating Technical Documentation: technical_file_draft.md
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>✓ Documentation draft created: technical_file_draft.md
+</code></pre></div></p>
+<p>Open <code>technical_file_draft.md</code>. You will see a structured template pre-filled with the data from your scan:
+*   <strong>System Description</strong>: Placeholders for you to fill.
+*   <strong>Technical Implementation</strong>: A list of the ML models and libraries detected in Step 1.
+*   <strong>Risk Management</strong>: Status of any fairness audits (if you had run <code>enforce</code> scripts).</p>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>In less than 2 minutes, you have:
+1.  <strong>Inventoried</strong> your supply chain.
+2.  <strong>Visualized</strong> your compliance status.
+3.  <strong>Drafted</strong> your legal documentation.</p>
+<p>This is the <strong>Local First</strong> philosophy: immediate value, zero cloud dependency.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -754,10 +1006,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/venturalitica-sdk/", "features": ["navigation.top", "search.suggest", "navigation.expand", "navigation.sections"], "search": "/venturalitica-sdk/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.top", "search.suggest", "navigation.expand", "navigation.sections"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/venturalitica-sdk/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

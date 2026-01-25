@@ -35,8 +35,9 @@ results = vl.quickstart('loan')
 
 Start with our interactive Jupyter notebooks:
 
-- **[00: Quickstart](https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/00-quickstart.ipynb)** - Fast one-liner audit on the German Credit dataset.
-- **[01: Training Workflow](https://github.com/Venturalitica/venturalitica-sdk/blob/main/notebooks/01-training-tutorial.ipynb)** - Learn how to audit data before training and verify models post-training.
+- **[⚡️ Zero-Setup Audit](tutorials/local-audit.md)** - Run a full compliance scan on any project folder in 2 minutes.
+- **[🛠️ Training Workflow](training.md)** - Learn how to audit data before training and verify models post-training.
+- **[📊 Regulatory Mapping](compliance-dashboard.md)** - Deep dive into how Venturalitica maps technical evidence to the EU AI Act.
 
 ---
 
@@ -48,6 +49,6 @@ pip install venturalitica
 
 ---
 
-[Quickstart Guide](quickstart.md) | [API Reference](api.md) | [GitHub](https://github.com/Venturalitica/venturalitica-sdk)
+[Quickstart Guide](quickstart.md) | [Local Audit Tutorial](tutorials/local-audit.md) | [Regulatory Map](compliance-dashboard.md) | [API Reference](api.md)
 
 © 2026 Venturalitica | Built for Responsible AI
