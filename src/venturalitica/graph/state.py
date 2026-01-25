@@ -17,6 +17,9 @@ class ComplianceState(TypedDict):
     project_root: str
     bom: Dict[str, Any]      # From Scanner
     runtime_meta: Dict[str, Any] # From vl.wrap logs
+    languages: List[str] # List of target languages (e.g. ["Catalan", "French"])
+    evidence_hash: str # SHA-256 hash of BOM + RuntimeMeta
+    bom_security: Dict[str, Any] # OSV Scan results
     
     # Internal
     sections: Annotated[Dict[str, SectionDraft], merge_dicts] # Keyed by "2.a", "2.b", etc.
@@ -24,4 +27,5 @@ class ComplianceState(TypedDict):
     critic_verdict: str # "APPROVE" or "REVISE"
     
     # Output
-    final_markdown: Optional[str]
+    final_markdown: Optional[str] # Master English Draft
+    translations: Dict[str, str] # Keyed by language name

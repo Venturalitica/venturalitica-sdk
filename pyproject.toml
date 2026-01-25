@@ -34,6 +34,8 @@ dependencies = [
     "ucimlrepo>=0.0.3",
     "langgraph>=0.6.11",
     "langchain-ollama>=0.3.10",
+    "langchain-mistralai>=0.2.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.urls]

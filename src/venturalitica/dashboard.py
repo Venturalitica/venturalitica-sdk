@@ -5,8 +5,11 @@ from pathlib import Path
 import os
 import json
 import time
+import time
+import time
 import asyncio
 from venturalitica.graph.workflow import create_compliance_graph
+from venturalitica.graph.nodes import NodeFactory
 from langchain_core.messages import HumanMessage
 
 # --- UI CONFIGURATION ---
@@ -43,6 +46,10 @@ async def run_compliance_graph(target_dir, container):
     """
     Orchestrates the LangGraph workflow and streams updates to the UI.
     """
+async def run_compliance_graph(target_dir, container, selected_languages):
+    """
+    Orchestrates the LangGraph workflow and streams updates to the UI.
+    """
     graph = create_compliance_graph(model_name=st.session_state.get('model_name', 'mistral'))
     
     initial_state = {
@@ -50,27 +57,36 @@ async def run_compliance_graph(target_dir, container):
         "bom": {},
         "runtime_meta": {},
         "sections": {},
-        "final_markdown": ""
+        "final_markdown": "",
+        "languages": selected_languages,
+        # Pass pre-calculated transparency data if available to avoid re-scanning
+        "evidence_hash": st.session_state.get('evidence_hash', ""),
+        "bom_security": st.session_state.get('bom_security', {})
     }
     
-    container.info("🚀 Launching Compliance-RAG...")
-    
-    # Stream the graph execution
-    async for event in graph.astream(initial_state):
-        for node, data in event.items():
-            if node == "scanner":
-                container.success("✅ Application scanned.")
-                with container.expander("BOM Details"):
-                    st.json(data.get("bom", {}))
-            elif node == "planner":
-                container.info("🗺️ Planning documentation structure...")
-            elif node.startswith("writer_"):
-                section = node.split("_")[1]
-                container.markdown(f"✍️ **Drafted Section {section}**")
-            elif node == "compiler":
-                container.success("📄 Document compiled successfully!")
-                # MODIFIED: Return tuple of (full_markdown, sections_dict)
-                return data.get("final_markdown"), data.get("sections", {})
+    with container.status("🚀 Orchestrating Compliance Agents...", expanded=True) as status:
+        # Stream the graph execution
+        async for event in graph.astream(initial_state):
+            for node, data in event.items():
+                if node == "scanner":
+                    status.update(label="🔍 Application scanned.", state="running")
+                    with st.expander("BOM Details"):
+                        st.json(data.get("bom", {}))
+                elif node == "planner":
+                    status.update(label="🗺️ Planning documentation structure...", state="running")
+                elif node.startswith("writer_"):
+                    section = node.split("_")[1]
+                    st.write(f"✍️ **Drafted Section {section}**")
+                elif node == "compiler":
+                    status.update(label="📄 Document compiled successfully!", state="complete")
+                    # MODIFIED: Return tuple of (full_markdown, sections_dict)
+                    return data.get("final_markdown"), data.get("sections", {})
+                elif node == "translator":
+                    translations = data.get("translations", {})
+                    st.write(f"🌍 Translations completed: {list(translations.keys())}")
+                    if "translations" not in st.session_state:
+                         st.session_state["translations"] = {}
+                    st.session_state["translations"].update(translations)
                 
     return None, {}
 
@@ -98,6 +114,127 @@ def _parse_bom(bom):
     }
     return metrics, ml_models, libs
 
+    metrics = {
+        "total": len(components),
+        "models": len(ml_models),
+        "licenses": len(licenses)
+    }
+    return metrics, ml_models, libs
+
+def render_compliance_mapping(code_context, bom_security, runtime_meta):
+    """
+    Maps technical signals to EU AI Act Obligations (Art 9-15).
+    Professional 'Evidence ↔ Obligation' Traceability Matrix.
+    """
+    if not code_context or not isinstance(code_context, dict):
+        st.info("No Evidence Map available yet. Refresh local scan.")
+        return
+
+    # Aggregate metadata
+    all_imports = set()
+    for _, data in code_context.items():
+        if isinstance(data, dict):
+            all_imports.update(data.get('imports', []))
+    
+    st.markdown("### 🇪🇺 Regulatory Compliance Map")
+    st.markdown("""
+    *This mapping connects technical evidence to EU AI Act obligations **IF** the system is classified as High-Risk (Annex III).*
+    """)
+    
+    # 9. Article 9: Risk Management System
+    with st.expander("⚖️ Article 9: Risk Management System", expanded=True):
+        audit_results = runtime_meta.get("audit_results", [])
+        bias_concerns = [r for r in audit_results if "disparate_impact" in r or "bias" in r]
+        
+        if bias_concerns:
+             st.info(f"**Fundamental Rights Risk (Fairness):** Detected {len(bias_concerns)} fairness checks.")
+             for check in bias_concerns:
+                 if "FAIL" in check:
+                     st.error(f"❌ **Risk Materialized**: {check}")
+                 else:
+                     st.success(f"✅ **Mitigation Verified**: {check}")
+        else:
+             st.caption("No fairness/bias evaluations found in runtime traces. Risk identification pending.")
+
+    # 10. Article 10: Data Governance
+    with st.expander("📄 Article 10: Data Governance & Quality"):
+        risk_libraries = [i for i in all_imports if any(k in i.lower() for k in ['sklearn', 'mlflow', 'statsmodels'])]
+        data_libraries = [i for i in all_imports if any(k in i.lower() for k in ['pandas', 'numpy'])]
+        
+        if risk_libraries:
+            st.info("**Obligation Context:** Training, validation, and testing datasets must be relevant, representative, and free of errors.")
+            st.markdown("#### 🔍 Technical Evidence Detected:")
+            st.markdown(f"- **Modeling Frameworks**: `{', '.join(risk_libraries[:3])}`")
+            if data_libraries:
+                 st.markdown(f"- **Data Processing**: `{', '.join(data_libraries[:3])}`")
+            st.success("✅ **Action**: This evidence supports the 'Data Governance' chapter of your Technical File.")
+        else:
+            st.caption("No ML modeling libraries detected.")
+
+    # 11. Article 11: Technical Documentation
+    with st.expander("📁 Article 11: Technical Documentation"):
+        st.info("The provider must draw up technical documentation demonstrating conformity.")
+        has_bom = st.session_state.get('bom') is not None
+        has_annex = st.session_state.get('annex_sections') != {}
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            if has_bom: st.success("✅ **Evidence**: SBOM available.")
+            else: st.warning("⚠️ **Gap**: SBOM not scanned.")
+        with c2:
+            if has_annex: st.success("✅ **Evidence**: Annex IV Draft exists.")
+            else: st.warning("⚠️ **Gap**: Annex IV not generated.")
+
+    # 12. Article 12: Record-Keeping
+    with st.expander("📝 Article 12: Record-Keeping"):
+        st.info("Automatic logging of events ('logs') over the lifetime of the system.")
+        if st.session_state.get('evidence_hash'):
+            st.success(f"✅ **Evidence**: Cryptographic Hash (`{st.session_state['evidence_hash'][:8]}...`) anchored.")
+        if runtime_meta:
+            st.success("✅ **Evidence**: Execution traces (runtime_meta) captured.")
+        else:
+            st.warning("⚠️ **Gap**: No runtime records detected.")
+
+    # 13. Article 13: Transparency & Provision of Information
+    with st.expander("👁️ Article 13: Transparency"):
+        st.info("Systems must be accompanied by instructions for use to enable users to interpret output.")
+        if "raw_source" in str(code_context):
+            st.success("✅ **Evidence**: Source code visibility enabled (Technical Transparency).")
+        else:
+            st.warning("⚠️ **Gap**: Evidence opacity.")
+
+    # 14. Article 14: Human Oversight
+    with st.expander("👤 Article 14: Human Oversight"):
+        st.info("Designed to be effectively overseen by natural persons.")
+        has_human = any("stream" in i for i in all_imports) or any("gradio" in i for i in all_imports)
+        if has_human:
+            st.success("✅ **Evidence**: Interactive oversight interface detected.")
+        else:
+            st.warning("⚠️ **Gap**: No human-in-the-loop nodes detected in control flow.")
+
+    # 15. Article 15: Accuracy, Robustness & Cybersecurity
+    with st.expander("🛡️ Article 15: Accuracy & Cybersecurity"):
+        issues = bom_security.get("issues", [])
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**15(1) Accuracy & Robustness**")
+            if any("mlflow" in i for i in all_imports):
+                 st.success("✅ **Evidence**: Automated Metric Tracking detected (`mlflow`).")
+            else:
+                 st.warning("⚠️ **Gap**: No automated experiment tracking detected.")
+        
+        with c2:
+            st.markdown("**15(3) Cybersecurity (Resilience)**")
+            if issues:
+                st.error(f"❌ **Gap**: {len(issues)} supply chain vulnerabilities detected.")
+                st.caption(f"Impacts 'Resilience' claim against third-party exploitation.")
+            else:
+                st.success("✅ **Evidence**: Zero known vulnerabilities. Integrity Seal valid.")
+
+    st.divider()
+    st.caption("ℹ️ *This evidence is automatically injected into the Annex IV.2 Generator.*")
+
 # --- MAIN RENDER ---
 def render_dashboard():
     # Header with Logo/Title
@@ -119,12 +256,20 @@ def render_dashboard():
     st.sidebar.text(f"Root: {os.path.basename(target_dir)}")
     
     if st.sidebar.button("🔄 Refresh Local Scan", use_container_width=True):
-        with st.spinner("Analyzing artifacts..."):
+        with st.spinner("Deep Scanning artifacts (BOM, AST, Security)..."):
             try:
-                scanner = BOMScanner(target_dir)
-                bom_json = scanner.scan()
-                st.session_state['bom'] = json.loads(bom_json)
-                st.sidebar.success("Scan Complete!")
+                # Use Full Scanner Node
+                nodes = NodeFactory(model_name=st.session_state.get('model_name', 'mistral'))
+                dummy_state = {"project_root": target_dir}
+                scan_result = nodes.scan_project(dummy_state)
+                
+                st.session_state['bom'] = scan_result.get('bom')
+                st.session_state['evidence_hash'] = scan_result.get('evidence_hash')
+                st.session_state['bom_security'] = scan_result.get('bom_security')
+                st.session_state['code_context'] = scan_result.get('code_context')
+                st.session_state['runtime_meta'] = scan_result.get('runtime_meta')
+                
+                st.sidebar.success("Deep Scan Complete!")
             except Exception as e:
                 st.sidebar.error(f"Scan failed: {e}")
 
@@ -134,11 +279,61 @@ def render_dashboard():
         st.session_state['results'] = results
 
     # TABS
-    tab_tech, tab_gov, tab_annex = st.tabs([
+    tab_feed, tab_tech, tab_gov, tab_annex = st.tabs([
+        "👁️ Transparency Feed",
         "✅ Technical Integrity", 
         "🏛️ Policy Enforcement", 
         "📄 Annex IV.2 Generator"
     ])
+    
+    # TAB 0: TRANSPARENCY FEED (New)
+    with tab_feed:
+        st.header("Transparency Feed")
+        st.markdown("**Glass Box Integrity**: Verify the exact evidence used by the AI Agent.")
+        
+        # 1. Integrity Seal
+        hash_val = st.session_state.get('evidence_hash', 'Not Scanned')
+        if hash_val != 'Not Scanned':
+            st.success(f"🔐 **Evidence Hash (SHA-256):** `{hash_val}`")
+            st.caption("This hash anchors the documentation to this specific version of your codebase.")
+        else:
+            st.warning("⚠️ Evidence not yet hashed. Run 'Refresh Local Scan' in sidebar.")
+
+        col_feed_1, col_feed_2 = st.columns(2)
+        with col_feed_1:
+            st.subheader("🛡️ Supply Chain Security")
+            sec = st.session_state.get('bom_security', {})
+            if sec:
+                if sec.get('vulnerable'):
+                    st.error(f"❌ Vulnerabilities Detected: {len(sec.get('issues', []))}")
+                    for issue in sec.get('issues', []):
+                        severity = issue.get('severity', 'UNKNOWN')
+                        color = {"CRITICAL": "red", "HIGH": "orange", "MEDIUM": "blue", "LOW": "green"}.get(severity, "grey")
+                        
+                        with st.expander(f"🚨 {issue['package']} {issue['version']} [{severity}]"):
+                            st.write(f"**Description:** {issue['summary']}")
+                            st.markdown(f"[View Advisory]({issue['link']})")
+                            st.caption(f"Score: {issue.get('score', 'N/A')}")
+                else:
+                    st.success("✅ No known vulnerabilities found in BOM (OSV.dev)")
+            else:
+                 st.info("Run scan to check security.")
+
+        with col_feed_2:
+             st.subheader("📝 Compliance Evidence")
+             ctx = st.session_state.get('code_context', {})
+             sec = st.session_state.get('bom_security', {})
+             
+             if ctx:
+                 # NEW: Professional Compliance Mapping
+                 render_compliance_mapping(ctx, sec, st.session_state.get('runtime_meta', {}))
+                 
+                 with st.expander("🔍 View Raw Evidence (Technical)"):
+                     selected_file = st.selectbox("Select specific file", list(ctx.keys()))
+                     if selected_file:
+                         st.code(ctx[selected_file].get('raw_source', "No source available") if isinstance(ctx[selected_file], dict) else "Data mismatch", language="python")
+             else:
+                 st.info("Run scan to see captured code context.")
 
     # TAB 1: Technical Integrity
     with tab_tech:
@@ -262,13 +457,23 @@ def render_dashboard():
         # MODEL SELECTION
         st.session_state['model_name'] = st.selectbox("Select Local LLM", ["mistral", "llama3", "phi3"], index=0)
 
+        # LANGUAGE SELECTION (Choice)
+        available_langs = [
+            "English", "Spanish", "French", "German", "Italian", "Catalan", 
+            "Basque", "Galician", "Bulgarian", "Croatian", "Czech", "Danish", 
+            "Dutch", "Estonian", "Finnish", "Greek", "Hungarian", "Irish", 
+            "Latvian", "Lithuanian", "Maltese", "Polish", "Portuguese", 
+            "Romanian", "Slovak", "Slovenian", "Swedish"
+        ]
+        selected_langs = st.multiselect("Select Languages (Multi-lingual Batch)", available_langs, default=["English"])
+
         # SMART SCAN BUTTON (Real AI)
         if st.button("✨ Smart Draft with Compliance-RAG", type="primary", use_container_width=True):
             status_container = st.container()
             with st.spinner("Orchestrating AI Agents..."):
                 # Run async graph in sync streamlit
                 # MODIFIED: Expecting tuple (markdown, sections)
-                ret_val = asyncio.run(run_compliance_graph(target_dir, status_container))
+                ret_val = asyncio.run(run_compliance_graph(target_dir, status_container, selected_langs))
                 if ret_val:
                     # Handle legacy return or new tuple
                     if isinstance(ret_val, tuple):
@@ -282,39 +487,58 @@ def render_dashboard():
 
         st.divider()
         
-        # EDITOR (Multi-Section)
-        st.markdown("### 📝 Annex IV.2 Editor")
+        # EDITOR (Side-by-Side)
+        st.markdown("### 📝 Annex IV.2 Editor & Preview")
         
         sections = st.session_state.get('annex_sections', {})
         if sections:
-            # If we have structured sections, show them individually
-            sorted_keys = sorted(sections.keys())
-            compiled_md = ""
+            # Layout: Editor on Left, Preview on Right
+            ed_col, pre_col = st.columns(2)
             
-            for key in sorted_keys:
-                content = sections[key]
-                st.markdown(f"#### {key}")
-                new_content = st.text_area(f"Edit {key}", value=content, height=300, key=f"editor_{key}")
-                sections[key] = new_content
-                compiled_md += f"\n\n{new_content}"
+            with ed_col:
+                st.markdown("#### 🛠️ Edit")
+                sorted_keys = sorted(sections.keys())
+                compiled_md = ""
+                for key in sorted_keys:
+                    content = sections[key]
+                    new_content = st.text_area(f"[{key}]", value=content, height=250, key=f"editor_{key}")
+                    sections[key] = new_content
+                    compiled_md += f"\n\n## {key}\n{new_content}"
+                st.session_state['annex_full_md'] = compiled_md
+                st.session_state['annex_sections'] = sections
             
-            # Update full markdown state from individual parts
-            st.session_state['annex_full_md'] = compiled_md
-            st.session_state['annex_sections'] = sections
+            with pre_col:
+                st.markdown("#### 👁️ Preview")
+                st.markdown(st.session_state.get('annex_full_md', ""))
             
         else:
             # Fallback for empty state or legacy string
             full_text = st.session_state.get('annex_full_md', "")
-            edited_text = st.text_area("Full Document (Single View)", value=full_text, height=600)
-            st.session_state['annex_full_md'] = edited_text
+            e_col, r_col = st.columns(2)
+            with e_col:
+                edited_text = st.text_area("Full Document Editor", value=full_text, height=600)
+                st.session_state['annex_full_md'] = edited_text
+            with r_col:
+                st.markdown(st.session_state.get('annex_full_md', ""))
 
         # EXPORT
         st.divider()
-        if st.button("💾 Export to Markdown (Annex_IV.md)"):
-            with open("Annex_IV.md", "w") as f:
-                f.write(st.session_state.get('annex_full_md', ""))
-            st.success("Document exported to `Annex_IV.md` in project root.")
-            st.toast("Documentation Ready!")
+        c_ex1, c_ex2 = st.columns(2)
+        with c_ex1:
+             if st.button("💾 Export Master (English)"):
+                with open("Annex_IV_en.md", "w") as f:
+                    f.write(st.session_state.get('annex_full_md', ""))
+                st.success("Saved to `Annex_IV_en.md`")
+        
+        with c_ex2:
+             translations = st.session_state.get("translations", {})
+             if translations:
+                 if st.button(f"💾 Export All Translations ({len(translations)})"):
+                     for lang, content in translations.items():
+                         fname = f"Annex_IV_{lang}.md"
+                         with open(fname, "w") as f:
+                             f.write(content)
+                     st.success(f"Exported {len(translations)} files.")
 
 if __name__ == "__main__":
     render_dashboard()

@@ -125,10 +125,90 @@ class GovernanceWrapper:
         if hasattr(self._venturalitica_model, "get_params"):
              meta["model"]["params"] = self._venturalitica_model.get_params()
              
+        # [NEW] Capture Code Story via AST
+        try:
+            import inspect
+            from .graph.parser import ASTCodeScanner
+            
+            # Find the calling frame to get the script path
+            frame = inspect.currentframe()
+            # Go up until we find something not in venturalitica
+            while frame:
+                module_name = frame.f_globals.get('__name__', '')
+                if not module_name.startswith('venturalitica'):
+                    break
+                frame = frame.f_back
+            
+            if frame:
+                script_path = frame.f_globals.get('__file__')
+                if script_path and os.path.exists(script_path):
+                    scanner = ASTCodeScanner()
+                    meta["code_context"] = {
+                        "file": os.path.basename(script_path),
+                        "analysis": scanner.scan_file(script_path)
+                    }
+        except Exception as e:
+            print(f"⚠ Trace Audit Warning: Could not capture AST: {e}")
+
         # Save to disk
         os.makedirs(".venturalitica", exist_ok=True)
         with open(".venturalitica/latest_run.json", "w") as f:
             json.dump(meta, f, indent=2, default=str)
+
+class TraceCollector:
+    """
+    Context manager to collect execution evidence for RAG-based compliance.
+    """
+    def __init__(self, name: str = "default_run"):
+        self.name = name
+        self.start_time = None
+        self.metadata = {}
+
+    def __enter__(self):
+        self.start_time = datetime.now()
+        print(f"🚀 TraceCollector [{self.name}] starting...")
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        import inspect
+        from .graph.parser import ASTCodeScanner
+        
+        end_time = datetime.now()
+        duration = (end_time - self.start_time).total_seconds()
+        
+        # Capture context
+        meta = {
+            "name": self.name,
+            "timestamp": end_time.isoformat(),
+            "duration_seconds": duration,
+            "success": exc_type is None
+        }
+
+        # AST Capture
+        try:
+            # The caller is the frame that entered/exited the context
+            frame = inspect.currentframe().f_back
+            script_path = frame.f_globals.get('__file__')
+            if script_path and os.path.exists(script_path):
+                scanner = ASTCodeScanner()
+                meta["code_context"] = {
+                    "file": os.path.basename(script_path),
+                    "analysis": scanner.scan_file(script_path)
+                }
+        except Exception as e:
+            print(f"⚠ TraceCollector Warning: {e}")
+
+        os.makedirs(".venturalitica", exist_ok=True)
+        path = f".venturalitica/trace_{self.name}.json"
+        with open(path, "w") as f:
+            json.dump(meta, f, indent=2, default=str)
+        print(f"✅ TraceCollector [{self.name}] evidence saved to {path}")
+
+def tracecollector(name: str = "default_run") -> TraceCollector:
+    """
+    Helper to create a TraceCollector context manager.
+    """
+    return TraceCollector(name)
 
 def wrap(model: Any, policy: Optional[Union[str, Path]] = None) -> GovernanceWrapper:
     """
