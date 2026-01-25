@@ -1,6 +1,6 @@
 [project]
 name = "venturalitica"
-version = "0.2.4"
+version = "0.3.0"
 description = "Frictionless Governance for AI. Enforce policies in your ML training with one line of code."
 requires-python = ">=3.9"
 readme = "README.md"
@@ -32,6 +32,9 @@ dependencies = [
     "streamlit>=1.30.0",
     "compliance-trestle>=3.4.0",
     "ucimlrepo>=0.0.3",
+    "langgraph>=0.6.11",
+    "langchain-ollama>=0.3.10",
+    "langchain-mistralai>=0.2.0",
 ]
 
 [project.urls]

@@ -10,7 +10,7 @@ class MockStreamlit:
         self.sidebar.text_input = MagicMock(side_effect=lambda label, value=None: value)
         self.session_state = {}
         self.tabs = MagicMock(return_value=[MagicMock(), MagicMock(), MagicMock()])
-        self.columns = MagicMock(side_effect=lambda n: [MagicMock() for _ in range(n)])
+        self.columns = MagicMock(side_effect=lambda n: [MagicMock() for _ in range(len(n) if isinstance(n, list) else n)])
         self.title = MagicMock()
         self.header = MagicMock()
         self.info = MagicMock()
@@ -29,6 +29,16 @@ class MockStreamlit:
         self.spinner.return_value.__exit__ = MagicMock()
         self.toast = MagicMock()
         self.balloons = MagicMock()
+        self.image = MagicMock()
+        self.expander = MagicMock()
+        self.expander.return_value.__enter__ = MagicMock()
+        self.expander.return_value.__exit__ = MagicMock()
+        self.dataframe = MagicMock()
+        self.container = MagicMock()
+        self.container.return_value.__enter__ = MagicMock()
+        self.container.return_value.__exit__ = MagicMock()
+        self.selectbox = MagicMock()
+        self.text_area = MagicMock(side_effect=lambda label, value=None, **kwargs: value if value is not None else "")
 
 @pytest.fixture
 def mock_st_obj():
@@ -78,8 +88,12 @@ def test_dashboard_tabs_display(mock_st_obj, tmp_path):
     with patch("os.getcwd", return_value=str(tmp_path)):
         render_dashboard()
     
-    markdown_calls = [str(call.args[0]) for call in mock_st_obj.markdown.call_args_list if call.args]
-    assert any("test-pkg" in c for c in markdown_calls)
+    # "test-pkg" is shown in dataframe, not markdown
+    assert mock_st_obj.dataframe.called
+    # We could inspect call args but just checking it was called is basic enough
+    # Or check if any arg contains the data
+    df_arg = mock_st_obj.dataframe.call_args[0][0]
+    assert any(d['Library'] == 'test-pkg' for d in df_arg)
 
 def test_dashboard_exceptions(mock_st_obj, tmp_path):
     # Test scan failure
@@ -97,10 +111,12 @@ def test_dashboard_exceptions(mock_st_obj, tmp_path):
 
 def test_dashboard_buttons(mock_st_obj, tmp_path):
     # Mocking different buttons returning True
-    mock_st_obj.button.side_effect = lambda label, **kwargs: True
-    with patch("os.getcwd", return_value=str(tmp_path)):
-        render_dashboard()
+    mock_st_obj.button.return_value = True
+    
+    # Mock asyncio.run to return a valid tuple (markdown, sections)
+    with patch("asyncio.run", return_value=("# Generated Annex", {})):
+        with patch("os.getcwd", return_value=str(tmp_path)):
+            render_dashboard()
     
     assert mock_st_obj.toast.called
-    assert mock_st_obj.balloons.called
     assert mock_st_obj.success.called

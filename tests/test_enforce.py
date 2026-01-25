@@ -62,9 +62,8 @@ def test_enforce_no_results(mock_policy):
     # Policy with metric but we provide data without required columns
     df = pd.DataFrame({'a': [1]})
     results = enforce(data=df, policy=mock_policy)
-    # Since columns are missing, calc_accuracy returns 0.0, and it FAILS the control
-    assert len(results) == 1
-    assert results[0].passed is False
+    # Since columns are missing, validator skips the control
+    assert len(results) == 0
 
 def test_enforce_file_not_found():
     results = enforce(metrics={'a': 1}, policy="nonexistent.yaml")

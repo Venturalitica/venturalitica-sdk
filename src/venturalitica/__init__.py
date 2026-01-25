@@ -1,4 +1,4 @@
-__version__ = "0.2.4"
+__version__ = "0.3.0"
 from .core import GovernanceValidator
 from .integrations import auto_log
 from pathlib import Path
@@ -142,14 +142,14 @@ def enforce(
     if all_results:
         auto_log(all_results)
         
-        # Cache results for CLI push
+        # Cache results for Local Dashboard
         try:
             os.makedirs(".venturalitica", exist_ok=True)
             results_path = ".venturalitica/results.json"
             with open(results_path, "w") as f:
                 serializable_results = [asdict(r) for r in all_results]
                 json.dump(serializable_results, f, indent=2, cls=VenturaliticaJSONEncoder)
-            print(f"  ✓ Results cached for 'venturalitica push'")
+            print(f"  ✓ Results cached for 'venturalitica ui'")
         except Exception as e:
             print(f"  ⚠ Failed to cache results: {e}")
             
@@ -198,7 +198,7 @@ def save_audit_results(results: List[ComplianceResult], path: str = ".venturalit
     print(f"  ✓ Results saved to {path}")
 
 # Import public API
-from .wrappers import wrap
+from .wrappers import wrap, tracecollector
 from .badges import generate_compliance_badge, generate_metric_badge
 from .quickstart import quickstart, load_sample, list_scenarios
 
@@ -207,6 +207,7 @@ __all__ = [
     'monitor',
     'enforce',
     'wrap',
+    'tracecollector',
     'save_audit_results',
     'generate_compliance_badge',
     'generate_metric_badge',
