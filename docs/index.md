@@ -29,12 +29,12 @@ venturalitica ui
 
 | Feature | Description |
 | :--- | :--- |
-| **Regulatory Traceability** | 🇪🇺 Maps technical evidence directly to the **EU AI Act** (Art 9-15). |
+| **TraceCollector** | Unified evidence gathering for BOM, metrics, and logs. |
+| **Glass Box** | Sequential regulatory mapping (Art 9-15) for total transparency. |
+| **Local Sovereignty** | Zero-cloud dependency. All enforcement runs locally. |
 | **Bias Detection** | Quantitative fairness audits (Disparate Impact, Class Balance). |
-| **Integrity Checks** | Immutable audit trails and model fingerprints. |
-| **Green AI** | Native carbon emission and energy consumption tracking. |
 | **Policy as Code** | Define governance rules in standard OSCAL/YAML formats. |
-| **Framework Agnostic** | Works with Scikit-learn, PyTorch, TensorFlow, and more. |
+| **Annex IV** | Auto-draft technical documentation from local traces. |
 
 ---
 
@@ -51,7 +51,7 @@ Start with our interactive Jupyter notebooks:
 ## ⚙️ Installation
 
 ```bash
-pip install venturalitica
+pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
 ```
 
 ---

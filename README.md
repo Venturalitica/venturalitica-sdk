@@ -8,14 +8,12 @@ The Venturalítica SDK enables Data Scientists and ML Engineers to integrate com
 
 ## ✨ Key Features
 
-- **Role-Based Policy Binding**: Semantic mapping from policy definitions to your DataFrame columns
-- **Educational Audit Logs**: Control descriptions that explain *why* metrics matter (e.g., "80% Rule", "Class Imbalance")
-- **OSCAL-Native**: Industry-standard policy definitions compatible with NIST frameworks
-- **MLOps Agnostic**: Native adapters for **MLflow**, **Weights & Biases**, and **ClearML**
-- **Pre-training & Post-training Audits**: Validate data quality before training and model fairness after
-- **Regulatory Traceability Matrix**: Visual mapping of evidence to **EU AI Act Articles 9-15**
-- **Annex IV Generator**: Auto-draft Technical Documentation from your technical evidence
-- **Robust Metric Execution**: Gracefully handles missing columns for flexible audit scenarios
+- **Glass Box Governance**: Sequential regulatory mapping (Art 9-15) for total transparency.
+- **Local Sovereignty**: Zero-cloud dependency. All enforcement runs locally.
+- **TraceCollector Architecture**: Unified evidence gathering for BOM, metrics, and logs.
+- **Educational Audits**: Control descriptions that explain *why* metrics matter.
+- **OSCAL-Native**: Policy-as-Code using standard NIST formats.
+- **Annex IV Ready**: Auto-draft technical documentation from local traces.
 
 ## 📦 Installation
 
@@ -110,28 +108,6 @@ Control descriptions include regulatory context:
   description: "Data Quality: Minority class should represent at least 20% to avoid Class Imbalance"
 ```
 
-## 🔗 MLOps Integration
-
-The SDK integrates seamlessly with popular MLOps platforms:
-
-```python
-import mlflow
-import venturalitica as vl
-
-# Automatic logging to MLflow
-vl.enforce(
-    data=df,
-    target="approved",
-    prediction=predictions,
-    gender="gender",
-    policy="risks.oscal.yaml"
-)
-```
-
-**Supported Platforms:**
-- ✅ **MLflow** - Metrics, tags, and artifact logging
-- ✅ **Weights & Biases** - Experiment tracking with governance summaries
-- ✅ **ClearML** - Healthcare/regulated industry MLOps
 
 ## 🛠️ CLI Tools
 
