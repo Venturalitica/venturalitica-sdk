@@ -2,7 +2,7 @@
 name = "venturalitica"
 version = "0.3.0"
 description = "Frictionless Governance for AI. Enforce policies in your ML training with one line of code."
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [
