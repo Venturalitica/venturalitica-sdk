@@ -6,6 +6,8 @@ repo_name: venturalitica-sdk
 
 theme:
   name: material
+  logo: assets/logo.svg
+  favicon: assets/favicon.svg
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -22,9 +24,10 @@ theme:
         icon: material/weather-night
         name: Switch to light mode
   features:
-    - content.code.copy
     - navigation.top
     - search.suggest
+    - navigation.expand
+    - navigation.sections
 
 plugins:
   - search
@@ -40,6 +43,13 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Quickstart: quickstart.md
-  - Training: training.md
-  - API Reference: api.md
+  - Getting Started:
+    - 🚀 Quickstart: quickstart.md
+    - ⚡ Zero-Setup Audit (Local): tutorials/local-audit.md
+  - Deep Dives:
+    - 🛠️ Model Training Integration: training.md
+  - EU AI Act Governance:
+    - 📊 The Regulatory Map (Art 9-15): compliance-dashboard.md
+    - 📼 Evidence Recording (Black Box): evidence-collection.md
+  - Reference:
+    - 📕 API Reference: api.md

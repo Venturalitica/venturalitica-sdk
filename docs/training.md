@@ -196,3 +196,11 @@ predictions = governed_model.predict(
 ```
 
 This pattern reduces boilerplate and guarantees that no model goes to production without a verified audit trail.
+
+---
+
+## Step 7: Activating Evidence Collection
+
+Policy enforcement stops bad models, but **Evidence Collection** proves you followed the rules.
+
+To learn how to record these audits for the **Article 12 Record-Keeping** requirement, see the [Evidence Collection Guide](evidence-collection.md).
