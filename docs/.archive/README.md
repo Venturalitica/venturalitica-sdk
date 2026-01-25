@@ -1,4 +1,4 @@
-# Venturalitica SDK Documentation
+# Venturalítica SDK Documentation
 
 **Frictionless Governance for AI Systems**
 
@@ -86,7 +86,7 @@ Start here if you need **audit-ready documentation**:
 4. [Quickstart](quickstart.md) - Enforce policies in code
 
 ### Path 3: Full Stack Mastery
-**Goal**: Become a Venturalitica power user
+**Goal**: Become a Venturalítica power user
 
 1. Complete Path 1 (Developer Onboarding)
 2. [Core Concepts](core-concepts.md) - Deep dive into architecture

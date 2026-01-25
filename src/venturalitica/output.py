@@ -1,5 +1,5 @@
 """
-Rich terminal output formatting for Venturalitica SDK.
+Rich terminal output formatting for Venturalítica SDK.
 Provides visual enhancements for compliance results with semantic indicators.
 """
 

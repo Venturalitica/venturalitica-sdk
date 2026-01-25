@@ -62,8 +62,8 @@ def generate_compliance_badge(
     <rect width="180" height="20" fill="url(#s)" opacity="0.1"/>
   </g>
   <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="11">
-    <text aria-hidden="true" x="63" y="15" fill="#010101" fill-opacity="0.3" transform="scale(.1)" textLength="1160">Venturalitica Audit: {policy_name}</text>
-    <text x="63" y="14" transform="scale(.1)" fill="#fff" textLength="1160">Venturalitica Audit: {policy_name}</text>
+    <text aria-hidden="true" x="63" y="15" fill="#010101" fill-opacity="0.3" transform="scale(.1)" textLength="1160">Venturalítica Audit: {policy_name}</text>
+    <text x="63" y="14" transform="scale(.1)" fill="#fff" textLength="1160">Venturalítica Audit: {policy_name}</text>
     <text aria-hidden="true" x="151.5" y="15" fill="#010101" fill-opacity="0.3" transform="scale(.1)" textLength="440">{status_text}</text>
     <text x="151.5" y="14" transform="scale(.1)" fill="#fff" textLength="440">{status_text}</text>
   </g>

@@ -1,6 +1,6 @@
 # Advanced Features
 
-This guide covers advanced usage patterns, custom configurations, and programmatic access to the Venturalitica SDK.
+This guide covers advanced usage patterns, custom configurations, and programmatic access to the Venturalítica SDK.
 
 ## Programmatic Report Generation
 

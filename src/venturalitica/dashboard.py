@@ -14,7 +14,7 @@ from langchain_core.messages import HumanMessage
 
 # --- UI CONFIGURATION ---
 st.set_page_config(
-    page_title="Venturalitica | Local Compliance",
+    page_title="Venturalítica | Local Compliance",
     layout="wide",
     page_icon="🛡️"
 )
@@ -247,7 +247,7 @@ def render_dashboard():
         else:
             st.write("# 🛡️")
     with col_title:
-        st.title("Venturalitica Local Compliance")
+        st.title("Venturalítica Local Compliance")
         st.markdown("*Empowering developers to build compliant AI by design.*")
 
     # Local Project Context

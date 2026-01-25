@@ -13,6 +13,10 @@
          <lastmod>2026-01-25</lastmod>
     </url>
     <url>
+         <loc>https://venturalitica.github.io/venturalitica-sdk/compliance-gap/</loc>
+         <lastmod>2026-01-25</lastmod>
+    </url>
+    <url>
          <loc>https://venturalitica.github.io/venturalitica-sdk/evidence-collection/</loc>
          <lastmod>2026-01-25</lastmod>
     </url>
@@ -22,10 +26,6 @@
     </url>
     <url>
          <loc>https://venturalitica.github.io/venturalitica-sdk/training/</loc>
-         <lastmod>2026-01-25</lastmod>
-    </url>
-    <url>
-         <loc>https://venturalitica.github.io/venturalitica-sdk/tutorials/local-audit/</loc>
          <lastmod>2026-01-25</lastmod>
     </url>
 </urlset>

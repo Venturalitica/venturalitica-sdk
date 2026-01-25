@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://venturalitica.github.io/venturalitica-sdk/tutorials/local-audit/">
+        <link rel="canonical" href="https://venturalitica.github.io/venturalitica-sdk/compliance-gap/">
       
       
-        <link rel="prev" href="../../quickstart/">
+        <link rel="prev" href="../evidence-collection/">
       
       
-        <link rel="next" href="../../training/">
+        <link rel="next" href="../api/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/favicon.svg">
+      <link rel="icon" href="../assets/favicon.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>⚡ Zero-Setup Audit (Local) - Venturalitica</title>
+        <title>🚀 The Compliance Gap (Roadmap) - Venturalitica</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,7 +53,9 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+      <link rel="stylesheet" href="../assets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tutorial-your-first-local-audit" class="md-skip">
+        <a href="#the-compliance-gap-roadmap" class="md-skip">
           Skip to content
         </a>
       
@@ -87,6 +89,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -94,9 +100,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Venturalitica" class="md-header__button md-logo" aria-label="Venturalitica" data-md-component="logo">
+    <a href=".." title="Venturalitica" class="md-header__button md-logo" aria-label="Venturalitica" data-md-component="logo">
       
-  <img src="../../assets/logo.svg" alt="logo">
+  <img src="../assets/logo.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -113,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ⚡ Zero-Setup Audit (Local)
+              🚀 The Compliance Gap (Roadmap)
             
           </span>
         </div>
@@ -231,9 +237,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Venturalitica" class="md-nav__button md-logo" aria-label="Venturalitica" data-md-component="logo">
+    <a href=".." title="Venturalitica" class="md-nav__button md-logo" aria-label="Venturalitica" data-md-component="logo">
       
-  <img src="../../assets/logo.svg" alt="logo">
+  <img src="../assets/logo.svg" alt="logo">
 
     </a>
     Venturalitica
@@ -260,7 +266,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -284,8 +290,6 @@
       
   
   
-    
-  
   
   
     
@@ -298,11 +302,13 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
@@ -323,7 +329,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -341,7 +347,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../quickstart/" class="md-nav__link">
+      <a href="../quickstart/" class="md-nav__link">
         
   
   
@@ -357,136 +363,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ⚡ Zero-Setup Audit (Local)
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ⚡ Zero-Setup Audit (Local)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-scan-the-project" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1: Scan the Project
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-launch-the-dashboard" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 2: Launch the Dashboard
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-generate-the-technical-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Generate the Technical File
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Summary
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -560,7 +436,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../training/" class="md-nav__link">
+      <a href="../training/" class="md-nav__link">
         
   
   
@@ -592,8 +468,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -604,13 +482,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
@@ -631,7 +507,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -649,7 +525,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../compliance-dashboard/" class="md-nav__link">
+      <a href="../compliance-dashboard/" class="md-nav__link">
         
   
   
@@ -677,7 +553,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../evidence-collection/" class="md-nav__link">
+      <a href="../evidence-collection/" class="md-nav__link">
         
   
   
@@ -693,6 +569,164 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 The Compliance Gap (Roadmap)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 The Compliance Gap (Roadmap)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#missing-features-open-gaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠 Missing Features &amp; Open Gaps
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠 Missing Features &amp; Open Gaps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-evidence-hardening-article-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Evidence Hardening (Article 12)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-deep-data-governance-article-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Deep Data Governance (Article 10)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-human-oversight-interactive-checks-article-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Human Oversight Interactive Checks (Article 14)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-adversarial-robustness-article-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Adversarial Robustness (Article 15)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-automated-bias-mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Automated Bias Mitigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#propose-a-feature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Propose a Feature
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -766,7 +800,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/" class="md-nav__link">
+      <a href="../api/" class="md-nav__link">
         
   
   
@@ -821,54 +855,82 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#missing-features-open-gaps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prerequisites
+        🛠 Missing Features &amp; Open Gaps
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠 Missing Features &amp; Open Gaps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-evidence-hardening-article-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Evidence Hardening (Article 12)
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-scan-the-project" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#2-deep-data-governance-article-10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 1: Scan the Project
+        2. Deep Data Governance (Article 10)
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-launch-the-dashboard" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#3-human-oversight-interactive-checks-article-14" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: Launch the Dashboard
+        3. Human Oversight Interactive Checks (Article 14)
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-generate-the-technical-file" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#4-adversarial-robustness-article-15" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 3: Generate the Technical File
+        4. Adversarial Robustness (Article 15)
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#5-automated-bias-mitigation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Summary
+        5. Automated Bias Mitigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#propose-a-feature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Propose a Feature
       
     </span>
   </a>
@@ -895,62 +957,49 @@
   
 
 
-<h1 id="tutorial-your-first-local-audit">Tutorial: Your First Local Audit</h1>
-<p>This tutorial demonstrates the "Zero-Setup" power of Venturalitica. You will audit a project folder without writing a single line of Python training code.</p>
-<p><strong>Goal</strong>: Generate a compliance report for an existing project directory.</p>
+<h1 id="the-compliance-gap-roadmap">The Compliance Gap (Roadmap)</h1>
+<p>Venturalitica v0.3 provides the foundation for <strong>Glass Box AI</strong>, but high-risk systems (EU AI Act) require continuous improvement. This document identifies the current technical gaps and the features required to turn "Technical Evidence" into "Legal Certainty."</p>
 <hr />
-<h2 id="prerequisites">Prerequisites</h2>
+<h2 id="missing-features-open-gaps">🛠 Missing Features &amp; Open Gaps</h2>
+<h3 id="1-evidence-hardening-article-12">1. Evidence Hardening (Article 12)</h3>
+<ul>
+<li><strong>Current State</strong>: SHA-256 hashing of evidence files.</li>
+<li><strong>The Gap</strong>: No native <strong>Digital Signing</strong>.</li>
+<li><strong>Requirement</strong>: Implementation of GPG/X.509 signing for <code>trace.json</code> files to ensure non-repudiation in legal audits.</li>
+</ul>
+<h3 id="2-deep-data-governance-article-10">2. Deep Data Governance (Article 10)</h3>
+<ul>
+<li><strong>Current State</strong>: Basic class balance and missing value checks.</li>
+<li><strong>The Gap</strong>: Lack of <strong>Data Lineage</strong> and <strong>Annotation Provenance</strong>.</li>
+<li><strong>Requirement</strong>: Tools to log the source of labels, inter-annotator agreement metrics, and "poisoning" detection for training sets.</li>
+</ul>
+<h3 id="3-human-oversight-interactive-checks-article-14">3. Human Oversight Interactive Checks (Article 14)</h3>
+<ul>
+<li><strong>Current State</strong>: Static check for interactive elements (AST analysis).</li>
+<li><strong>The Gap</strong>: No runtime verification of "Human-in-the-loop" (HITL) actions.</li>
+<li><strong>Requirement</strong>: A <code>vl.oversight()</code> wrapper to record when a human actually approves/rejects a high-risk prediction.</li>
+</ul>
+<h3 id="4-adversarial-robustness-article-15">4. Adversarial Robustness (Article 15)</h3>
+<ul>
+<li><strong>Current State</strong>: Performance metrics (Accuracy/F1).</li>
+<li><strong>The Gap</strong>: No native <strong>Attack Scanners</strong>.</li>
+<li><strong>Requirement</strong>: Integration with robustness libraries (e.g., ART, CleverHans) to automate adversarial testing as part of the <code>enforce()</code> pipeline.</li>
+</ul>
+<h3 id="5-automated-bias-mitigation">5. Automated Bias Mitigation</h3>
+<ul>
+<li><strong>Current State</strong>: Detection only.</li>
+<li><strong>The Gap</strong>: Friction in fixing detected bias.</li>
+<li><strong>Requirement</strong>: Integration with Fairlearn/AIF360 for "suggested mitigations" directly in the Dashboard.</li>
+</ul>
+<hr />
+<h2 id="propose-a-feature">🚀 Propose a Feature</h2>
+<p>We are building the future of Responsible AI. If you have a specific requirement to fulfill a compliance mandate, we want to hear from you.</p>
 <ol>
-<li>Install the SDK:
-    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>venturalitica
-</code></pre></div></li>
-<li>Have a project folder ready (e.g., <code>my-ml-project/</code>) containing some <code>.py</code> files and a <code>requirements.txt</code>.</li>
+<li><strong>Open a <a href="https://github.com/Venturalitica/venturalitica-sdk/issues/new">GitHub Issue</a></strong>.</li>
+<li>Tag it as <code>feature-request</code> + <code>compliance-gap</code>.</li>
+<li>Describe the <strong>Legal Article</strong> (e.g., Art 13) or <strong>Technical Pain</strong> you are addressing.</li>
 </ol>
-<hr />
-<h2 id="step-1-scan-the-project">Step 1: Scan the Project</h2>
-<p>The scanner acts like an automated auditor. It reads your file structure to inventory your "Software Bill of Materials" (SBOM).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>my-ml-project
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>venturalitica<span class="w"> </span>scan
-</code></pre></div>
-<p><strong>Output</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Scanning target: .
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>✓ BOM generated: ./bom.json
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Found 42 components.
-</code></pre></div></p>
-<p><strong>What just happened?</strong>
-*   Venturalitica parsed your dependencies (<code>numpy</code>, <code>pandas</code>, <code>scikit-learn</code>).
-*   It detected your ML models (e.g., <code>RandomForestClassifier</code>) by analyzing your source code (AST).
-*   It saved everything into a standard <code>bom.json</code> file.</p>
-<hr />
-<h2 id="step-2-launch-the-dashboard">Step 2: Launch the Dashboard</h2>
-<p>Now that you have evidence (the SBOM), let's inspect it.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>venturalitica<span class="w"> </span>ui
-</code></pre></div>
-<p>This opens the <strong>Compliance Dashboard</strong> in your browser (<code>http://localhost:8501</code>).</p>
-<p><strong>What to look for</strong>:
-1.  Navigate to <strong>Article 11 (Documentation)</strong>.
-2.  You should see your <strong>Software Bill of Materials</strong> marked as <strong>PRESENT</strong>.
-3.  Check <strong>Article 15 (Security)</strong>: Are there any known vulnerabilities in your dependencies?</p>
-<hr />
-<h2 id="step-3-generate-the-technical-file">Step 3: Generate the Technical File</h2>
-<p>Finally, let's create the official document required by the EU AI Act (Annex IV).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>venturalitica<span class="w"> </span>doc<span class="w"> </span>--output<span class="w"> </span>technical_file_draft.md
-</code></pre></div>
-<p><strong>Output</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>📄 Generating Technical Documentation: technical_file_draft.md
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>✓ Documentation draft created: technical_file_draft.md
-</code></pre></div></p>
-<p>Open <code>technical_file_draft.md</code>. You will see a structured template pre-filled with the data from your scan:
-*   <strong>System Description</strong>: Placeholders for you to fill.
-*   <strong>Technical Implementation</strong>: A list of the ML models and libraries detected in Step 1.
-*   <strong>Risk Management</strong>: Status of any fairness audits (if you had run <code>enforce</code> scripts).</p>
-<hr />
-<h2 id="summary">Summary</h2>
-<p>In less than 2 minutes, you have:
-1.  <strong>Inventoried</strong> your supply chain.
-2.  <strong>Visualized</strong> your compliance status.
-3.  <strong>Drafted</strong> your legal documentation.</p>
-<p>This is the <strong>Local First</strong> philosophy: immediate value, zero cloud dependency.</p>
+<p><a href="https://github.com/Venturalitica/venturalitica-sdk/discussions">View Roadmap Discussions</a></p>
 
 
 
@@ -1006,10 +1055,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.top", "search.suggest", "navigation.expand", "navigation.sections"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "search.suggest", "navigation.expand", "navigation.sections"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "v0.3.0"}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

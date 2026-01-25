@@ -30,7 +30,7 @@ ENV/
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
-# Venturalitica
+# Venturalítica
 .venturalitica/
 */.venturalitica/*
 

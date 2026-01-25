@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://venturalitica.github.io/venturalitica-sdk/api/">
       
       
-        <link rel="prev" href="../evidence-collection/">
+        <link rel="prev" href="../compliance-gap/">
       
       
       
@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../assets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -84,6 +86,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -360,34 +366,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorials/local-audit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ⚡ Zero-Setup Audit (Local)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -581,6 +559,34 @@
     
   
     📼 Evidence Recording (Black Box)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compliance-gap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 The Compliance Gap (Roadmap)
   
 
     
@@ -1090,10 +1096,12 @@ If <code>prediction</code> is omitted, fairness metrics automatically fall back 
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">with</span> <span class="n">vl</span><span class="o">.</span><span class="n">monitor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;CreditModel-v1&quot;</span><span class="p">):</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 </code></pre></div>
-<p><strong>Collected Telemetry:</strong>
-- <strong>⏱ Duration</strong>: Execution time of the block.
-- <strong>🌱 Emissions</strong>: Carbon footprint (requires <code>codecarbon</code>).
-- <strong>🛡 Stability</strong>: Model fingerprinting and integrity verification.</p>
+<p><strong>Collected Telemetry:</strong></p>
+<ul>
+<li><strong>⏱ Duration</strong>: Execution time of the block.</li>
+<li><strong>🌱 Emissions</strong>: Carbon footprint (requires <code>codecarbon</code>).</li>
+<li><strong>🛡 Stability</strong>: Model fingerprinting and integrity verification.</li>
+</ul>
 <hr />
 <h2 id="utility-functions">🛠 Utility Functions</h2>
 <h3 id="list_scenarios"><code>list_scenarios()</code></h3>
@@ -1155,7 +1163,7 @@ If <code>prediction</code> is omitted, fairness metrics automatically fall back 
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "search.suggest", "navigation.expand", "navigation.sections"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "search.suggest", "navigation.expand", "navigation.sections"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "v0.3.0"}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

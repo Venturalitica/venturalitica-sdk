@@ -1,4 +1,4 @@
-site_name: Venturalitica
+site_name: Venturalítica
 site_description: Frictionless Governance for AI.
 site_url: https://venturalitica.github.io/venturalitica-sdk/
 repo_url: https://github.com/Venturalitica/venturalitica-sdk
@@ -28,9 +28,20 @@ theme:
     - search.suggest
     - navigation.expand
     - navigation.sections
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+extra_css:
+  - assets/extra.css
 
 plugins:
   - search
+  - macros:
+      verbose: false
+
+extra:
+  version: "v0.3.0"
 
 markdown_extensions:
   - admonition
@@ -45,11 +56,11 @@ nav:
   - Home: index.md
   - Getting Started:
     - 🚀 Quickstart: quickstart.md
-    - ⚡ Zero-Setup Audit (Local): tutorials/local-audit.md
   - Deep Dives:
     - 🛠️ Model Training Integration: training.md
   - EU AI Act Governance:
     - 📊 The Regulatory Map (Art 9-15): compliance-dashboard.md
     - 📼 Evidence Recording (Black Box): evidence-collection.md
+    - 🚀 The Compliance Gap (Roadmap): compliance-gap.md
   - Reference:
     - 📕 API Reference: api.md
