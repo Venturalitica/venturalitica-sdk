@@ -203,6 +203,7 @@ class TraceCollector:
         with open(path, "w") as f:
             json.dump(meta, f, indent=2, default=str)
         print(f"✅ TraceCollector [{self.name}] evidence saved to {path}")
+        print(f"  💡 Run 'venturalitica ui' to visualize this execution trace.")
 
 def tracecollector(name: str = "default_run") -> TraceCollector:
     """

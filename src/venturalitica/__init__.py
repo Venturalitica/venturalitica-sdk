@@ -149,7 +149,7 @@ def enforce(
             with open(results_path, "w") as f:
                 serializable_results = [asdict(r) for r in all_results]
                 json.dump(serializable_results, f, indent=2, cls=VenturaliticaJSONEncoder)
-            print(f"  ✓ Results cached for 'venturalitica ui'")
+            print(f"  ✓ Results cached. Run 'venturalitica ui' to see the Compliance Dashboard.")
         except Exception as e:
             print(f"  ⚠ Failed to cache results: {e}")
             
