@@ -1,6 +1,6 @@
 # CLI Tools
 
-The Venturalitica SDK provides powerful command-line tools for project analysis, compliance scanning, and interactive governance management.
+The Venturalítica SDK provides powerful command-line tools for project analysis, compliance scanning, and interactive governance management.
 
 ## 1. BOM Scanner: `venturalitica scan`
 

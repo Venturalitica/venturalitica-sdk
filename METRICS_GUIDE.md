@@ -1,4 +1,4 @@
-# Venturalitica SDK v1.1 - Enhanced Fairness & Privacy Framework
+# Venturalítica SDK v1.1 - Enhanced Fairness & Privacy Framework
 
 ## 📋 Overview
 
@@ -96,7 +96,7 @@ tests/
 
 ```
 src/venturalitica/
-├── __init__.py                             [MODIFIED] - VenturaliticaJSONEncoder
+├── __init__.py                             [MODIFIED] - VenturalíticaJSONEncoder
 ├── core.py                                 (unchanged)
 ├── metrics/
 │   ├── __init__.py                         [MODIFIED] - METRIC_REGISTRY (16 metrics)
@@ -454,4 +454,4 @@ To add a new metric:
 
 **Status:** Production Ready ✓  
 **Last Updated:** 2026-01-22  
-**Maintainers:** Venturalitica Governance Team
+**Maintainers:** Venturalítica Governance Team

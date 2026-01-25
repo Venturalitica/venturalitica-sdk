@@ -6,7 +6,7 @@ requires-python = ">=3.9"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Venturalitica", email = "hello@venturalitica.com"}
+    {name = "Venturalítica", email = "hello@venturalitica.com"}
 ]
 keywords = ["ai", "governance", "fairness", "mlops", "eu-ai-act", "oscal", "compliance"]
 classifiers = [
@@ -83,4 +83,5 @@ docs = [
     "mkdocs-llmstxt>=0.4.0",
     "mkdocs-material>=9.7.1",
     "mkdocstrings[python]>=0.30.1",
+    "mkdocs-macros-plugin>=1.0.0",
 ]

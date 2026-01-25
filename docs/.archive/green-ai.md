@@ -13,7 +13,7 @@
 
 **Green AI** is the practice of measuring and minimizing the carbon footprint of machine learning.
 
-The Venturalitica SDK provides a **transparent tracking mechanism** called `Monitor` that collects Green AI metrics (emissions, energy) and performance metrics (duration) without cluttering your code.
+The Venturalítica SDK provides a **transparent tracking mechanism** called `Monitor` that collects Green AI metrics (emissions, energy) and performance metrics (duration) without cluttering your code.
 
 ---
 
@@ -57,11 +57,11 @@ The `vl.monitor` is a **Multimodal Observability** tool using a **Probe Architec
 When the monitor finishes, you'll see a transparent summary:
 
 ```text
-[Venturalitica] 🟢 Starting monitor: Random Forest Training
+[Venturalítica] 🟢 Starting monitor: Random Forest Training
 
 ... (training occurs) ...
 
-[Venturalitica] 🔴 Monitor stopped: Random Forest Training
+[Venturalítica] 🔴 Monitor stopped: Random Forest Training
   ⏱  Duration: 45.20s
   🛡 [Security] Fingerprint: 169140e3ffff | Integrity: ✅ Stable
   💻 [Hardware] Peak Memory: 293.94 MB | CPUs: 16
@@ -73,7 +73,7 @@ When the monitor finishes, you'll see a transparent summary:
 
 ## Step 3: Visualize in the Dashboard
 
-Launch the Venturalitica dashboard to see historical trends:
+Launch the Venturalítica dashboard to see historical trends:
 
 ```bash
 venturalitica ui
@@ -109,7 +109,7 @@ with mlflow.start_run():
 
 The EU AI Act requires documenting computational resources and energy consumption. 
 
-**How Venturalitica helps:**
+**How Venturalítica helps:**
 1. **Auto-Capture**: `vl.monitor` captures the data at the source.
 2. **Auto-Inventory**: `venturalitica scan` detects training scripts and components.
 3. **Annex IV Draft**: The dashboard (Tab 3: Documentation) automatically populates Section 4 (Environmental Impact) with the metrics collected by your monitors.

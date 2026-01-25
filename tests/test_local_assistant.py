@@ -85,7 +85,7 @@ def test_cli_ui():
     with patch('subprocess.run') as mock_run:
         result = runner.invoke(app, ["ui"])
         assert result.exit_code == 0
-        assert "Launching Venturalitica UI" in result.stdout
+        assert "Launching Venturalítica UI" in result.stdout
         mock_run.assert_called_once()
 
 def test_cli_ui_error():

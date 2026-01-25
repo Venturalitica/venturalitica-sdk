@@ -1,6 +1,6 @@
 # API Reference
 
-Venturalitica provides a simple, unified interface for AI governance.
+Venturalítica provides a simple, unified interface for AI governance.
 
 ---
 
@@ -33,15 +33,15 @@ The main entry point for auditing datasets and models.
 
 **Returns:** `List[ComplianceResult]`
 
-> [!NOTE]
-> If `prediction` is omitted, fairness metrics automatically fall back to using `target` to audit data bias.
+!!! note
+    If `prediction` is omitted, fairness metrics automatically fall back to using `target` to audit data bias.
 
 ---
 
 ### `wrap(model, policy)` (Experimental)
 
-> [!CAUTION]
-> **PREVIEW**: This function is experimental and its API might change.
+!!! danger "PREVIEW"
+    This function is experimental and its API might change.
 
 Transparently audit your model during Scikit-Learn standard workflows.
 
@@ -64,6 +64,7 @@ with vl.monitor(name="CreditModel-v1"):
 ```
 
 **Collected Telemetry:**
+
 - **⏱ Duration**: Execution time of the block.
 - **🌱 Emissions**: Carbon footprint (requires `codecarbon`).
 - **🛡 Stability**: Model fingerprinting and integrity verification.

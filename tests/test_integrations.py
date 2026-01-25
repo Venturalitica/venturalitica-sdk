@@ -28,7 +28,7 @@ def test_generate_report(sample_results):
     failed = [ComplianceResult("F1", "Fail", "acc", 0.5, 0.4, "<", False, "high")]
     report_fail = generate_report(failed)
     assert "❌ Control F1" in report_fail
-    assert "Fix this in Venturalitica SaaS" in report_fail
+    assert "Fix this in Venturalítica SaaS" in report_fail
 
 def test_log_mlflow_active(sample_results):
     with patch('mlflow.active_run') as mock_active, \

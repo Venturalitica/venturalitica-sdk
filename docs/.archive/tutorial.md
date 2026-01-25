@@ -1,6 +1,6 @@
-# Venturalitica SDK Tutorial
+# Venturalítica SDK Tutorial
 
-This tutorial covers all features of the Venturalitica SDK, from basic policy enforcement to advanced MLOps integrations.
+This tutorial covers all features of the Venturalítica SDK, from basic policy enforcement to advanced MLOps integrations.
 
 ## Table of Contents
 
@@ -63,7 +63,7 @@ Functional Roles (Metrics) → Semantic Variables (Policy) → Physical Columns 
 
 ### Risk-Driven Governance
 
-Venturalitica shifts the focus from "checking boxes" to **managing risks**. Our approach links technical metrics to regulatory requirements:
+Venturalítica shifts the focus from "checking boxes" to **managing risks**. Our approach links technical metrics to regulatory requirements:
 
 | Risk Area | Regulation | Metric | Goal |
 | :--- | :--- | :--- | :--- |
@@ -221,7 +221,7 @@ vl.enforce(
 
 ## Green AI & Performance Monitoring
 
-Venturalitica provides a **transparent tracking mechanism** to collect environmental and performance metrics.
+Venturalítica provides a **transparent tracking mechanism** to collect environmental and performance metrics.
 
 ### Using the Monitor
 
@@ -606,7 +606,7 @@ tracker.stop()  # Writes to emissions.csv
     - Shows missing mitigation plans in OSCAL policies
     - Compares two approaches:
       - **Option A (Local)**: Manually edit 500+ line YAML files
-      - **Option B (SaaS)**: Push to Venturalitica Platform for guided mitigation
+      - **Option B (SaaS)**: Push to Venturalítica Platform for guided mitigation
 
 3.  **Upsell Mechanism**
     - "Push to SaaS" button demonstrates the value proposition

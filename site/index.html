@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="assets/extra.css">
+    
     <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -84,6 +86,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -361,6 +367,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#join-the-governance-revolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤝 Join the Governance Revolution
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -438,34 +455,6 @@
     
   
     🚀 Quickstart
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="tutorials/local-audit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ⚡ Zero-Setup Audit (Local)
   
 
     
@@ -685,6 +674,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="compliance-gap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 The Compliance Gap (Roadmap)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -851,6 +868,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#join-the-governance-revolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤝 Join the Governance Revolution
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -872,15 +900,18 @@
 
 
 <h1 id="venturalitica">Venturalitica</h1>
-<p><strong>Frictionless Governance for AI.</strong></p>
-<p>Venturalitica is a lightweight Python SDK designed to enforce policies, audit fairness, and track environmental impact in your ML workflows with zero friction.</p>
+<p><strong>The Glass Box for High-Risk AI.</strong></p>
+<p>Venturalitica transforms your Python code into <strong>Legal Evidence</strong>. It automatically maps your technical metrics, data audits, and execution logs to the <strong>EU AI Act (Articles 9-15)</strong> without leaving your local environment.</p>
 <hr />
 <h2 id="quickstart-in-60-seconds">⚡️ Quickstart in 60 Seconds</h2>
 <p>Detect bias in your datasets or models with one line of code.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Auto-download UCI data, load policy, and run bias audit</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># 1. Run Audit (Auto-Records Evidence)</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">results</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">quickstart</span><span class="p">(</span><span class="s1">&#39;loan&#39;</span><span class="p">)</span>
+</code></pre></div>
+<p>Then, verify the results in the <strong>Glass Box Dashboard</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>venturalitica<span class="w"> </span>ui
 </code></pre></div>
 <hr />
 <h2 id="key-features">🛡 Key Features</h2>
@@ -892,6 +923,10 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align: left;"><strong>Regulatory Traceability</strong></td>
+<td style="text-align: left;">🇪🇺 Maps technical evidence directly to the <strong>EU AI Act</strong> (Art 9-15).</td>
+</tr>
 <tr>
 <td style="text-align: left;"><strong>Bias Detection</strong></td>
 <td style="text-align: left;">Quantitative fairness audits (Disparate Impact, Class Balance).</td>
@@ -918,16 +953,22 @@
 <h2 id="explore-tutorials">📚 Explore Tutorials</h2>
 <p>Start with our interactive Jupyter notebooks:</p>
 <ul>
-<li><strong><a href="tutorials/local-audit/">⚡️ Zero-Setup Audit</a></strong> - Run a full compliance scan on any project folder in 2 minutes.</li>
+<li><strong><a href="quickstart/">⚡️ Zero-Setup Audit</a></strong> - Run a full compliance scan on any project folder in 2 minutes.</li>
 <li><strong><a href="training/">🛠️ Training Workflow</a></strong> - Learn how to audit data before training and verify models post-training.</li>
 <li><strong><a href="compliance-dashboard/">📊 Regulatory Mapping</a></strong> - Deep dive into how Venturalitica maps technical evidence to the EU AI Act.</li>
 </ul>
 <hr />
 <h2 id="installation">⚙️ Installation</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>venturalitica
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>venturalitica
 </code></pre></div>
 <hr />
-<p><a href="quickstart/">Quickstart Guide</a> | <a href="tutorials/local-audit/">Local Audit Tutorial</a> | <a href="compliance-dashboard/">Regulatory Map</a> | <a href="api/">API Reference</a></p>
+<p><a href="quickstart/">Quickstart Guide</a> | <a href="compliance-dashboard/">Regulatory Map</a> | <a href="api/">API Reference</a></p>
+<h2 id="join-the-governance-revolution">🤝 Join the Governance Revolution</h2>
+<p>Venturalitica is an open-source movement to bring transparency to AI.</p>
+<ul>
+<li><strong>Have a specific compliance need?</strong> Check our <strong><a href="compliance-gap/">Compliance Gap Roadmap</a></strong>.</li>
+<li><strong>Found a bug or want to propose a feature?</strong> Open a <strong><a href="https://github.com/Venturalitica/venturalitica-sdk/issues/new">GitHub Issue</a></strong>.</li>
+</ul>
 <p>© 2026 Venturalitica | Built for Responsible AI</p>
 
 
@@ -984,7 +1025,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.top", "search.suggest", "navigation.expand", "navigation.sections"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.top", "search.suggest", "navigation.expand", "navigation.sections"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "v0.3.0"}</script>
     
     
       <script src="assets/javascripts/bundle.79ae519e.min.js"></script>

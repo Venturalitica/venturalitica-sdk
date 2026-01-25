@@ -5,8 +5,8 @@ from typing import Dict, List, Optional
 from .core import ComplianceResult
 
 def _get_upsell_link(control_id: str, metric_key: str) -> str:
-    """Generates a link to the Venturalitica SaaS for triage."""
-    base_url = os.getenv("VENTURALITICA_SAAS_URL", "http://localhost:3000")
+    """Generates a link to the Venturalítica SaaS for triage."""
+    base_url = os.getenv("VENTURALITICA_SAAS_URL", "http://www.venturalitica.ai")
     return f"{base_url}/projects/governance/triage?control={control_id}&metric={metric_key}"
 
 def generate_report(results: List[ComplianceResult]) -> str:
@@ -22,7 +22,7 @@ def generate_report(results: List[ComplianceResult]) -> str:
         report += f"- **Status**: {status_text}\n"
         
         if not res.passed:
-            report += f"- **Action**: [Fix this in Venturalitica SaaS]({_get_upsell_link(res.control_id, res.metric_key)})\n"
+            report += f"- **Action**: [Fix this in Venturalítica SaaS]({_get_upsell_link(res.control_id, res.metric_key)})\n"
         
         report += "\n"
     return report
@@ -42,7 +42,7 @@ def _log_mlflow(results: List[ComplianceResult], report_text: str):
         mlflow.set_tags(tags)
         
         mlflow.log_text(report_text, "governance_report.md")
-        print("✓ [Venturalitica] Compliance results logged to MLflow")
+        print("✓ [Venturalítica] Compliance results logged to MLflow")
     except (ImportError, Exception):
         pass
 
@@ -72,7 +72,7 @@ def _log_wandb(results: List[ComplianceResult], report_text: str):
         try: os.remove(temp_path)
         except: pass
         
-        print("✓ [Venturalitica] Compliance results logged to WandB")
+        print("✓ [Venturalítica] Compliance results logged to WandB")
     except (ImportError, Exception):
         pass
 
@@ -96,7 +96,7 @@ def _log_clearml(results: List[ComplianceResult], report_text: str):
             logger.report_text(f"Governance: {res.control_id} = {'PASS' if res.passed else 'FAIL'}", iteration=1)
             
         logger.report_text(f"Governance Report:\n{report_text}", iteration=1)
-        print("✓ [Venturalitica] Compliance results logged to ClearML")
+        print("✓ [Venturalítica] Compliance results logged to ClearML")
     except (ImportError, Exception):
         pass
 

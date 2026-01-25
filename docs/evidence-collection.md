@@ -2,7 +2,7 @@
 
 While **Policies** (the Enforcer) stop bad models from reaching production, **Evidence Collection** (the Recorder) ensures you can prove exactly what happened during training. This is your "Black Box" flight recorder for AI.
 
-In Venturalitica, evidence collection is distinct from policy enforcement. You can record evidence without blocking a deployment, or enforce strictly without saving traces. However, for full EU AI Act compliance (Article 12: Record-Keeping), you need both.
+In Venturalítica, evidence collection is distinct from policy enforcement. You can record evidence without blocking a deployment, or enforce strictly without saving traces. However, for full EU AI Act compliance (Article 12: Record-Keeping), you need both.
 
 ## Two Ways to Record
 
@@ -53,9 +53,9 @@ All evidence is secured locally in the `.venturalitica/` directory:
 
 ## Compliance Impact
 
-For **Article 12 (EU AI Act)**, this evidence is mandatory. The Venturalitica Dashboard reads these files to prove:
+For **Article 12 (EU AI Act)**, this evidence is mandatory. The Venturalítica Dashboard reads these files to prove:
 1.  **Traceability**: "We know exactly which code and data produced Model v1.0."
 2.  **Integrity**: "The evidence has not been tampered with" (via SHA-256 anchoring).
 
-> [!TIP]
-> **View Your Traces**: After running your training script, launch the dashboard (`venturalitica ui`) to visualize these traces in the **Article 12** section.
+!!! tip "View Your Traces"
+    After running your training script, launch the dashboard (`venturalitica ui`) to visualize these traces in the **Article 12** section.

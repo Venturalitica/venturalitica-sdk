@@ -8,7 +8,7 @@ from pathlib import Path
 class GovernanceWrapper:
     """
     A transparency proxy for ML models that automatically triggers
-    Venturalitica audits on key lifecycle methods (fit, predict).
+    Venturalítica audits on key lifecycle methods (fit, predict).
     """
     def __init__(self, model: Any, policy: Optional[Union[str, Path]] = None):
         self._venturalitica_model = model
@@ -213,7 +213,7 @@ def tracecollector(name: str = "default_run") -> TraceCollector:
 
 def wrap(model: Any, policy: Optional[Union[str, Path]] = None) -> GovernanceWrapper:
     """
-    [EXPERIMENTAL] Transparently wraps an ML model with Venturalitica governance.
+    [EXPERIMENTAL] Transparently wraps an ML model with Venturalítica governance.
     Note: This is an experimental feature and may change or be removed in future versions.
     """
     import warnings

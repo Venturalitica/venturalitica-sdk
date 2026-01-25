@@ -1,10 +1,10 @@
 # OSCAL Policy Authoring Guide
 
-How to write, extend, and validate OSCAL policies for Venturalitica governance checks.
+How to write, extend, and validate OSCAL policies for Venturalítica governance checks.
 
 ## 1) Minimal Policy Template
 
-Venturalitica uses the OSCAL `assessment-plan` shape. The smallest runnable policy looks like:
+Venturalítica uses the OSCAL `assessment-plan` shape. The smallest runnable policy looks like:
 
 ```yaml
 assessment-plan:
@@ -32,7 +32,7 @@ assessment-plan:
 
 Key fields:
 - `control-id`: unique, kebab-case identifier
-- `metric_key`: which Venturalitica metric to run
+- `metric_key`: which Venturalítica metric to run
 - `threshold` + `operator`: pass/fail rule
 - `input:*`: semantic bindings (columns in your data)
 

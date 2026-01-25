@@ -116,7 +116,7 @@ class GovernanceValidator:
                 print(f"    [Skip] Control '{ctrl.id}' ({metric_key}) skipped: {e}")
                 continue
             except Exception as e:
-                print(f"⚠ [Venturalitica] Error evaluating {metric_key}: {e}")
+                print(f"⚠ [Venturalítica] Error evaluating {metric_key}: {e}")
                 import traceback
                 # traceback.print_exc() # Uncomment for deep debugging
                 
