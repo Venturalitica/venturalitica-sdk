@@ -41,3 +41,10 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Test Artifacts
+.coverage
+htmlcov/
+*.svg
+gov_*.md
+Annex_IV.md
