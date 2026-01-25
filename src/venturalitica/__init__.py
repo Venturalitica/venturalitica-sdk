@@ -198,7 +198,7 @@ def save_audit_results(results: List[ComplianceResult], path: str = ".venturalit
     print(f"  ✓ Results saved to {path}")
 
 # Import public API
-from .wrappers import wrap
+from .wrappers import wrap, tracecollector
 from .badges import generate_compliance_badge, generate_metric_badge
 from .quickstart import quickstart, load_sample, list_scenarios
 
@@ -207,6 +207,7 @@ __all__ = [
     'monitor',
     'enforce',
     'wrap',
+    'tracecollector',
     'save_audit_results',
     'generate_compliance_badge',
     'generate_metric_badge',

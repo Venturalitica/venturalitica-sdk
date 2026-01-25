@@ -25,6 +25,7 @@ def create_compliance_graph(model_name: str = "mistral"):
     workflow.add_node("writer_2h", nodes.write_section_2h)
     workflow.add_node("compiler", nodes.compile_document)
     workflow.add_node("critic", nodes.critique_document)
+    workflow.add_node("translator", nodes.translate_document)
     
     # Define Edges
     workflow.set_entry_point("scanner")
@@ -51,7 +52,7 @@ def create_compliance_graph(model_name: str = "mistral"):
     # Router logic:
     def route_feedback(state: ComplianceState):
         if state.get("critic_verdict") == "APPROVE":
-            return END
+            return "translator"
         # Return list of nodes to run?
         # LangGraph conditional edge can return list of nodes.
         # Ideally we only run writers that have feedback.
@@ -66,9 +67,9 @@ def create_compliance_graph(model_name: str = "mistral"):
     workflow.add_conditional_edges(
         "critic",
         route_feedback,
-        path_map={END: END, **{w: w for w in writers}} 
-        # Or simpler:
-        # ["writer_2a", ..., END]
+        path_map={END: END, "translator": "translator", **{w: w for w in writers}} 
     )
+
+    workflow.add_edge("translator", END)
     
     return workflow.compile()
