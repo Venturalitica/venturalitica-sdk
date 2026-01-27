@@ -1,17 +1,19 @@
 from typing import Dict, Any, List, Optional
 from langchain_ollama import ChatOllama
 from langchain_mistralai import ChatMistralAI
+from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import ChatPromptTemplate
 from venturalitica.graph.state import ComplianceState, SectionDraft
 from venturalitica.scanner import BOMScanner
 from venturalitica.graph.parser import ASTCodeScanner
 import os
 import json
-import os
-import json
 import re
 import hashlib
 import requests
+import yaml
+import threading
+from pathlib import Path
 from dotenv import load_dotenv
 from packaging import version
 
@@ -19,23 +21,78 @@ from packaging import version
 load_dotenv()
 
 class NodeFactory:
-    def __init__(self, model_name: str):
-        # Initialize LLM
-        use_pro = os.getenv("VENTURALITICA_LLM_PRO", "false").lower() == "true"
-        mistral_key = os.getenv("MISTRAL_API_KEY")
+    _lock = threading.Lock()
 
-        if use_pro and mistral_key:
-            print("🌟 Using High-Power Magistral LLM (Mistral AI)...")
-            self.llm = ChatMistralAI(
-                model="mistral-large-latest",
-                temperature=0.1,
-                max_retries=3,
-                timeout=180,
-                # Simple rate limiting via max_retries/timeout
-            )
+    def __init__(self, model_name: str, provider: str = "auto", api_key: str = None):
+        # Initialize LLM
+        mistral_key = api_key or os.getenv("MISTRAL_API_KEY")
+        hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+        
+        # Logical Provider Selection
+        if provider == "transformers":
+            # Default to ALIA 40B GGUF for efficient local execution
+            repo_id = "BSC-LT/ALIA-40b-instruct-2512-GGUF"
+            filename = "ALIA-40b-instruct-2512-Q8_0.gguf"
+            print(f"🏠 Loading Local Spanish Model (ALIA 40B GGUF): {repo_id}/{filename}")
+            try:
+                from huggingface_hub import hf_hub_download
+                from langchain_community.chat_models import ChatLlamaCpp
+
+                # Ensure model is downloaded and get local path
+                model_path = hf_hub_download(repo_id=repo_id, filename=filename)
+
+                self.llm = ChatLlamaCpp(
+                    model_path=model_path,
+                    temperature=0.1,
+                    max_tokens=4096,
+                    top_p=1,
+                    n_ctx=16384,
+                    n_gpu_layers=-1,
+                    n_batch=512,
+                    verbose=False,
+                )
+            except Exception as e:
+                print(f"❌ Error loading ALIA GGUF model: {str(e)}")
+                print("🏠 Falling back to local Ollama (mistral)...")
+                self.llm = ChatOllama(model="mistral", temperature=0.1)
+
+        elif provider == "cloud" or (provider == "auto" and os.getenv("VENTURALITICA_LLM_PRO", "false").lower() == "true" and mistral_key):
+            # Standardize on Magistral for PRO/Cloud
+            target_model = "magistral-medium-latest"
+            if mistral_key:
+                print(f"🌟 Using High-Power Magistral LLM (Mistral AI): {target_model}")
+                try:
+                    self.llm = ChatMistralAI(
+                        api_key=mistral_key,
+                        model=target_model,
+                        temperature=0.1,
+                        max_retries=3,
+                        timeout=180,
+                    )
+                except Exception as e:
+                    print(f"  ⚠️ Cloud Connection Failed: {e}. Falling back to Local.")
+                    self.llm = ChatOllama(model="mistral", temperature=0.1)
+            else:
+                print("⚠️ Cloud Provider requested but MISTRAL_API_KEY missing.")
+                print("🏠 Falling back to Local Ollama (mistral)...")
+                self.llm = ChatOllama(model="mistral", temperature=0.1)
         else:
-            print(f"🏠 Using Local LLM ({model_name})...")
-            self.llm = ChatOllama(model=model_name, temperature=0.1)
+            # Default: OLLAMA
+            target_model = model_name if model_name and "/" not in model_name else "mistral"
+            print(f"🏠 Using Local LLM (Ollama): {target_model}")
+            self.llm = ChatOllama(model=target_model, temperature=0.1)
+
+    def _load_prompts(self, lang: str = "en"):
+        """Loads prompt templates from YAML files based on language."""
+        lang_code = "es" if lang.lower().startswith("es") else "en"
+        prompt_path = Path(__file__).parent / "prompts" / f"prompts.{lang_code}.yaml"
+        
+        if not prompt_path.exists():
+            print(f"⚠️ Prompts for '{lang_code}' not found at {prompt_path}. Falling back to 'en'.")
+            prompt_path = Path(__file__).parent / "prompts" / "prompts.en.yaml"
+            
+        with open(prompt_path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
         
     def _safe_json_loads(self, text: str) -> Optional[Dict]:
         """Robust JSON parser that handles markdown code blocks and common errors."""
@@ -215,18 +272,24 @@ class NodeFactory:
             "critic_verdict": ""
         }
 
-    def _generate_generic_section(self, section_id: str, prompt_template: str, state: ComplianceState) -> SectionDraft:
+    def _generate_generic_section(self, section_id: str, state: ComplianceState) -> SectionDraft:
         """
-        Helper to invoke Ollama, supporting feedback loop.
+        Generic section generator that uses evidence and localized prompts.
         """
         try:
+            # 1. Load localized prompts
+            target_lang = state.get("language", "English")
+            yaml_data = self._load_prompts(target_lang)
+            
+            section_info = yaml_data.get("sections", {}).get(section_id.replace(".", ""), {})
+            if not section_info:
+                print(f"  ⚠️ Warning: Prompt for section {section_id} not found in YAML.")
+                return {"content": f"Missing prompt for {section_id}", "status": "error"}
+
             # Context Preparation
             bom_summary = [c['name'] for c in state['bom'].get('components', [])]
             meta_summary = state['runtime_meta'].get('audit_results', 'No audit run yet.')
             
-            # Language Instruction (Synthesis ALWAYS in English for better grounding)
-            lang_instruction = "Output Language: English"
-
             # Format Code Context (summarized)
             code_summary = ""
             context = state.get("code_context", {})
@@ -236,83 +299,119 @@ class NodeFactory:
                 code_summary += f"\nFile: {fname}"
                 if "docstring" in info and info["docstring"]:
                     code_summary += f"\n  - Story/Intent: {info['docstring']}"
+                if "functions" in info and info["functions"]:
+                    func_names = [f["name"] for f in info["functions"][:10]]
+                    code_summary += f"\n  - Logic Hooks: {', '.join(func_names)}"
                 if "calls" in info and info["calls"]:
                     formatted_calls = [f"{c['object']}.{c['method']} (L{c['lineno']})" for c in info['calls'][:5]]
                     code_summary += f"\n  - Key Calls: {', '.join(formatted_calls)}"
                 if "imports" in info and info["imports"]:
                     code_summary += f"\n  - Stack: {', '.join(info['imports'][:5])}"
+                if "raw_source" in info and info["raw_source"]:
+                    # Provide an excerpt if too long
+                    source = info["raw_source"]
+                    excerpt = source[:300] + "..." if len(source) > 300 else source
+                    code_summary += f"\n  - Source Excerpt:\n{excerpt}"
             
             # Check for existing draft and feedback
             current_draft = state.get("sections", {}).get(section_id, {})
             previous_content = current_draft.get("content", "")
             feedback = current_draft.get("feedback", None)
+
+            # Cybersecurity specific context
+            vuln_text = "N/A"
+            if section_id == "2.h":
+                security_report = state.get("bom_security", {})
+                vuln_text = "No known vulnerabilities detected in supply chain."
+                if security_report.get("vulnerable"):
+                    issues = security_report.get("issues", [])
+                    vuln_text = f"CRITICAL: Found {len(issues)} vulnerabilities in supply chain:\n"
+                    for i in issues:
+                        vuln_text += f"- {i['package']} {i['version']}: {i['id']} (Severity: {i['severity']})\n"
+
+            # Construct Full Prompt from YAML parts
+            full_prompt = yaml_data["system_base"].format(language=target_lang)
+            full_prompt += "\n" + yaml_data["context_template"].format(
+                bom_data="{bom_data}", 
+                meta_data="{meta_data}", 
+                code_summary="{code_summary}"
+            )
+            full_prompt += "\n\n" + section_info["prompt"].format(
+                bom="{bom}",
+                code="{code}",
+                meta="{meta}",
+                vuln_text=vuln_text
+            )
             
-            full_prompt = f"""
-{lang_instruction}
-
-BOM artifacts from scanner:
-{{bom_data}}
-
-Runtime metadata (from trace):
-{{meta_data}}
-
-Extracted Code Context (AST):
-{{code_summary}}
-
-Section feedback or specifics:
-{prompt_template}
-
-Write the section following the EU AI Act 2024 compliance guidelines. 
-TARGET LANGUAGE: English
-
-STRICT GROUNDING RULES:
-1. ONLY use information from the provided BOM, Runtime Metadata, and Code Summary.
-2. DO NOT invent versions, libraries, or logic not found in the evidence.
-3. If information is missing (e.g., provenance of data not in code), say "NOT_DOCUMENTED: Evidence missing from scan" instead of speculating.
-4. DO NOT wrap your response in markdown code blocks (```markdwon ... ```). Output RAW markdown only.
-5. Use a dry, technical, regulatory tone. No conversational filler.
-6. MANDATORY: The entire response MUST be in English.
-"""            
             if feedback and previous_content:
                  print(f"  🔄 Refining Section {section_id} based on critic feedback...")
-                 full_prompt += f"""
-                 
-                 CRITIC FEEDBACK (FIX HALLUCINATIONS/LANGUAGE/MISSING DATA):
-                 {{feedback}}
-                 
-                 INSTRUCTIONS:
-                 Rewrite the draft to address the feedback. Keep the good parts.
-                 STRICTLY AVOID inventing details. If the critic asks for evidence you don't have, mark as "NOT_DOCUMENTED".
-                 STRICTLY FOLLOW the target language: English.
-                 DO NOT wrap your response in markdown code blocks.
-                 """
+                 full_prompt += "\n\n" + yaml_data["refinement_template"].format(
+                     feedback="{feedback}",
+                     language=target_lang
+                 )
             
             prompt = ChatPromptTemplate.from_template(full_prompt)
             chain = prompt | self.llm
             
-            response = chain.invoke({
-                "bom_data": json.dumps(state.get('bom', {}), indent=2),
-                "meta_data": json.dumps(state.get('runtime_meta', {}), indent=2),
-                "code_summary": code_summary,
-                "bom": str(bom_summary),
-                "meta": str(meta_summary),
-                "code": code_summary,
-                "previous_content": previous_content,
-                "feedback": feedback,
-                "language": "English"
-            })
+            with self._lock:
+                response = chain.invoke({
+                    "bom_data": json.dumps(state.get('bom', {}), indent=2),
+                    "meta_data": json.dumps(state.get('runtime_meta', {}), indent=2),
+                    "code_summary": code_summary,
+                    "bom": str(bom_summary),
+                    "meta": str(meta_summary),
+                    "code": code_summary,
+                    "previous_content": previous_content,
+                    "feedback": feedback,
+                    "language": target_lang
+                })
             
             # Clean response from markdown escapes
-            content = response.content
+            raw_content = response.content
+            extracted_text = []
+            extracted_thinking = []
+
+            def _extract_recursive(data, in_thought=False):
+                if isinstance(data, str):
+                    if in_thought: extracted_thinking.append(data)
+                    else: extracted_text.append(data)
+                elif isinstance(data, list):
+                    for item in data: _extract_recursive(item, in_thought)
+                elif isinstance(data, dict):
+                    b_type = data.get("type")
+                    if b_type == "text":
+                        t = data.get("text", "")
+                        if in_thought: extracted_thinking.append(t)
+                        else: extracted_text.append(t)
+                    elif b_type == "thinking":
+                        thought = data.get("thinking", "")
+                        _extract_recursive(thought, in_thought=True)
+
+            _extract_recursive(raw_content)
+            
+            content = "".join(extracted_text).strip()
+            thinking = "\n".join(extracted_thinking).strip()
+
+            # Fallback: If content is empty but thinking contains markdown headers,
+            # it means the model "thought out loud" the answer.
+            if not content and "##" in thinking:
+                # Use the thinking as content if it looks like the final doc
+                content = thinking
+                thinking = None # Move it all to content for the editor
+
             if content.startswith("```"):
                 import re
                 content = re.sub(r'^```[a-zA-Z]*\n?', '', content)
                 content = re.sub(r'\n?```$', '', content)
 
+            if thinking:
+                print(f"  💭 Captured reasoning for {section_id} ({len(thinking)} chars)")
+
             return {
                 "content": content.strip(), 
+                "thinking": thinking if thinking else None,
                 "status": "completed",
-                "feedback": None # Clear feedback after handling
+                "feedback": None 
             }
         except Exception as e:
             return {"content": f"Error generating section: {str(e)}", "status": "error", "feedback": None}
@@ -320,147 +419,49 @@ STRICT GROUNDING RULES:
     def write_section_2a(self, state: ComplianceState) -> Dict[str, Any]:
         """Section 2.a: Development Methods"""
         print("✍️  Drafting Section 2.a (Methods)...")
-        prompt = """
-        You are an AI Compliance Officer writing Annex IV.2(a) for the EU AI Act.
-        
-        CONTEXT:
-        - Libraries detected: {bom}
-        - Code Analysis: {code}
-        
-        TASK:
-        Address the following requirement:
-        "the methods and steps performed for the development of the AI system, including, where relevant, recourse to pre-trained systems or tools provided by third parties and how those were used, integrated or modified by the provider;"
-        """
-        draft = self._generate_generic_section("2.a", prompt, state)
+        draft = self._generate_generic_section("2.a", state)
         return {"sections": {**state.get("sections", {}), "2.a": draft}}
 
     def write_section_2b(self, state: ComplianceState) -> Dict[str, Any]:
         """Section 2.b: Logic & Assumptions"""
         print("✍️  Drafting Section 2.b (Logic)...")
-        prompt = """
-        You are an AI Compliance Officer writing Annex IV.2(b) for the EU AI Act.
-        
-        CONTEXT:
-        - Components: {bom}
-        - Code Analysis: {code}
-        
-        TASK:
-        Address the following requirement:
-        "the design specifications of the system, namely the general logic of the AI system and of the algorithms; the key design choices including the rationale and assumptions made, including with regard to persons or groups of persons in respect of who, the system is intended to be used; the main classification choices; what the system is designed to optimise for, and the relevance of the different parameters; the description of the expected output and output quality of the system; the decisions about any possible trade-off made regarding the technical solutions adopted to comply with the requirements set out in Chapter III, Section 2;"
-        """
-        draft = self._generate_generic_section("2.b", prompt, state)
+        draft = self._generate_generic_section("2.b", state)
         return {"sections": {**state.get("sections", {}), "2.b": draft}}
 
     def write_section_2c(self, state: ComplianceState) -> Dict[str, Any]:
         """Section 2.c: Architecture"""
         print("✍️  Drafting Section 2.c (Architecture)...")
-        prompt = """
-        You are an AI Compliance Officer writing Annex IV.2(c) for the EU AI Act.
-        
-        CONTEXT:
-        - System BOM: {bom}
-        - Code Analysis: {code}
-        
-        TASK:
-        Address the following requirement:
-        "the description of the system architecture explaining how software components build on or feed into each other and integrate into the overall processing; the computational resources used to develop, train, test and validate the AI system;"
-        """
-        draft = self._generate_generic_section("2.c", prompt, state)
+        draft = self._generate_generic_section("2.c", state)
         return {"sections": {**state.get("sections", {}), "2.c": draft}}
 
     def write_section_2d(self, state: ComplianceState) -> Dict[str, Any]:
         """Section 2.d: Data Requirements"""
         print("✍️  Drafting Section 2.d (Data)...")
-        prompt = """
-        You are an AI Compliance Officer writing Annex IV.2(d) for the EU AI Act.
-        
-        CONTEXT:
-        - Libraries: {bom}
-        - Code Analysis: {code}
-        
-        TASK:
-        Address the following requirement:
-        "where relevant, the data requirements in terms of datasheets describing the training methodologies and techniques and the training data sets used, including a general description of these data sets, information about their provenance, scope and main characteristics; how the data was obtained and selected; labelling procedures (e.g. for supervised learning), data cleaning methodologies (e.g. outliers detection);"
-        """
-        draft = self._generate_generic_section("2.d", prompt, state)
+        draft = self._generate_generic_section("2.d", state)
         return {"sections": {**state.get("sections", {}), "2.d": draft}}
 
     def write_section_2e(self, state: ComplianceState) -> Dict[str, Any]:
         """Section 2.e: Human Oversight"""
         print("✍️  Drafting Section 2.e (Oversight)...")
-        prompt = """
-        You are an AI Compliance Officer writing Annex IV.2(e) for the EU AI Act.
-        
-        CONTEXT:
-        - Code Analysis: {code}
-
-        TASK:
-        Address the following requirement:
-        "assessment of the human oversight measures needed in accordance with Article 14, including an assessment of the technical measures needed to facilitate the interpretation of the outputs of AI systems by the deployers, in accordance with Article 13(3), point (d);"
-        """
-        draft = self._generate_generic_section("2.e", prompt, state)
+        draft = self._generate_generic_section("2.e", state)
         return {"sections": {**state.get("sections", {}), "2.e": draft}}
 
     def write_section_2f(self, state: ComplianceState) -> Dict[str, Any]:
         """Section 2.f: Predetermined Changes"""
         print("✍️  Drafting Section 2.f (Changes)...")
-        prompt = """
-        You are an AI Compliance Officer writing Annex IV.2(f) for the EU AI Act.
-        
-        CONTEXT:
-        - Code Analysis: {code}
-        
-        TASK:
-        Address the following requirement:
-        "where applicable, a detailed description of pre-determined changes to the AI system and its performance, together with all the relevant information related to the technical solutions adopted to ensure continuous compliance of the AI system with the relevant requirements set out in Chapter III, Section 2;"
-        """
-        draft = self._generate_generic_section("2.f", prompt, state)
+        draft = self._generate_generic_section("2.f", state)
         return {"sections": {**state.get("sections", {}), "2.f": draft}}
         
     def write_section_2g(self, state: ComplianceState) -> Dict[str, Any]:
         """Section 2.g: Validation"""
         print("✍️  Drafting Section 2.g (Validation)...")
-        prompt = """
-        You are an AI Compliance Officer writing Annex IV.2(g) for the EU AI Act.
-        
-        CONTEXT:
-        - Validation Results: {meta}
-        - Code Analysis: {code}
-        
-        TASK:
-        Address the following requirement:
-        "the validation and testing procedures used, including information about the validation and testing data used and their main characteristics; metrics used to measure accuracy, robustness and compliance with other relevant requirements set out in Chapter III, Section 2, as well as potentially discriminatory impacts; test logs and all test reports dated and signed by the responsible persons, including with regard to predetermined changes as referred to under point (f);"
-        """
-        draft = self._generate_generic_section("2.g", prompt, state)
+        draft = self._generate_generic_section("2.g", state)
         return {"sections": {**state.get("sections", {}), "2.g": draft}}
 
     def write_section_2h(self, state: ComplianceState) -> Dict[str, Any]:
         """Section 2.h: Cybersecurity"""
         print("✍️  Drafting Section 2.h (Cybersecurity)...")
-        
-        security_report = state.get("bom_security", {})
-        vuln_text = "No known vulnerabilities detected in supply chain."
-        if security_report.get("vulnerable"):
-            issues = security_report.get("issues", [])
-            vuln_text = f"CRITICAL: Found {len(issues)} vulnerabilities in supply chain:\n"
-            for i in issues:
-                vuln_text += f"- {i['package']} {i['version']}: {i['id']} (Severity: {i['severity']})\n"
-        
-        prompt = f"""
-        You are an AI Compliance Officer writing Annex IV.2(h) for the EU AI Act.
-        
-        CONTEXT:
-        - Code Analysis: {{code}}
-        - Supply Chain Security Scan:
-        {vuln_text}
-
-        TASK:
-        Address the following requirement:
-        "cybersecurity measures put in place;"
-        
-        If vulnerabilities are present, you MUST disclose them and suggest mitigation (updating packages).
-        """
-        draft = self._generate_generic_section("2.h", prompt, state)
+        draft = self._generate_generic_section("2.h", state)
         return {"sections": {**state.get("sections", {}), "2.h": draft}}
 
     def compile_document(self, state: ComplianceState) -> Dict[str, Any]:
@@ -497,7 +498,8 @@ STRICT GROUNDING RULES:
             {header_list}
             """
             try:
-                response = self.llm.invoke(prompt)
+                with self._lock:
+                    response = self.llm.invoke(prompt)
                 import re
                 match = re.search(r'\{.*\}', response.content, re.DOTALL)
                 if match:
@@ -520,7 +522,7 @@ STRICT GROUNDING RULES:
         md += f"## {headers['2.g']}\n" + sections.get("2.g", {}).get("content", "N/A") + "\n\n"
         md += f"## {headers['2.h']}\n" + sections.get("2.h", {}).get("content", "N/A") + "\n\n"
         
-        return {"final_markdown": md}
+        return {"final_markdown": md, "sections": sections}
 
     def critique_document(self, state: ComplianceState) -> Dict[str, Any]:
         """
@@ -529,52 +531,39 @@ STRICT GROUNDING RULES:
         print("🧐 Critiquing document...")
         doc = state.get("final_markdown", "")
         revision_count = state.get("revision_count", 0) + 1
+        target_lang = state.get("language", "English")
         
         if revision_count > 3:
             print("  ⚠️ Max revisions reached. Forcing approval.")
             return {"critic_verdict": "APPROVE", "revision_count": revision_count}
             
-        prompt = ChatPromptTemplate.from_template("""
-        You are a Chief AI Auditor for the EU Commission. Review the Annex IV.2 draft for accuracy, grounding, and language consistency.
+        yaml_data = self._load_prompts(target_lang)
+        prompt_text = yaml_data.get("critic_prompt", "Critic prompt missing").format(
+            language=target_lang,
+            doc="{doc}",
+            bom="{bom}",
+            code="{code}",
+            meta="{meta}"
+        )
         
-        EVIDENCE SOURCES (The ONLY source of truth):
-        - BOM: {bom}
-        - AST/Code: {code}
-        - Trace: {meta}
+        prompt = ChatPromptTemplate.from_template(prompt_text)
         
-        TARGET LANGUAGE: English
-        
-        DRAFT DOCUMENT:
-        {doc}
-        
-        TASK:
-        1. Identify "Hallucinations": Claims about data, versions, or logic NOT found in the evidence sources.
-        2. Identify Language Mismatch: If any section is not in English, mark it as REVISE.
-        3. Identify Speculation: Where the agent is guessing instead of saying "NOT_DOCUMENTED".
-        4. Rate regulatory tone.
-        
-        If you find hallucinations or language errors, REVISE and point them out specifically in the feedback.
-        
-        OUTPUT FORMAT (Strict JSON):
-        {{
-            "verdict": "APPROVE" or "REVISE",
-            "feedback": {{
-                "2.a": "Language mismatch: Expected English but found other...",
-                "2.b": "Evidence mismatch: X is mentioned but not in BOM...",
-                ...
-            }}
-        }} 
-        """)
-        
+        # Prepare summary for critic
+        code_summary = ""
+        context = state.get("code_context", {})
+        for fname, info in context.items():
+            code_summary += f"\nFile: {fname}\n  - Story: {info.get('docstring','')}\n  - Logic Hooks: {', '.join([f['name'] for f in info.get('functions',[])[:5]])}"
+
         chain = prompt | self.llm
         try:
-            response = chain.invoke({
-                "doc": doc,
-                "bom": json.dumps(state.get('bom', {}), indent=2),
-                "code": state.get('sections', {}).get('scanner', {}).get('content', 'N/A'),
-                "meta": json.dumps(state.get('runtime_meta', {}), indent=2),
-                "language": "English"
-            })
+            with self._lock:
+                response = chain.invoke({
+                    "doc": doc,
+                    "bom": json.dumps(state.get('bom', {}), indent=2),
+                    "code": code_summary,
+                    "meta": json.dumps(state.get('runtime_meta', {}), indent=2),
+                    "language": target_lang
+                })
             content = response.content
             feedback_json = self._safe_json_loads(content)
             
@@ -653,8 +642,23 @@ STRICT GROUNDING RULES:
                     current_header = ""
 
                 try:
-                    response = chain.invoke({"text": text_to_translate, "target_lang": lang_name})
-                    content = response.content
+                    with self._lock:
+                        response = chain.invoke({"text": text_to_translate, "target_lang": lang_name})
+                    raw_content = response.content
+                    
+                    # For translation, we prioritize the text and ignore thinking
+                    extracted_text = []
+                    def _extract_text(data):
+                        if isinstance(data, str): extracted_text.append(data)
+                        elif isinstance(data, list):
+                            for i in data: _extract_text(i)
+                        elif isinstance(data, dict):
+                            if data.get("type") == "text":
+                                extracted_text.append(data.get("text", ""))
+                    
+                    _extract_text(raw_content)
+                    content = "".join(extracted_text).strip()
+
                     if content.startswith("```"):
                         content = re.sub(r'^```[a-zA-Z]*\n?', '', content)
                         content = re.sub(r'\n?```$', '', content)

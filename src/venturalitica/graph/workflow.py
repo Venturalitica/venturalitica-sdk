@@ -2,12 +2,12 @@ from langgraph.graph import StateGraph, END
 from venturalitica.graph.state import ComplianceState
 from venturalitica.graph.nodes import NodeFactory
 
-def create_compliance_graph(model_name: str = "mistral"):
+def create_compliance_graph(model_name: str = "mistral", provider: str = "auto", api_key: str = None):
     """
     Builds the Compliance-RAG graph.
     """
     # Initialize Nodes
-    nodes = NodeFactory(model_name)
+    nodes = NodeFactory(model_name, provider, api_key)
     
     # Define Graph
     workflow = StateGraph(ComplianceState)
@@ -52,16 +52,15 @@ def create_compliance_graph(model_name: str = "mistral"):
     # Router logic:
     def route_feedback(state: ComplianceState):
         if state.get("critic_verdict") == "APPROVE":
+            # BYPASS TRANSLATOR if we generated natively in Spanish
+            # We assume if the target language is Spanish and we loaded Spanish prompts, 
+            # the compiler already has the final document in Spanish.
+            lang = state.get("language", "English").lower()
+            # If language is Spanish, we skip translator because sections were drafted in ES
+            if lang.startswith("es") or lang == "spanish":
+                print("  ⏭️  Bypassing translator (Native Spanish execution)...")
+                return END
             return "translator"
-        # Return list of nodes to run?
-        # LangGraph conditional edge can return list of nodes.
-        # Ideally we only run writers that have feedback.
-        # But for simplicity, we can route to "planner" if we modify planner to NOT reset state if it exists.
-        # Planner currently resets:
-        # return { "sections": {}, ... }
-        # This will wipe "sections".
-        # I should bypass planner or fix planner.
-        # Bypassing planner: route to all writers? YES.
         return writers
         
     workflow.add_conditional_edges(

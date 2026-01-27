@@ -8,6 +8,7 @@ class SectionDraft(TypedDict):
     content: str
     status: str  # "drafting", "completed", "error"
     feedback: Optional[str]
+    thinking: Optional[str] # Chain-of-Thought (if available)
 
 class ComplianceState(TypedDict):
     """
@@ -29,3 +30,4 @@ class ComplianceState(TypedDict):
     # Output
     final_markdown: Optional[str] # Master English Draft
     translations: Dict[str, str] # Keyed by language name
+    code_context: Dict[str, Any] # Source code analysis metadata

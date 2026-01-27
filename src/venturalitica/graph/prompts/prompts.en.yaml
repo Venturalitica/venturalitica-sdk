@@ -1,0 +1,160 @@
+# Venturalitica Compliance Prompts (English)
+
+system_base: |
+  Write the section following the EU AI Act 2024 compliance guidelines. 
+  TARGET LANGUAGE: {language}
+
+  STRICT GROUNDING RULES:
+  1. ONLY use information from the provided BOM, Runtime Metadata, and Code Summary.
+  2. DO NOT invent versions, libraries, or logic not found in the evidence.
+  3. If information is missing (e.g., provenance of data not in code), say "NOT_DOCUMENTED: Evidence missing from scan" instead of speculating.
+  4. DO NOT wrap your response in markdown code blocks (```markdwon ... ```). Output RAW markdown only.
+  5. Use a dry, technical, regulatory tone. No conversational filler.
+  6. MANDATORY: The entire response MUST be in {language}.
+
+context_template: |
+  BOM artifacts from scanner:
+  {bom_data}
+
+  Runtime metadata (from trace):
+  {meta_data}
+
+  Extracted Code Context (AST):
+  {code_summary}
+
+refinement_template: |
+  CRITIC FEEDBACK (FIX HALLUCINATIONS/LANGUAGE/MISSING DATA):
+  {feedback}
+  
+  INSTRUCTIONS:
+  Rewrite the draft to address the feedback. Keep the good parts.
+  STRICTLY AVOID inventing details. If the critic asks for evidence you don't have, mark as "NOT_DOCUMENTED".
+  STRICTLY FOLLOW the target language: {language}.
+  DO NOT wrap your response in markdown code blocks.
+
+critic_prompt: |
+  You are a Chief AI Auditor for the EU Commission. Review the Annex IV.2 draft for accuracy, grounding, and language consistency.
+  
+  EVIDENCE SOURCES (The ONLY source of truth):
+  - BOM: {bom}
+  - AST/Code: {code}
+  - Trace: {meta}
+  
+  TARGET LANGUAGE: {language}
+  
+  DRAFT DOCUMENT:
+  {doc}
+  
+  TASK:
+  1. Identify "Hallucinations": Claims about data, versions, or logic NOT found in the evidence sources.
+  2. Identify Language Mismatch: If any section is not in {language}, mark it as REVISE.
+  3. Identify Speculation: Where the agent is guessing instead of saying "NOT_DOCUMENTED".
+  4. Rate regulatory tone.
+  
+  If you find hallucinations or language errors, REVISE and point them out specifically in the feedback.
+  
+  OUTPUT FORMAT (Strict JSON):
+  {{
+      "verdict": "APPROVE" or "REVISE",
+      "feedback": {{
+          "2.a": "Reason...",
+          "2.b": "Reason...",
+          ...
+      }}
+  }}
+
+sections:
+  2a:
+    header: "2.a Development Methods"
+    description: "the methods and steps performed for the development of the AI system, including, where relevant, recourse to pre-trained systems or tools provided by third parties and how those were used, integrated or modified by the provider;"
+    prompt: |
+      You are an AI Compliance Officer writing Annex IV.2(a) for the EU AI Act.
+      
+      CONTEXT:
+      - Libraries detected: {bom}
+      - Code Analysis: {code}
+      
+      TASK:
+      Address the requirement for Development Methods (Article 11 & Annex IV).
+  2b:
+    header: "2.b Logic & Assumptions"
+    description: "the design specifications of the system, namely the general logic of the AI system and of the algorithms; the key design choices including the rationale and assumptions made..."
+    prompt: |
+      You are an AI Compliance Officer writing Annex IV.2(b) for the EU AI Act.
+      
+      CONTEXT:
+      - Components: {bom}
+      - Code Analysis: {code}
+      
+      TASK:
+      Address the requirement for General Logic, design choices, and trade-offs.
+  2c:
+    header: "2.c System Architecture"
+    description: "the description of the system architecture explaining how software components build on or feed into each other..."
+    prompt: |
+      You are an AI Compliance Officer writing Annex IV.2(c) for the EU AI Act.
+      
+      CONTEXT:
+      - System BOM: {bom}
+      - Code Analysis: {code}
+      
+      TASK:
+      Address the requirement for System Architecture and computational resources.
+  2d:
+    header: "2.d Data Requirements"
+    description: "where relevant, the data requirements in terms of datasheets describing the training methodologies and techniques..."
+    prompt: |
+      You are an AI Compliance Officer writing Annex IV.2(d) for the EU AI Act.
+      
+      CONTEXT:
+      - Libraries: {bom}
+      - Code Analysis: {code}
+      
+      TASK:
+      Address the requirement for Data provenance, selection, and labeling.
+  2e:
+    header: "2.e Human Oversight"
+    description: "assessment of the human oversight measures needed in accordance with Article 14..."
+    prompt: |
+      You are an AI Compliance Officer writing Annex IV.2(e) for the EU AI Act.
+      
+      CONTEXT:
+      - Code Analysis: {code}
+
+      TASK:
+      Address the requirement for Human Oversight (Article 14) and interpretability.
+  2f:
+    header: "2.f Predetermined Changes"
+    description: "a detailed description of pre-determined changes to the AI system and its performance..."
+    prompt: |
+      You are an AI Compliance Officer writing Annex IV.2(f) for the EU AI Act.
+      
+      CONTEXT:
+      - Code Analysis: {code}
+      
+      TASK:
+      Address the requirement for Predetermined Changes and continuous compliance.
+  2g:
+    header: "2.g Validation and Testing"
+    description: "the validation and testing procedures used, including information about the validation and testing data used..."
+    prompt: |
+      You are an AI Compliance Officer writing Annex IV.2(g) for the EU AI Act.
+      
+      CONTEXT:
+      - Validation Results: {meta}
+      - Code Analysis: {code}
+      
+      TASK:
+      Address the requirement for Validation, accuracy metrics, and robustness.
+  2h:
+    header: "2.h Cybersecurity"
+    description: "cybersecurity measures put in place;"
+    prompt: |
+      You are an AI Compliance Officer writing Annex IV.2(h) for the EU AI Act.
+      
+      CONTEXT:
+      - Code Analysis: {code}
+      - Supply Chain Security Scan: {vuln_text}
+
+      TASK:
+      Address the requirement for Cybersecurity (Article 15).

@@ -18,11 +18,16 @@ venturalitica ui
 
 ### Step 2: Navigate to "Annex IV Generator"
 
-In the left sidebar, look for the **GENERATE REPORTS** section.
 
-1.  Click on **📄 technical_doc.md**.
-2.  The system will analyze your local `.venturalitica/` folder.
-3.  It will pull:
+
+1.  Go to the **"Annex IV Generator"** tab in the top navigation.
+2.  Select your **Inference Provider**:
+    *   **Local (Ollama)**: Standard offline mode.
+    *   **Cloud (Mistral)**: High-quality, EU-hosted generation.
+    *   **Local (ALIA - Experimental)**: Spanish Sovereign model (Requires significant hardware).
+3.  Click **"Generate Annex IV"**.
+
+The system will analyze your local `.venturalitica/` folder and pull:
     *   **System Architecture** (from `bom.json`)
     *   **Risk Management Status** (from Article 9 Audit Results)
     *   **Data Governance** (from Article 10 Audit Results)

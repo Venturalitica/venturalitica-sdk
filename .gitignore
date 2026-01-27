@@ -48,5 +48,7 @@ Thumbs.db
 htmlcov/
 *.svg
 gov_*.md
-Annex_IV.md
+Annex_IV*.md
 .env
+coverage_output*.txt
+site/

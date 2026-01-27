@@ -37,11 +37,13 @@ class MockStreamlit:
         self.container = MagicMock()
         self.container.return_value.__enter__ = MagicMock()
         self.container.return_value.__exit__ = MagicMock()
-        self.selectbox = MagicMock()
+        self.selectbox = MagicMock(side_effect=lambda label, options, index=0, **kwargs: options[index] if options else None)
         self.multiselect = MagicMock(side_effect=lambda label, options, default=None: default or [])
         self.caption = MagicMock()
         self.text_area = MagicMock(side_effect=lambda label, value=None, **kwargs: value if value is not None else "")
         self.toast = MagicMock()
+        self.radio = MagicMock(side_effect=lambda label, options, index=0, **kwargs: options[index] if options else None)
+        self.text_input = MagicMock(side_effect=lambda label, value="", type="default", help="": value)
 
 @pytest.fixture
 def mock_st_obj():

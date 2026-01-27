@@ -1,31 +1,213 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
-         <loc>https://venturalitica.github.io/venturalitica-sdk/</loc>
-         <lastmod>2026-01-25</lastmod>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/"/>
     </url>
     <url>
-         <loc>https://venturalitica.github.io/venturalitica-sdk/api/</loc>
-         <lastmod>2026-01-25</lastmod>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/annex-iv/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/annex-iv/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/annex-iv/"/>
     </url>
     <url>
-         <loc>https://venturalitica.github.io/venturalitica-sdk/compliance-dashboard/</loc>
-         <lastmod>2026-01-25</lastmod>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/api/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/api/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/api/"/>
     </url>
     <url>
-         <loc>https://venturalitica.github.io/venturalitica-sdk/compliance-gap/</loc>
-         <lastmod>2026-01-25</lastmod>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/compliance-dashboard/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/compliance-dashboard/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/compliance-dashboard/"/>
     </url>
     <url>
-         <loc>https://venturalitica.github.io/venturalitica-sdk/evidence-collection/</loc>
-         <lastmod>2026-01-25</lastmod>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/compliance-gap/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/compliance-gap/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/compliance-gap/"/>
     </url>
     <url>
-         <loc>https://venturalitica.github.io/venturalitica-sdk/quickstart/</loc>
-         <lastmod>2026-01-25</lastmod>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/evidence-collection/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/evidence-collection/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/evidence-collection/"/>
     </url>
     <url>
-         <loc>https://venturalitica.github.io/venturalitica-sdk/training/</loc>
-         <lastmod>2026-01-25</lastmod>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/integrations/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/integrations/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/integrations/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/quickstart/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/quickstart/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/training/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/training/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/training/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/level1_policy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level1_policy/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level1_policy/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/level2_integrator/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level2_integrator/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level2_integrator/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/level3_auditor/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level3_auditor/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level3_auditor/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/level4_annex_iv/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level4_annex_iv/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level4_annex_iv/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/tutorials/01_writing_policy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/tutorials/01_writing_policy/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/tutorials/01_writing_policy/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/annex-iv/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/annex-iv/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/annex-iv/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/api/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/api/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/api/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/compliance-dashboard/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/compliance-dashboard/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/compliance-dashboard/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/compliance-gap/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/compliance-gap/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/compliance-gap/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/evidence-collection/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/evidence-collection/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/evidence-collection/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/integrations/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/integrations/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/integrations/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/quickstart/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/quickstart/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/training/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/training/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/training/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/level1_policy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level1_policy/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level1_policy/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/level2_integrator/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level2_integrator/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level2_integrator/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/level3_auditor/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level3_auditor/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level3_auditor/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/level4_annex_iv/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level4_annex_iv/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level4_annex_iv/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/tutorials/01_writing_policy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/tutorials/01_writing_policy/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/tutorials/01_writing_policy/"/>
     </url>
 </urlset>

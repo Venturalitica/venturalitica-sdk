@@ -1,0 +1,160 @@
+# Venturalitica Compliance Prompts (Spanish)
+
+system_base: |
+  Escribe la sección siguiendo las directrices de cumplimiento del Reglamento de IA de la UE (EU AI Act 2024).
+  IDIOMA DE SALIDA: {language}
+
+  REGLAS ESTRICTAS DE FUNDAMENTACIÓN:
+  1. Utiliza ÚNICAMENTE la información del BOM proporcionado, los metadatos de ejecución (Runtime Metadata) y el resumen del código (Code Summary).
+  2. NO inventes versiones, librerías o lógica que no se encuentren en la evidencia.
+  3. Si falta información (ej. procedencia de datos no en el código), escribe "NO_DOCUMENTADO: Falta evidencia en el escaneo" en lugar de especular.
+  4. NO envuelvas tu respuesta en bloques de código markdown (```markdwon ... ```). Devuelve solo markdown RAW.
+  5. Utiliza un tono seco, técnico y regulador. Sin rellenos conversacionales.
+  6. MANDATORIO: Toda la respuesta DEBE estar en {language}.
+
+context_template: |
+  Artefactos BOM del escáner:
+  {bom_data}
+
+  Metadatos de ejecución (del trace):
+  {meta_data}
+
+  Contexto de código extraído (AST):
+  {code_summary}
+
+refinement_template: |
+  COMENTARIOS DEL AUDITOR (CORREGIR ALUCINACIONES/IDIOMA/DATOS FALTANTES):
+  {feedback}
+  
+  INSTRUCCIONES:
+  Reescribe el borrador para abordar el feedback. Mantén las partes correctas.
+  EVITA ESTRICTAMENTE inventar detalles. Si el auditor solicita evidencia que no tienes, marca como "NO_DOCUMENTADO".
+  SIGUE ESTRICTAMENTE el idioma de salida: {language}.
+  NO envuelvas tu respuesta en bloques de código markdown.
+
+critic_prompt: |
+  Eres un Auditor Jefe de IA para la Comisión Europea. Revisa el borrador del Anexo IV.2 para verificar su exactitud, fundamentación y consistencia lingüística.
+  
+  FUENTES DE EVIDENCIA (La ÚNICA fuente de verdad):
+  - BOM: {bom}
+  - AST/Código: {code}
+  - Trace/Ejecución: {meta}
+  
+  IDIOMA OBJETIVO: {language}
+  
+  BORRADOR DEL DOCUMENTO:
+  {doc}
+  
+  TAREA:
+  1. Identificar "Alucinaciones": Afirmaciones sobre datos, versiones o lógica NO encontrados en las fuentes de evidencia.
+  2. Identificar falta de coincidencia de idioma: Si alguna sección no está en {language}, márcala como REVISAR (REVISE).
+  3. Identificar especulaciones: Donde el agente esté adivinando en lugar de decir "NO_DOCUMENTADO".
+  4. Calificar el tono regulador.
+  
+  Si encuentras alucinaciones o errores de idioma, indica REVISAR y señálalos específicamente en el feedback.
+  
+  FORMATO DE SALIDA (JSON Estricto):
+  {{
+      "verdict": "APPROVE" o "REVISE",
+      "feedback": {{
+          "2.a": "Razón...",
+          "2.b": "Razón...",
+          ...
+      }}
+  }}
+
+sections:
+  2a:
+    header: "2.a Métodos de Desarrollo"
+    description: "los métodos y pasos realizados para el desarrollo del sistema de IA, incluyendo, cuando sea pertinente, el recurso a sistemas o herramientas preentrenados proporcionados por terceros y cómo fueron utilizados, integrados o modificados por el proveedor;"
+    prompt: |
+      Eres un Oficial de Cumplimiento de IA escribiendo el Anexo IV.2(a) para el Reglamento de IA de la UE.
+      
+      CONTEXTO:
+      - Librerías detectadas: {bom}
+      - Análisis de Código: {code}
+      
+      TAREA:
+      Abordar el requisito de Métodos de Desarrollo (Artículo 11 y Anexo IV).
+  2b:
+    header: "2.b Lógica y Suposiciones"
+    description: "las especificaciones de diseño del sistema, a saber, la lógica general del sistema de IA y de los algoritmos; las opciones clave de diseño, incluyendo la justificación y las suposiciones realizadas..."
+    prompt: |
+      Eres un Oficial de Cumplimiento de IA escribiendo el Anexo IV.2(b) para el Reglamento de IA de la UE.
+      
+      CONTEXTO:
+      - Componentes: {bom}
+      - Análisis de Código: {code}
+      
+      TAREA:
+      Abordar el requisito de Lógica General, opciones de diseño y compensaciones (trade-offs).
+  2c:
+    header: "2.c Arquitectura del Sistema"
+    description: "la descripción de la arquitectura del sistema explicando cómo los componentes de software se basan o se alimentan entre sí..."
+    prompt: |
+      Eres un Oficial de Cumplimiento de IA escribiendo el Anexo IV.2(c) para el Reglamento de IA de la UE.
+      
+      CONTEXTO:
+      - BOM del Sistema: {bom}
+      - Análisis de Código: {code}
+      
+      TAREA:
+      Abordar el requisito de Arquitectura del Sistema y recursos computacionales.
+  2d:
+    header: "2.d Requisitos de Datos"
+    description: "cuando sea pertinente, los requisitos de datos en términos de fichas técnicas que describan las metodologías y técnicas de entrenamiento y los conjuntos de datos de entrenamiento utilizados..."
+    prompt: |
+      Eres un Oficial de Cumplimiento de IA escribiendo el Anexo IV.2(d) para el Reglamento de IA de la UE.
+      
+      CONTEXTO:
+      - Librerías: {bom}
+      - Análisis de Código: {code}
+      
+      TAREA:
+      Abordar el requisito de Procedencia de datos, selección y etiquetado.
+  2e:
+    header: "2.e Vigilancia Humana"
+    description: "evaluación de las medidas de vigilancia humana necesarias de conformidad con el artículo 14..."
+    prompt: |
+      Eres un Oficial de Cumplimiento de IA escribiendo el Anexo IV.2(e) para el Reglamento de IA de la UE.
+      
+      CONTEXTO:
+      - Análisis de Código: {code}
+
+      TAREA:
+      Abordar el requisito de Vigilancia Humana (Artículo 14) e interpretabilidad.
+  2f:
+    header: "2.f Cambios Predeterminados"
+    description: "una descripción detallada de los cambios predeterminados en el sistema de IA y su rendimiento..."
+    prompt: |
+      Eres un Oficial de Cumplimiento de IA escribiendo el Anexo IV.2(f) para el Reglamento de IA de la UE.
+      
+      CONTEXTO:
+      - Análisis de Código: {code}
+      
+      TAREA:
+      Abordar el requisito de Cambios Predeterminados y cumplimiento continuo.
+  2g:
+    header: "2.g Validación y Pruebas"
+    description: "los procedimientos de validación y pruebas utilizados, incluyendo información sobre los datos de validación y pruebas utilizados..."
+    prompt: |
+      Eres un Oficial de Cumplimiento de IA escribiendo el Anexo IV.2(g) para el Reglamento de IA de la UE.
+      
+      CONTEXTO:
+      - Resultados de Validación: {meta}
+      - Análisis de Código: {code}
+      
+      TAREA:
+      Abordar el requisito de Validación, métricas de exactitud y robustez.
+  2h:
+    header: "2.h Ciberseguridad"
+    description: "medidas de ciberseguridad puestas en marcha;"
+    prompt: |
+      Eres un Oficial de Cumplimiento de IA escribiendo el Anexo IV.2(h) para el Reglamento de IA de la UE.
+      
+      CONTEXTO:
+      - Análisis de Código: {code}
+      - Escaneo de seguridad de la cadena de suministro: {vuln_text}
+
+      TAREA:
+      Abordar el requisito de Ciberseguridad (Artículo 15).

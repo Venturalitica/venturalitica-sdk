@@ -35,8 +35,10 @@ The SDK supports the following Environment Variables. We recommend using a `.env
 ## 📋 Prerequisites
 
 *   **Python:** 3.11+
-*   **Local LLM (Optional):** [Ollama](https://ollama.com/) (Recommended for "Privacy-First" setups).
-    *   *Note: If you cannot run Ollama, please set `MISTRAL_API_KEY` for cloud generation.*
+*   **Local LLM (Optional):**
+    *   **Ollama**: (Recommended for standard local use).
+    *   **ALIA (Experimental)**: Native Spanish Sovereign model (Requires High-End GPU).
+    *   *Note: If you cannot run local models, please set `MISTRAL_API_KEY` for cloud generation.*
 
 ## 🚀 Quick Start
 
