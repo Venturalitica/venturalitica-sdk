@@ -1,6 +1,7 @@
 # Level 1: The Engineer (Policy & Configuration) 🟢
 
 **Goal**: Learn how to write the "Law" and **Detect Risk**.
+
 **Prerequisite**: [Zero to Pro (Index)](index.md)
 
 ---
@@ -13,7 +14,7 @@ In the [Zero to Pro](index.md) quickstart, `vl.quickstart('loan')` FAILED.
 credit-age-disparate   Age disparity          0.361      > 0.5      ❌ FAIL
 ```
 
-**What happened?**
+### What happened?
 The "Law" (OSCAL Policy) said: "Age Disparity must be > 0.5".
 The "Reality" (Data) was: `0.361`.
 
@@ -87,10 +88,10 @@ Notice what just happened.
 
 This mapping is the **Handshake**. You bridge the gap between messy Data and rigid Law. This is how you implement **ISO 42001** without losing your mind in spreadsheets.
 
-## 4. The "Aha!" Moment
+## 4. Visual Verification
 
 When you run this, it will **FAIL** in your terminal. And that is **GOOD**.
-But compliance is not just about terminal logs. 
+But compliance is not just about terminal logs.
 
 To see the professional report and visualization of this failure, run the local dashboard:
 
@@ -104,7 +105,7 @@ Navigate to the **Policy** tab. You will see the visual proof of your identified
 
 You have successfully prevented a non-compliant AI from reaching production by measuring risk against a verifiable standard.
 
-## 4. Take Home Messages 🏠
+## 5. Take Home Messages 🏠
 
 1.  **Policy as Code**: Governance is just a `.yaml` file. Version control it.
 2.  **Separation of Duties**: You define the *Mapping* (`age`=`Attribute13`). The Officer defines the *Threshold* (`> 0.5`).
