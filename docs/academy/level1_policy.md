@@ -18,12 +18,12 @@ credit-age-disparate   Age disparity          0.361      > 0.5      ❌ FAIL
 The "Law" (OSCAL Policy) said: "Age Disparity must be > 0.5".
 The "Reality" (Data) was: `0.361`.
 
-In **ISO 42001** terms, you have identified a **Risk**.
-Your instinct is to "fix" it by lowering the threshold to 0.3.
-**STOP.** 🛑
+In **ISO 42001** terms, a **Technical Control** (your policy) has failed, revealing a **Compliance Gap**. This is the start of the **Risk Lifecycle**.
 
-> **Rule #1**: Developers measure Risk. Compliance Officers accept Risk.
-> If you lower the bar to make the test pass, you are hiding the risk, not treating it.
+As an Engineer, your job is not to "fix" the gap by lowering the threshold to 0.3. That would be bypassing the security control. Instead, you must provide the **Evidence** of the failure so it can be managed.
+
+> **Rule #1: The Risk Lifecycle is a Handshake**.
+> Engineers implement and **Verify** controls; Compliance Officers authorize the **Residual Risk**.
 
 ## 2. Anatomy of a Policy (OSCAL)
 
@@ -107,9 +107,9 @@ You have successfully prevented a non-compliant AI from reaching production by m
 
 ## 5. Take Home Messages 🏠
 
-1.  **Policy as Code**: Governance is just a `.yaml` file. Version control it.
-2.  **Separation of Duties**: You define the *Mapping* (`age`=`Attribute13`). The Officer defines the *Threshold* (`> 0.5`).
-3.  **The Handshake**: The failure is the signal. In Level 2, we will send this signal to the people who can fix it.
+1.  **Policy as Code**: Governance is just a `.yaml` file. It defines the **Control**.
+2.  **The Handshake**: You define the *Mapping* (`age`=`Attribute13`). The Officer defines the *Requirement* (`> 0.5`).
+3.  **Treatment starts with Detection**: The local failure is the signal necessary to start a formal ISO 42001 risk treatment plan.
 
 ---
 

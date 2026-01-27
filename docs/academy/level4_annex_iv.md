@@ -38,8 +38,6 @@ vl.quickstart('medical')
 
     ![Annex IV Generator](../assets/academy/annex_iv_generator.png)
 
-    ![Annex IV Generator](../assets/academy/annex_iv_generator.png)
-
 ### The Generation Process
 Watch the logs. The System is acting as a **Team of Agents**:
 

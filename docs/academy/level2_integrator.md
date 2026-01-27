@@ -28,8 +28,6 @@ Before we automate, let's see what we are shipping.
 2.  **Navigate to "Evidence Graph"**: See your `trace.json` visualized.
 3.  **Check "Policy Status"**: Confirm your "Risk Treatment" (the adjusted threshold) is recorded.
 
-3.  **Check "Policy Status"**: Confirm your "Risk Treatment" (the adjusted threshold) is recorded.
-
 **Key Insight**: "The report looks professional, and I didn't write a single word of it."
 
 ![Evidence Graph](../assets/academy/dashboard_overview.png)

@@ -84,8 +84,6 @@ uv run venturalitica ui
 
 Navigate to **"Article 13: Transparency"**.
 
-Navigate to **"Article 13: Transparency"**.
-
 ### Finding the Evidence Hash
 Look for the **Evidence Hash** in the dashboard.
 `Evidence Hash: 89fbf...`

@@ -32,7 +32,7 @@ uv pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
 pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
 ```
 
-## Step 2: The "Aha!" Moment ⚡
+## Step 2: Running Your First Audit ⚡
 
 Run this single line of code. It downloads a dataset, loads a policy, and audits a model.
 
