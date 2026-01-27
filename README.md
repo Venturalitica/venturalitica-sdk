@@ -192,8 +192,8 @@ While the SDK provides frictionless local enforcement, **Venturalítica Cloud** 
 ### Early Access
 
 Interested in early access to Venturalítica Cloud?
-- **Join the waitlist**: [venturalitica.com/cloud](https://venturalitica.com/cloud) *(coming soon)*
-- **Enterprise inquiries**: Contact us for pilot programs
+- **Join the waitlist**: [www.venturalitica.ai](http://www.venturalitica.ai) *(coming soon)*
+- **Enterprise inquiries**: [Contact us](http://www.venturalitica.ai) for pilot programs
 
 The SDK will always remain **free and open-source** under Apache 2.0. The cloud platform will offer additional enterprise features for teams managing EU AI Act and ISO 42001 compliance at scale.
 
