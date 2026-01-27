@@ -12,31 +12,38 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Union, List, Any
 
 
 def generate_compliance_badge(
-    status: Literal['passing', 'failing', 'unknown'],
+    status: Union[Literal['passing', 'failing', 'unknown'], List[Any]],
     policy_name: str = 'fairness',
     date: str = '',
-    output_path: Path = Path('badge.svg')
+    output_path: Union[str, Path] = Path('badge.svg')
 ) -> Path:
     """
     Generate an SVG badge for compliance status.
     
     Args:
         status: 'passing' (green), 'failing' (red), 'unknown' (gray)
+               OR a list of ComplianceResult objects.
         policy_name: Name of policy checked
         date: ISO date string
         output_path: Where to save the SVG
-    
-    Returns:
-        Path to generated badge
-    
-    Example:
-        >>> path = generate_compliance_badge('passing', 'loan', '2026-01-22')
-        >>> print(f"Badge: ![Compliance](file://{path})")
     """
+    if isinstance(output_path, str):
+        output_path = Path(output_path)
+
+    # If status is a list of results, determine the overall status
+    if isinstance(status, list):
+        if not status:
+            final_status = 'unknown'
+        elif all(getattr(r, 'passed', False) for r in status):
+            final_status = 'passing'
+        else:
+            final_status = 'failing'
+    else:
+        final_status = status
     
     colors = {
         'passing': '#28a745',  # Green
@@ -44,8 +51,8 @@ def generate_compliance_badge(
         'unknown': '#6c757d',   # Gray
     }
     
-    color = colors.get(status, colors['unknown'])
-    status_text = status.upper()
+    color = colors.get(final_status, colors['unknown'])
+    status_text = 'PASSING' if final_status == 'passing' else ('FAILING' if final_status == 'failing' else 'UNKNOWN')
     
     svg_content = f'''<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="180" height="20" role="img" aria-label="Compliance: {status_text}">
   <title>Compliance: {status_text}</title>

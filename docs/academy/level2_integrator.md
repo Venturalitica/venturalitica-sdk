@@ -4,7 +4,7 @@
 
 **Prerequisite**: [Level 1 (The Engineer)](level1_policy.md)
 
-**Scenario**: `loan-credit-scoring` (Continuing with the clean setup).
+**Context**: Continuing with "The Project" (Loan Credit Scoring).
 
 ---
 
@@ -17,9 +17,83 @@ Emails with screenshots are **not compliance**.
 
 In **GovOps** (Governance over MLOps), we don't treat compliance as a separate manual step. Instead, we use your existing MLOps infrastructure (MLflow, WandB) as an **Evidence Buffer** that automatically harvests the proof of safety during the training process.
 
-### A. The Dashboard (Visual Verification)
+### A. The Integration (Implicit Governance)
 
-Before we automate, let's see what we are shipping.
+In a professional pipeline, governance is a layer that wraps your training. Every time you train a model, you verify its compliance.
+
+Your experiment tracker now tracks two types of performance: **Accuracy** (Operational) and **Compliance** (Regulatory).
+
+=== "MLflow"
+
+    ```python
+    import mlflow
+    import venturalitica as vl
+    from dataclasses import asdict
+
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    mlflow.set_experiment("loan-credit-scoring")
+
+    # 1. Start the GovOps Session (Implicitly captures 'Audit Trace')
+    with mlflow.start_run(), vl.monitor("train_v1"):
+        # 2. Train your model
+        # model.fit(X_train, y_train)
+        
+        # 3. Enforce Compliance (Article 15: Human Oversight)
+        results = vl.enforce(
+            data=X_test.assign(prediction=model.predict(X_test)),
+            target="prediction",               # 🧠 Checking Model Behavior
+            gender="gender",
+            policy="model_policy.yaml"         # 🗝️ New policy for Model Governance
+        )
+        
+        # 4. Log everything to the Evidence Buffer
+        passed = all(r.passed for r in results)
+        mlflow.log_metric("val_accuracy", 0.92)
+        mlflow.log_metric("compliance_score", 1.0 if passed else 0.0)
+        mlflow.log_dict([asdict(r) for r in results], "compliance_results.json")
+        
+        if not passed:
+            # 🛑 CRITICAL: Block the pipeline if the model is unethical
+            raise ValueError("Model failed ISO 42001 compliance check. See audit trace.")
+    ```
+
+    > **Note**: `vl.monitor()` now captures **Multimodal Evidence**: hardware/carbon metrics AND the logical execution trace (AST code story).
+
+=== "Weights & Biases"
+
+    ```python
+    import wandb
+    import venturalitica as vl
+
+    wandb.init(project="loan-credit-scoring")
+
+    # 1. Open a Monitor Context
+    with vl.monitor("wandb_sync"):
+        # model.fit(X_train, y_train)
+        
+        # 2. Run Enforce (Article 15)
+        audit = vl.enforce(
+            data=pd.read_csv("val_data.csv"),
+            policy="model_policy.yaml",
+            target="prediction"
+        )
+
+    # 3. Log Compliance Artifacts
+    artifact = wandb.Artifact('compliance-bundle', type='evidence')
+    artifact.add_file(".venturalitica/results.json")
+    artifact.add_file(".venturalitica/trace_wandb_sync.json")
+    wandb.log_artifact(artifact)
+    
+    passed = all(r.passed for r in audit)
+    wandb.log({"accuracy": 0.89, "compliance": 1.0 if passed else 0.0})
+    
+    if not passed:
+        raise ValueError("Model rejected by GovOps policy.")
+    ```
+
+### B. The Verification (Dashboard)
+
+Now that the code has run, let's verify what we shipped.
 
 1.  **Run the UI**:
     ```bash
@@ -34,90 +108,19 @@ Before we automate, let's see what we are shipping.
 
 ---
 
-## 3. The Integration: Continuous Governance
+## 3. Deep Dive: The Two-Policy Handshake (Art 10 vs 15)
 
-In a professional pipeline, governance is a layer that wraps your training. Every time you train a model, you verify its compliance.
+Professional GovOps requires a separation of concerns. You are now managing two distinct governance layers:
 
-### Step 1: Orchestrate Your Workflow
+1.  **Level 1 (Article 10)**: Checked the **Raw Data** against `data_policy.yaml`. The goal was to prove the dataset itself was fair before wasting energy on training.
+2.  **Level 2 (Article 15)**: Checks the **Model Behavior** against `model_policy.yaml`. The goal is to prove the AI makes fair decisions in a "Glass Box" execution.
 
-Your experiment tracker now tracks two types of performance: **Accuracy** (Operational) and **Compliance** (Regulatory).
+| Stage | Variable Mapping | Policy File | Mandatory Requirement |
+| :--- | :--- | :--- | :--- |
+| **Data Audit** | `target="class"` | `data_policy.yaml` | **Article 10** (Data Governance) |
+| **Model Audit** | `target="prediction"` | `model_policy.yaml` | **Article 15** (Human Oversight) |
 
-=== "MLflow"
-
-    ```python
-    import mlflow
-    import venturalitica as vl
-    from dataclasses import asdict
-
-    mlflow.set_tracking_uri("sqlite:///mlflow.db")
-    mlflow.set_experiment("loan-credit-scoring")
-
-    # 1. Start the GovOps Session
-    with mlflow.start_run(), vl.monitor("train_v1"):
-        # 2. Train your model
-        # model.fit(X_train, y_train)
-        
-        # 3. Capture the 'Glass Box' Evidence
-        with vl.tracecollector("compliance_audit"):
-            results = vl.enforce(
-                data=X_test.assign(prediction=model.predict(X_test)),
-                target="prediction",
-                gender="gender",
-                policy="my_policy.yaml"
-            )
-        
-        # 4. Log everything to the Evidence Buffer
-        passed = all(r.passed for r in results)
-        mlflow.log_metric("val_accuracy", 0.92)
-        mlflow.log_metric("compliance_score", 1.0 if passed else 0.0)
-        mlflow.log_dict([asdict(r) for r in results], "compliance_results.json")
-        
-        if not passed:
-            print("❌ Model is Biased. Audit Trace generated.")
-    ```
-
-    > **Note**: `vl.monitor()` automatically logs CO2, RAM, and GPU usage to your trace, fulfilling **Article 15 (Efficiency)** requirements.
-
-=== "Weights & Biases"
-
-    ```python
-    import wandb
-    import venturalitica as vl
-
-    wandb.init(project="loan-credit-scoring")
-
-    # 1. Monitor & Train
-    with vl.monitor("production_run"):
-        # model.fit(X_train, y_train)
-        pass
-
-    # 2. Run Enforce with Trace Capture
-    with vl.tracecollector("wandb_sync"):
-        audit = vl.enforce(
-            data=pd.read_csv("val_data.csv"),
-            policy="my_policy.yaml",
-            target="prediction"
-        )
-
-    # 3. Log Compliance Artifacts
-    artifact = wandb.Artifact('compliance-bundle', type='evidence')
-    artifact.add_file(".venturalitica/results.json")
-    artifact.add_file(".venturalitica/trace_wandb_sync.json")
-    wandb.log_artifact(artifact)
-    
-    passed = all(r.passed for r in audit)
-    wandb.log({"accuracy": 0.89, "compliance": 1.0 if passed else 0.0})
-    ```
-
-### 🧠 Deep Dive: Variable Mapping (The "Integrator" Handshake)
-Notice the subtle change in the code above:
-
-- **Level 1 (Data Audit)**: `target="class"` (Checking Ground Truth)
-- **Level 2 (Model Audit)**: `target="prediction"` (Checking AI Behavior)
-
-The Policy (`> 0.5`) stayed the same. The **Mapping** changed.
-This is the power of decoupling Law from Code. You use the *same standard* to test the Raw Data (Engineering) and the Trained Model (MLOps).
-
+This decoupling is the core of the **Handshake**. Even if the Law (`> 0.5`) stays the same, the *subject* of the law changes from **Data** to **Math**.
 
 ## 4. The Gate (CI/CD)
 
@@ -128,9 +131,9 @@ GitLab CI / GitHub Actions can now block a deployment based on ethics, just like
 
 ## 5. Take Home Messages 🏠
 
-1.  **GovOps is Native**: Governance isn't an extra step; it's a context manager (`vl.monitor`, `vl.tracecollector`) around your training.
-2.  **Telemetry is Evidence**: RAM, CO2, and Hardware stats are not just for cost—they fulfill **Article 15** oversight requirements.
-3.  **The Trace File**: Always log the `.json` results to your experiment tracker. It is the raw evidence for your future Technical Documentation.
-4.  **Zero Friction**: The Data Scientist continues to use MLflow/WandB. Venturalítica just harvests the evidence behind the scenes.
+1.  **GovOps is Native**: Governance isn't an extra step; it's a context manager (`vl.monitor`) around your training.
+2.  **Telemetry is Evidence**: RAM, CO2, and Trace results are not just for metrics—they fulfill **Article 15** oversight.
+3.  **Unified Trace**: `vl.monitor()` captures everything from hardware usage to AST code analysis in a single `.json` file.
+4.  **Zero Friction**: The Data Scientist continues to use MLflow/WandB, while the SDK harvests the evidence.
 
-👉 **[Next: Level 3 (The Auditor & Vision)](level3_auditor.md)**
+👉 **[Next: Level 3 (The Auditor)](level3_auditor.md)**

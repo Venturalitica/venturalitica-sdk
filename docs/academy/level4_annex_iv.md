@@ -8,25 +8,39 @@
 
 ## 1. The Bottleneck: "Technical Documentation"
 
-According to **Article 11** and **Annex IV** of the EU AI Act, High-Risk systems (like Medical Devices) require comprehensive Technical Documentation.
+According to **Article 11** and **Annex IV** of the EU AI Act, High-Risk systems (like **Credit Scoring**) require comprehensive Technical Documentation.
 Writing this manually takes **weeks**.
 
 ## 2. The Solution: Generative Compliance
 
-We use your **Policy (Level 1)** and **Evidence (Level 2/3)** to prompt an LLM to draft the document for you. 
+We use your **Policies (Level 1 & 2)** and **Evidence (Level 2/3)** to prompt an LLM to draft the document for you. 
 
 Venturalítica supports:
+
 - **Cloud**: Mistral (via API).
 - **Local**: Ollama (General purpose).
 - **Sovereign (NEW)**: **ALIA** (Spanish Native GGUF via Llama.cpp) - *Experimental*.
 
-### The Medical Scenario
-In this simulation, we are auditing a **Spine Segmentation Model** (Medical Device, Class IIa).
+### The Upgrade
+
+We continue working on the "Loan Scoring" project.
+
+### Run the High-Risk Audit
+
+Ensure you have run the collection steps:
 
 ```python
-# 1. Run the audit to generate evidence
-import venturalitica as vl
-vl.quickstart('medical')
+# Run the Article 10 (Data) & Article 15 (Model) Governance Audit
+with vl.monitor("loan_annex_audit"):
+    # 1. Verify Training Data (Art 10)
+    vl.enforce(data=train_df, policy="data_governance.yaml", target="class")
+    
+    # 2. Verify Model Performance (Art 15)
+    vl.enforce(
+        data=val_df.assign(prediction=model.predict(val_df)), 
+        policy="model_policy.yaml", 
+        target="prediction"
+    )
 ```
 
 ## 3. Generate the Document
@@ -46,7 +60,7 @@ Watch the logs. The System is acting as a **Team of Agents**:
 3.  **Writer**: Drafts "Section 2.c: Architecture" using the `summary()` from your actual Python code.
 4.  **Critic**: Reviews the draft against the ISO 42001 standard.
 
-**Result**: A markdown file (`Annex_IV.md`) that cites your specific accuracy scores (`Dice Coefficient: 0.92`) as proof of safety.
+**Result**: A markdown file (`Annex_IV.md`) that cites your specific accuracy scores (e.g., `Demographic Parity: 0.92`) as proof of safety.
 
 ## 4. Selecting your LLM
 
@@ -81,7 +95,7 @@ By default, we generate `Annex_IV.md` (Markdown) for version control. To convert
     pandoc Annex_IV.md -o Annex_IV.pdf --toc --pdf-engine=xelatex
     ```
 
-## 5. Take Home Messages 🏠
+## 6. Take Home Messages 🏠
 
 1.  **Documentation is a Function**: `f(Evidence) -> Document`. Never write what you can generate.
 2.  **LiveTrace**: If your accuracy drops tomorrow, regenerate the document. It will reflect the *current* state, preventing "Documentation Drift".

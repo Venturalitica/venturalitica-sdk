@@ -14,6 +14,8 @@ from dataclasses import asdict
 import numpy as np
 from datetime import datetime
 
+_SESSION_ENFORCED = False
+
 # Custom JSON encoder para tipos complejos
 class VenturalíticaJSONEncoder(json.JSONEncoder):
     """Encoder que maneja tipos complejos de numpy, pandas y datetime"""
@@ -39,15 +41,16 @@ def _is_enforced():
 def monitor(name: str = "Training Task"):
     """
     Multimodal Monitor: Extensible probe-based observation platform.
-    Tracks Green AI, Hardware Telemetry, and Security Integrity.
+    Tracks Green AI, Hardware Telemetry, Security Integrity, and Audit Trace.
     """
-    from .probes import CarbonProbe, HardwareProbe, IntegrityProbe, HandshakeProbe
+    from .probes import CarbonProbe, HardwareProbe, IntegrityProbe, HandshakeProbe, TraceProbe
     
     probes = [
         IntegrityProbe(),
         HardwareProbe(),
         CarbonProbe(),
-        HandshakeProbe(_is_enforced)
+        HandshakeProbe(_is_enforced),
+        TraceProbe(run_name=name)
     ]
 
     print(f"\n[Venturalítica] 🟢 Starting monitor: {name}")
@@ -204,7 +207,7 @@ def save_audit_results(results: List[ComplianceResult], path: str = ".venturalit
     print(f"  ✓ Results saved to {path}")
 
 # Import public API
-from .wrappers import wrap, tracecollector
+from .wrappers import wrap
 from .badges import generate_compliance_badge, generate_metric_badge
 from .quickstart import quickstart, load_sample, list_scenarios
 
@@ -213,7 +216,6 @@ __all__ = [
     'monitor',
     'enforce',
     'wrap',
-    'tracecollector',
     'save_audit_results',
     'generate_compliance_badge',
     'generate_metric_badge',

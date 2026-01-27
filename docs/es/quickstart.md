@@ -82,7 +82,7 @@ df['class'] = dataset.data.targets
 
 # 3. Ejecutar la Auditoría (La "Prueba")
 # Esto genera automáticamente la Lista de Materiales de Evidencia (BOM)
-with vl.tracecollector("manual_audit"):
+with vl.monitor("manual_audit"):
     vl.enforce(
         data=df,
         target="class",          # El resultado (True/False)

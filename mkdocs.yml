@@ -37,6 +37,14 @@ extra_css:
 
 plugins:
   - search
+  - llmstxt:
+      sections:
+        Academy:
+          - academy/*.md
+          - es/academy/*.md
+        Guides:
+          - "*.md"
+          - tutorials/*.md
   - macros:
       verbose: false
   - i18n:
@@ -50,7 +58,7 @@ plugins:
           build: true
 
 extra:
-  version: "v0.3.0"
+  version: "v0.4.1"
   alternate:
     - name: English
       link: ""

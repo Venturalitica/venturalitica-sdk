@@ -15,10 +15,10 @@ import venturalitica as vl
 from sklearn.ensemble import RandomForestClassifier
 
 # 1. Wrap the model
-model = vl.wrap(RandomForestClassifier(), policy="my_policy.yaml")
+model = vl.wrap(RandomForestClassifier(), policy="model_policy.yaml")
 
 # 2. Train as usual (Evidence is auto-collected)
-model.fit(X_train, y_train, audit_data=train_df, gender="sex")
+model.fit(X_train, y_train, audit_data=train_df, gender="Attribute9")
 ```
 
 **What is recorded?**
@@ -27,7 +27,7 @@ model.fit(X_train, y_train, audit_data=train_df, gender="sex")
 *   **Data Shape**: Number of rows/columns used.
 *   **Code Context**: The filename and AST analysis of the script that called `fit`.
 
-### 2. The Trace Collector (`vl.tracecollector`)
+### 2. The Multimodal Monitor (`vl.monitor`)
 
 For custom training loops (e.g., PyTorch, TensorFlow) or complex pipelines where `fit()` isn't enough, use the context manager.
 
@@ -35,12 +35,12 @@ For custom training loops (e.g., PyTorch, TensorFlow) or complex pipelines where
 import venturalitica as vl
 
 # Start the recording session
-with vl.tracecollector("custom_training_run"):
+with vl.monitor("training_run_v1"):
     # Your custom logic here
     model = train_custom_model(data)
     evaluate_model(model)
     
-# Evidence is saved to .venturalitica/trace_custom_training_run.json
+# Evidence is saved to .venturalitica/trace_training_run_v1.json
 ```
 
 ## Where does the evidence go?

@@ -14,7 +14,7 @@ The "Deep Strategic Audit" and the **Academy** release have closed the following
 
 ### 2. Transparency & Trust (Article 13)
 *   **Previous Gap**: No public-facing proof of compliance.
-*   **Solution**: `vl.generate_compliance_badge()` creates a verifiable SVG linked to the evidence hash.
+*   **Solution**: **The Digital Seal**. Instead of a static SVG badge, Venturalítica now hashes the Trace Evidence (SHA-256) to create a tamper-proof cryptographic signature.
 
 ### 3. Resource Efficiency (Article 15)
 *   **Previous Gap**: No tracking of energy or hardware usage.

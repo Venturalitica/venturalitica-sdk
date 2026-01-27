@@ -30,7 +30,7 @@ The SDK supports the following Environment Variables. We recommend using a `.env
 | :--- | :--- | :--- | :--- |
 | `MISTRAL_API_KEY` | [Get a Free Key](https://console.mistral.ai/). Used for Cloud Fallback if local Ollama fails. | None | **Recommended** |
 | `VENTURALITICA_LLM_PRO` | Set to `true` to use Mistral even if Ollama is available (Higher Quality). | `false` | No |
-| `MLFLOW_TRACKING_URI` | If set, `tracecollector` will auto-log audits to MLflow. | None | No |
+| `MLFLOW_TRACKING_URI` | If set, `monitor()` will auto-log audits to MLflow. | None | No |
 
 ## 📋 Prerequisites
 

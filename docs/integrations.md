@@ -1,22 +1,31 @@
-# Deep Integrations (Glass Box v2.0)
+# MLOps Integrations (The Ops Guide)
 
-Venturalítica v0.4.0 introduces **Deep Integrations**, designed to make AI Governance a seamless part of your existing MLOps workflow. We call this "Glass Box 2.0": complete visibility into both the code and the regulatory artifacts that governed it.
+This guide focuses on the **MLOps Persona**: the one who automates the pipeline.
+Venturalítica integrates strictly with your existing tools to ensure that **Evidence (Article 12)** is automatically collected during your CI/CD runs.
 
-## Features
+---
 
-### 1. Regulatory Versioning
-Every time you train a model using `vl.wrap()`, Venturalítica automatically snapshots your governance policy (`oscal.yaml`) and uploads it to your active tracking server.
+## The Concept
 
--   **Why?** Ensures that your audit trail is strictly reproducible. You can prove exactly *which* rules were active during training.
--   **Where?** Look for `policy_snapshot` in your MLflow artifacts or WandB files.
+We do not want to replace your MLOps stack. We want to **certify** it.
 
-### 2. Integrations Status Tab
-The new **Integrations** tab in `venturalitica ui` provides a real-time health check of your governance ecosystem.
+| Tool | Integration | Benefit |
+|:--|:--|:--|
+| **MLflow / WandB** | `vl.wrap()` | Automatically links Policy `model_policy.yaml` to the run artifacts. |
+| **Status Dashboard** | `venturalitica ui` | Provides "Traffic Light" health checks for your compliance pipeline. |
 
--   **Traffic Light System**: Instantly see if your local MLflow or Cloud WandB are connected.
--   **Deep Links**: One-click navigation to the *exact* run in your MLOps tool that produced the evidence.
+---
 
-## Setup
+## 1. Regulatory Versioning
+
+Every time you train a model using `vl.wrap()` or `vl.monitor()`, Venturalítica automatically snapshots your governance policy (`model_policy.yaml`) and uploads it to your active tracking server.
+
+*   **Why?** Ensures that your audit trail is strictly reproducible. You can prove exactly *which* rules were active during training (e.g., "Policy v1.2 vs v1.3").
+*   **Where?** Look for `policy_snapshot` in your MLflow artifacts or WandB files.
+
+---
+
+## 2. Setup Guide
 
 ### Weights & Biases (Cloud)
 Venturalítica automatically detects `wandb` runs.
@@ -32,20 +41,32 @@ Compatible with both local `mlruns` and remote Tracking Servers.
 2.  **Run**: Ensure `mlflow.start_run()` is active when you call `fit()`.
 3.  **Verify**: The UI will generate deep links to your specific Experiment and Run ID.
 
-## Example
+---
+
+## 3. Example (Loan Scenario)
+
+Here is how you automate the **Article 15 Audit** inside a standard pipeline.
 
 ```python
 import venturalitica as vl
 import mlflow
+from sklearn.ensemble import RandomForestClassifier
 
-# 1. Define Policy
-policy = "risks.oscal.yaml"
+# 1. Define Policy (The Standard)
+policy = "model_policy.yaml"
 
 # 2. Start MLOps Run
 with mlflow.start_run():
-    # 3. Transparent Wrapping
+    
+    # 3. Transparent Wrapping (The Governance Layer)
+    # This automatically captures the 'model_policy.yaml' snapshot
     model = vl.wrap(RandomForestClassifier(), policy=policy)
     
-    # 4. Train (Artifacts auto-uploaded)
-    model.fit(X_train, y_train) 
+    # 4. Train (Evidence & Artifacts auto-uploaded)
+    model.fit(
+        X_train, y_train,
+        audit_data=train_df,
+        gender="Attribute9",  # Strict mapping for audit
+        age="Attribute13"
+    ) 
 ```

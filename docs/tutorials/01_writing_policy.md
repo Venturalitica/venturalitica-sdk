@@ -1,91 +1,141 @@
-# Tutorial: Writing Your First Policy (OSCAL)
+# 🛠️ Writing Code-First Policy (The Engineer)
 
-Venturalítica uses **OSCAL (Open Security Controls Assessment Language)** to define governance rules. This "Policy-as-Code" approach allows you to version control your compliance requirements alongside your software.
+This guide focuses on the **Engineer Persona**: the one who translates legal requirements into technical rules (OSCAL).
+In **Level 1**, you learned to "Block" bad deployments. Now we will write the actual policy file that governs the project.
 
-## 1. The Structure of a Policy
+---
 
-A policy file (`.yaml`) tells the SDK **what** to measure (metrics) and **why** (control descriptions).
+## The Policy File (`data_policy.yaml`)
+
+For **Phase 1 (Data Audit)**, we only care about **Article 10 (Data Governance)**.
+Your Data Scientist (The Builder) cannot start training until this file is ready.
+
+### 1. The Structure
+
+Create a file named `data_policy.yaml` in your project root.
 
 ```yaml
 assessment-plan:
-  uuid: policy-v1
+  uuid: credit-scoring-v1
   metadata:
-    title: "EU AI Act - High Risk Audit"
+    title: "Article 10: Consumer Credit Directive (CCD)"
+    description: "Acceptance criteria for training data quality and bias."
   reviewed-controls:
     control-selections:
       - include-controls:
-        # CONTROL BLOCK 1
-        - control-id: gender-fairness
-          description: "Article 10: Data Governance. Examination of possible biases."
+        # RULES GO HERE
+```
+
+---
+
+## 2. Defining the Rules (Controls)
+
+A "Control" is a unit of logic. In the EU AI Act, you must prove you checked for specific risks.
+
+### Rule A: Representation (Statistical Support)
+*   **Legal Requirement**: "Training, validation and testing data sets shall be relevant, representative, free of errors and complete." (Art 10.3)
+*   **Translation**: Ensure no demographic group is erased (Min 20% representation).
+
+```yaml
+        - control-id: check-imbalance
+          description: "Ensure minority groups are statistically significant."
           props:
             - name: metric_key
-              value: demographic_parity_diff
+              value: min_class_ratio
             - name: threshold
-              value: "0.10"
+              value: "0.20"  # Fail if minority class < 20%
             - name: operator
-              value: "<"
+              value: ">"
 ```
 
-## 2. Defining Controls
-
-Each `control-id` represents a specific check.
-
-### A. Bias Check (Fairness)
-Ensure your model treats groups equally.
+### Rule B: Bias (Disparate Impact)
+*   **Legal Requirement**: "Examination of possible biases." (Art 10.2.f)
+*   **Translation**: Acceptance rates must not deviate by more than 20% between groups (Four-Fifths Rule).
 
 ```yaml
-- control-id: check-gender-bias
-  props:
-    - name: metric_key
-      value: demographic_parity_diff
-    - name: threshold
-      value: "0.10"  # Fail if difference > 10%
-    - name: operator
-      value: "<"
+        - control-id: check-gender-bias
+          description: "Disparate Impact Ratio must be within 0.8 - 1.25"
+          props:
+            - name: metric_key
+              value: disparate_impact_ratio
+            - name: threshold
+              value: "0.80"
+            - name: operator
+              value: ">"
 ```
 
-### B. Data Quality
-Check for class imbalance or missing values.
+---
 
-```yaml
-- control-id: check-imbalance
-  props:
-    - name: metric_key
-      value: min_class_ratio
-    - name: threshold
-      value: "0.20"  # Fail if minority class < 20%
-    - name: operator
-      value: ">"
-```
+## 3. Verify the Policy
 
-## 3. Supported Metrics
-
-All metrics from `venturalitica.metrics` are supported. Common keys:
-
-| Key | Description |
-| :--- | :--- |
-| `demographic_parity_diff` | Difference in acceptance rates (Fairness). |
-| `disparate_impact_ratio` | Ratio of acceptance rates (Fairness). |
-| `accuracy_score` | Overall model accuracy (Performance). |
-| `f1_score` | Harmonic mean of precision/recall (Performance). |
-| `missing_values_ratio` | Percentage of empty cells (Quality). |
-
-## 4. How to Run It
-
-Once you have your `policy.yaml`, apply it to your dataframe:
+Before handing it off to the Data Scientist, verify it works.
 
 ```python
 import venturalitica as vl
-import pandas as pd
+from venturalitica.quickstart import load_sample
 
-df = pd.read_csv("data/loan_applications.csv")
+# 1. Load the 'Approved' Dataset (Mock)
+data = load_sample('loan')
 
-vl.enforce(
-    data=df,
-    target="approved",       # The column to predict
-    gender="applicant_sex",  # The protected attribute
-    policy="policy.yaml"     # Your OSCAL file
-)
+# 2. Dry Run the Policy
+try:
+    vl.enforce(
+        data=data,
+        target="class",
+        gender="Attribute9",  # "Personal status and sex" in German Credit Data
+        policy="data_policy.yaml"
+    )
+    print("✅ Policy is valid syntax and passes baseline data.")
+except Exception as e:
+    print(f"❌ Policy Error: {e}")
 ```
 
-The SDK will evaluate every control in the YAML against your data. If any control fails (and `blocking: true`), it raises an `AuditFailure` exception, stopping the pipeline.
+---
+
+## Part 2: The Model Policy (`model_policy.yaml`)
+
+Once the data is approved, you need to define the rules for the **final product** (the trained model).
+This corresponds to **Article 15 (Accuracy, Robustness, and Cybersecurity)**.
+
+Create a second file: `model_policy.yaml`.
+
+### Rule C: Performance (Accuracy)
+*   **Legal Requirement**: "High-risk AI systems shall be designed ... to achieve an appropriate level of accuracy." (Art 15.1)
+*   **Translation**: The model must be better than random guessing (e.g., > 70% accuracy).
+
+```yaml
+        - control-id: accuracy-check
+          description: "Model must achieve at least 70% accuracy."
+          props:
+            - name: metric_key
+              value: accuracy_score
+            - name: threshold
+              value: "0.70"
+            - name: operator
+              value: ">"
+```
+
+### Rule D: Post-Training Fairness (Outcome)
+*   **Legal Requirement**: "Results shall not be biased..."
+*   **Translation**: Even if data was balanced, the model might still learn to discriminate. Check the predictions again.
+
+```yaml
+        - control-id: gender-fairness-model
+          description: "Ensure model predictions do not disparately impact women."
+          props:
+            - name: metric_key
+              value: disparate_impact_ratio
+            - name: "input:dimension"
+              value: "gender"         # Explicitly link to the gender column
+            - name: threshold
+              value: "0.80"
+            - name: operator
+              value: ">"
+```
+
+---
+
+## What's Next?
+
+You have now created the **specification**.
+👉 Hand these files (`data_policy.yaml` and `model_policy.yaml`) to your Data Scientist. They will use them in **Level 2** to audit their training pipeline.

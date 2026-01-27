@@ -12,7 +12,7 @@ In a formal Management System (**ISO 42001**), governance follows a top-down flo
 
 1.  **Risk Assessment**: The Compliance Officer (CO) identifies a business risk (e.g., *"Our lending AI might discriminate against elderly applicants, causing legal and reputational damage"*).
 2.  **Control Definition**: To mitigate this risk, the CO sets a **Control** (e.g., *"The Age Disparity Ratio must always be > 0.5"*).
-3.  **Technical Implementation**: That's your job. You take the CO's requirement and turn it into the technical "Law" (the OSCAL Policy).
+3.  **Technical Implementation**: That's your job. You take the CO's requirement and turn it into the technical "Law" (**Article 10: Data Governance**).
 
 In the [Zero to Pro](index.md) quickstart, `vl.quickstart('loan')` FAILED:
 
@@ -32,26 +32,25 @@ If you lower the threshold to 0.3 just to make the test "pass," you aren't fixin
 ## 2. Anatomy of a Control (OSCAL)
 
 Your job is to translate the CO's requirement into Code. 
-Create a file named `my_policy.yaml`. Keep the threshold at **0.5 (The Organizational Standard)**.
+Create a file named `data_governance.yaml`. Keep the threshold at **0.5 (The Organizational Standard)**.
 
 ```yaml
 assessment-plan:
-  uuid: my-policy-001
   metadata:
-    title: "Corporate Fairness Standard"
-  reviewed-controls:
-    control-selections:
-      - include-controls:
+    title: "Article 10: Data Governance Standard"
+  control-implementations:
+    - description: "Fairness Monitoring"
+      implemented-requirements:
         # 🟢 Control 1: The Bias Check
         - control-id: age-check
           description: "Age Disparity must be standard (> 0.5)"
           props:
             - name: metric_key
-              value: disparate_impact_ratio # The Python metric to run
+              value: disparate_impact        # The Python metric to run
             - name: "input:dimension"
               value: age                    # The abstract concept
             - name: operator
-              value: ">"
+              value: gt                     # Greater Than
             - name: threshold
               value: "0.5"                  # 🔒 DO NOT CHANGE THIS
 ```
@@ -70,16 +69,18 @@ df = dataset.data.features
 df['class'] = dataset.data.targets
 
 # 2. Run Audit (The Mapping)
-try:
-    vl.enforce(
-        data=df,
-        target="class",
-        age="Attribute13",    # 🗝️ MAPPING: 'age' is actually 'Attribute13'
-        policy="my_policy.yaml"
-    )
+results = vl.enforce(
+    data=df,
+    target="class",
+    age="Attribute13",    # 🗝️ MAPPING: 'age' is actually 'Attribute13'
+    policy="data_governance.yaml"
+)
+
+# 3. Check Results
+if all(r.passed for r in results):
     print("✅ Audit Passed!")
-except Exception as e:
-    print(f"❌ BLOCKED: {e}")
+else:
+    print("❌ BLOCKED: Compliance Violation detected.")
     print("👉 Action: Push trace.json to SaaS for Compliance Officer review.")
 ```
 

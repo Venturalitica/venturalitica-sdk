@@ -83,7 +83,7 @@ df['class'] = dataset.data.targets
 
 # 3. Run the Audit (The "Test")
 # This automatically generates the Evidence Bill of Materials (BOM)
-with vl.tracecollector("manual_audit"):
+with vl.monitor("manual_audit"):
     vl.enforce(
         data=df,
         target="class",          # The outcome (True/False)

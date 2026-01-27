@@ -13,8 +13,6 @@ from .output import render_compliance_results, print_aha_moment
 # UCI Dataset IDs from archive.ics.uci.edu
 UCI_DATASETS = {
     'loan': 144,    # German Credit Data
-    'hiring': 2,    # Adult (Census Income)
-    'health': 17,   # Breast Cancer Wisconsin
 }
 
 # Sample data registry
@@ -26,56 +24,6 @@ SAMPLE_SCENARIOS = {
         'target': 'class',
         'protected_attrs': {'gender': 'Attribute9', 'age': 'Attribute13'},
         'description': 'Detect bias in loan approval decisions (UCI German Credit)'
-    },
-    'hiring': {
-        'name': 'Hiring Bias Detection',
-        'dataset': 'adult_income.csv',
-        'policy': 'hiring/hiring-bias.oscal.yaml',
-        'target': 'target',
-        'protected_attrs': {'sex': 'sex'},
-        'description': 'Multi-attribute fairness in recruitment'
-    },
-    'health': {
-        'name': 'Clinical Risk Assessment',
-        'dataset': 'breast_cancer.csv',
-        'policy': 'health/clinical-risk.oscal.yaml',
-        'target': 'target',
-        'protected_attrs': {'age_group': 'age_group'},
-        'description': 'Healthcare diagnosis fairness'
-    },
-    'llm': {
-        'name': 'LLM Bias Auditing',
-        'dataset': 'crows_pairs_sample.csv',
-        'policy': 'bias/llm-fairness.oscal.yaml',
-        'target': 'bias_score',
-        'protected_attrs': {
-            'protected_attribute': 'protected_attribute',
-            'stereotype_preference_rate': 'stereotype_preference_rate',
-            'category_bias_score': 'category_bias_score'
-        },
-        'description': 'Language model demographic bias'
-    },
-    'vision': {
-        'name': 'Computer Vision Fairness',
-        'dataset': 'fairface_sample.csv',
-        'policy': 'vision/fairness.oscal.yaml',
-        'target': 'prediction',
-        'protected_attrs': {'race': 'race', 'gender': 'gender'},
-        'description': 'Facial recognition bias'
-    },
-    'medical': {
-        'name': 'Medical Imaging Fairness',
-        'dataset': 'tcia_sample.csv',
-        'policy': 'medical/dicom-governance.oscal.yaml',
-        'target': 'radiologist_score',
-        'protected_attrs': {
-            'modality': 'modality',
-            'sex': 'sex',
-            'age_group': 'age_group',
-            'mask_quality_target': 'mask_quality_target',
-            'subgroup': 'subgroup'
-        },
-        'description': 'DICOM imaging equity'
     }
 }
 
@@ -88,7 +36,8 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
     Perfect for demos, tutorials, and first-time users.
     
     Args:
-        scenario: One of 'loan', 'hiring', 'health', 'llm', 'vision', 'medical'
+        scenario: Only 'loan' is supported for quickstart. 
+                 For other scenarios, check the 'venturalitica-sdk-samples' repository.
         verbose: If True, shows educational explanations
     
     Returns:
@@ -110,28 +59,50 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
         
         🎉 Aha! Moment: All controls passed!
     """
-    if scenario not in SAMPLE_SCENARIOS:
-        available = ', '.join(SAMPLE_SCENARIOS.keys())
-        raise ValueError(f"Unknown scenario '{scenario}'. Choose from: {available}")
+    if scenario != 'loan':
+        raise ValueError(
+            f"Scenario '{scenario}' is not supported in quickstart. "
+            "Please visit 'venturalitica-sdk-samples' for professional scenarios."
+        )
     
-    config = SAMPLE_SCENARIOS[scenario]
+    config = SAMPLE_SCENARIOS['loan']
     
     if verbose:
         print(f"\n[Venturalítica] 🎓 Scenario: {config['name']}")
         print(f"[Venturalítica] 📖 {config['description']}")
     
     # Load sample data
-    df = load_sample(scenario, verbose=verbose)
+    df = load_sample('loan', verbose=verbose)
     
     if verbose:
         print(f"[Venturalítica] 🛡️  Policy: {config['policy']}")
         print()
     
     # Build policy path
-    # Assume samples repo structure: ../../venturalitica-sdk-samples/policies/
     sdk_root = Path(__file__).parent.parent.parent
-    samples_root = sdk_root.parent.parent / 'venturalitica-sdk-samples'
-    policy_path = samples_root / 'policies' / config['policy']
+    # Handle both workspace and standalone installs
+    samples_candidates = [
+        sdk_root.parent.parent / 'venturalitica-sdk-samples',
+        Path.cwd() / 'venturalitica-sdk-samples',
+        Path.home() / 'venturalitica-sdk-samples',
+    ]
+    
+    samples_root = None
+    for cand in samples_candidates:
+        if cand.exists():
+            samples_root = cand
+            break
+            
+    if samples_root:
+        # Try root policies dir (legacy/extra)
+        policy_path = samples_root / 'policies' / config['policy']
+        
+        # Try scenario-specific policies dir (current standard)
+        if not policy_path.exists():
+            scenario_dir = 'loan-credit-scoring' if scenario == 'loan' else scenario
+            policy_path = samples_root / 'scenarios' / scenario_dir / 'policies' / config['policy']
+    else:
+        policy_path = Path('policies') / config['policy']
     
     # Fallback: try relative to cwd
     if not policy_path.exists():
@@ -139,15 +110,14 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
     
     if not policy_path.exists():
         print(f"  ⚠️  Policy file not found: {policy_path}")
-        print(f"  Tip: Run quickstart from venturalitica-sdk-samples directory")
+        print(f"  Tip: Ensure venturalitica-sdk-samples is available.")
         return []
     
     # Enforce policy
     attrs = {**config['protected_attrs'], 'target': config['target']}
     
-    # [v0.3] Auto-Trace: Capture runtime evidence (AST/BOM) for the UI
-    from .wrappers import tracecollector
-    with tracecollector(f"quickstart_{scenario}"):
+    # [v0.4] Auto-Trace: Capture runtime evidence via the Multimodal Monitor
+    with monitor(f"quickstart_{scenario}"):
         results = enforce(data=df, policy=str(policy_path), **attrs)
     
     if verbose:
@@ -158,53 +128,44 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
 
 def load_sample(name: str, verbose: bool = True) -> pd.DataFrame:
     """
-    Load a pre-configured sample dataset from UCI Machine Learning Repository.
-    
-    Uses the `ucimlrepo` package to fetch datasets directly from:
-    https://archive.ics.uci.edu/datasets
+    Load the 'loan' sample dataset from UCI Machine Learning Repository.
     
     Args:
-        name: Scenario name ('loan', 'hiring', etc.)
+        name: Must be 'loan'
         verbose: Show loading messages
     
     Returns:
         pd.DataFrame: Sample dataset ready for governance checks
-    
-    Example:
-        >>> df = vl.load_sample('loan')
-        [Venturalítica] 📊 Loaded: UCI German Credit (1000 samples)
     """
-    if name not in SAMPLE_SCENARIOS:
-        available = ', '.join(SAMPLE_SCENARIOS.keys())
-        raise ValueError(f"Unknown sample '{name}'. Choose from: {available}")
+    if name != 'loan':
+        raise ValueError("Only 'loan' sample is available in SDK. Use venturalitica-sdk-samples for more.")
     
-    config = SAMPLE_SCENARIOS[name]
+    config = SAMPLE_SCENARIOS['loan']
     
     # Try UCI dataset first (preferred)
-    if 'uci_id' in config:
-        try:
-            from ucimlrepo import fetch_ucirepo
-            dataset = fetch_ucirepo(id=config['uci_id'])
-            df = dataset.data.features.copy()
-            df[config['target']] = dataset.data.targets
-            
-            if verbose:
-                print(f"[Venturalítica] 📊 Loaded: UCI Dataset #{config['uci_id']} ({len(df)} samples)")
-            
-            return df
-        except ImportError:
-            print("  ⚠️  ucimlrepo not installed. Run: pip install ucimlrepo")
-        except Exception as e:
-            print(f"  ⚠️  Could not fetch from UCI: {e}")
+    try:
+        from ucimlrepo import fetch_ucirepo
+        dataset = fetch_ucirepo(id=config['uci_id'])
+        df = dataset.data.features.copy()
+        df[config['target']] = dataset.data.targets
+        
+        if verbose:
+            print(f"[Venturalítica] 📊 Loaded: UCI Dataset #{config['uci_id']} ({len(df)} samples)")
+        
+        return df
+    except ImportError:
+        print("  ⚠️  ucimlrepo not installed. Run: pip install ucimlrepo")
+    except Exception as e:
+        print(f"  ⚠️  Could not fetch from UCI: {e}")
     
     # Fallback: try local dataset files
-    dataset_name = config.get('dataset', f"{name}.csv")
+    dataset_name = "loan.csv"
     sdk_root = Path(__file__).parent.parent.parent
     samples_root = sdk_root.parent.parent / 'venturalitica-sdk-samples'
-    dataset_path = samples_root / 'datasets' / name / dataset_name
+    dataset_path = samples_root / 'datasets' / 'loan' / dataset_name
     
     if not dataset_path.exists():
-        dataset_path = Path('datasets') / name / dataset_name
+        dataset_path = Path('datasets') / 'loan' / dataset_name
     
     if not dataset_path.exists():
         raise FileNotFoundError(
@@ -214,38 +175,22 @@ def load_sample(name: str, verbose: bool = True) -> pd.DataFrame:
     df = pd.read_csv(dataset_path)
     
     if verbose:
-        print(f"[Venturalítica] 📊 Loaded: {len(df)} samples from {name} scenario")
+        print(f"[Venturalítica] 📊 Loaded: {len(df)} samples from loan scenario")
     
     return df
 
 
-def show_code(scenario: str) -> None:
+def show_code(scenario: str = 'loan') -> None:
     """
-    Display the full source code for a scenario.
-    Useful for learning how to integrate the SDK.
-    
-    Args:
-        scenario: Scenario name
-    
-    Example:
-        >>> vl.show_code('loan')
-        # Opens 00_minimal.py in your editor
+    Display instructions to find the source code for the loan scenario.
     """
     print(f"📚 To see the full code for '{scenario}':")
-    print(f"   Open: venturalitica-sdk-samples/scenarios/{scenario}-*/00_minimal.py")
+    print(f"   Open: venturalitica-sdk-samples/scenarios/loan-credit-scoring/00_minimal.py")
     print(f"   Or visit: https://github.com/venturalitica/venturalitica-sdk-samples")
 
 
 def list_scenarios() -> Dict[str, str]:
     """
-    List all available quickstart scenarios.
-    
-    Returns:
-        Dict mapping scenario names to descriptions
-    
-    Example:
-        >>> scenarios = vl.list_scenarios()
-        >>> for name, desc in scenarios.items():
-        ...     print(f"{name}: {desc}")
+    List available quickstart scenarios (only 'loan').
     """
     return {name: config['description'] for name, config in SAMPLE_SCENARIOS.items()}
