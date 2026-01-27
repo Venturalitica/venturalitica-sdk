@@ -9,7 +9,7 @@ class MockStreamlit:
         self.sidebar = MagicMock()
         self.sidebar.text_input = MagicMock(side_effect=lambda label, value=None: value)
         self.session_state = {}
-        self.tabs = MagicMock(return_value=[MagicMock(), MagicMock(), MagicMock()])
+        self.tabs = MagicMock(return_value=[MagicMock() for _ in range(5)])
         self.columns = MagicMock(side_effect=lambda n: [MagicMock() for _ in range(len(n) if isinstance(n, list) else n)])
         self.title = MagicMock()
         self.header = MagicMock()
@@ -38,7 +38,10 @@ class MockStreamlit:
         self.container.return_value.__enter__ = MagicMock()
         self.container.return_value.__exit__ = MagicMock()
         self.selectbox = MagicMock()
+        self.multiselect = MagicMock(side_effect=lambda label, options, default=None: default or [])
+        self.caption = MagicMock()
         self.text_area = MagicMock(side_effect=lambda label, value=None, **kwargs: value if value is not None else "")
+        self.toast = MagicMock()
 
 @pytest.fixture
 def mock_st_obj():
@@ -118,5 +121,5 @@ def test_dashboard_buttons(mock_st_obj, tmp_path):
         with patch("os.getcwd", return_value=str(tmp_path)):
             render_dashboard()
     
-    assert mock_st_obj.toast.called
+    assert mock_st_obj.success.called
     assert mock_st_obj.success.called

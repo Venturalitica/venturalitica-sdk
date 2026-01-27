@@ -24,6 +24,10 @@ class GovernanceWrapper:
         # Delegate everything else to the original model
         return getattr(self._venturalitica_model, name)
 
+    def __call__(self, *args, **kwargs):
+        # Forward execution to the model (essential for PyTorch nn.Module)
+        return self._venturalitica_model(*args, **kwargs)
+
     def _wrap_method(self, method_name: str):
         if not hasattr(self._venturalitica_model, method_name):
             return
@@ -60,11 +64,18 @@ class GovernanceWrapper:
                         **audit_kwargs
                     )
                     
+                    
                     # [PLG] Runtime Provenance Capture
                     try:
                         self._save_run_metadata(data, model_kwargs)
                     except Exception as e:
                         print(f"⚠ Failed to save run metadata: {e}")
+
+                    # [GOVERNANCE] Regulatory Versioning: Upload Policy Artifacts
+                    try:
+                        self._upload_policy_artifacts()
+                    except Exception as e:
+                        print(f"⚠ Regulatory Versioning Warning: {e}")
 
             # Execute original logic (without audit-only kwargs)
             result = original_method(*args, **model_kwargs)
@@ -150,10 +161,78 @@ class GovernanceWrapper:
         except Exception as e:
             print(f"⚠ Trace Audit Warning: Could not capture AST: {e}")
 
+        # [INTEGRATIONS] Capture Linkage
+        try:
+            import mlflow
+            if mlflow.active_run():
+                run = mlflow.active_run()
+                meta["integrations"] = meta.get("integrations", {})
+                meta["integrations"]["mlflow"] = {
+                    "active": True,
+                    "run_id": run.info.run_id,
+                    "experiment_id": run.info.experiment_id,
+                    "tracking_uri": mlflow.get_tracking_uri()
+                }
+        except: pass
+
+        try:
+            import wandb
+            if wandb.run:
+                meta["integrations"] = meta.get("integrations", {})
+                meta["integrations"]["wandb"] = {
+                    "active": True,
+                    "run_url": wandb.run.url,
+                    "project": wandb.run.project,
+                    "entity": wandb.run.entity
+                }
+        except: pass
+
         # Save to disk
         os.makedirs(".venturalitica", exist_ok=True)
         with open(".venturalitica/latest_run.json", "w") as f:
             json.dump(meta, f, indent=2, default=str)
+
+    def _upload_policy_artifacts(self):
+        """
+        [Regulatory Versioning] Uploads the actual OSCAL YAML files to active MLOps runs.
+        Ensures compliance reproducibility.
+        """
+        if not self._venturalitica_policy:
+            return
+
+        # Normalize to list
+        policies = self._venturalitica_policy
+        if not isinstance(policies, list):
+            policies = [policies]
+
+        # 1. Detect MLflow
+        try:
+            import mlflow
+            if mlflow.active_run():
+                for p in policies:
+                    p_path = Path(p)
+                    if p_path.exists():
+                        # Log as 'policy_snapshot' artifact
+                        mlflow.log_artifact(str(p_path), artifact_path="policy_snapshot")
+        except ImportError:
+            pass
+        except Exception as e:
+            print(f"  (MLflow Artifact Upload Error: {e})")
+
+        # 2. Detect WandB
+        try:
+            import wandb
+            if wandb.run:
+                artifact = wandb.Artifact("policy_snapshot", type="governance")
+                for p in policies:
+                    p_path = Path(p)
+                    if p_path.exists():
+                        artifact.add_file(str(p_path))
+                wandb.log_artifact(artifact)
+        except ImportError:
+            pass
+        except Exception as e:
+            print(f"  (WandB Artifact Upload Error: {e})")
 
 class TraceCollector:
     """

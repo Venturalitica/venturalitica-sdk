@@ -1,4 +1,4 @@
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 from .core import GovernanceValidator
 from .integrations import auto_log
 from pathlib import Path
@@ -182,6 +182,12 @@ def _print_summary(results: List[ComplianceResult], is_data_only: bool):
         ctrl_id = (r.control_id[:20])
         
         print(f"  {ctrl_id:<22} {desc:<38} {r.actual_value:<10.3f} {limit_str:<10} {res_label}")
+        
+        # [Enhancement] Show stability context if available
+        if hasattr(r, 'metadata') and r.metadata:
+            # Filter for key stability metrics to keep it clean
+            meta_str = ", ".join([f"{k}={v}" for k, v in r.metadata.items()])
+            print(f"  {'':<22} {C_Y}↳ Stability: {meta_str}{C_0}")
 
     print(f"  {'─' * 96}")
     verdict = f"{C_G}✅ POLICY MET{C_0}" if passed == total else f"{C_R}❌ VIOLATION{C_0}"

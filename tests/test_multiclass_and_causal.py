@@ -191,7 +191,7 @@ class TestPredictiveParityMulticlass:
         y_pred = y_true.copy()  # Perfect predictions
         protected = pd.Series(['A', 'B'] * 15)
         
-        disparity = calc_predictive_parity_multiclass(
+        disparity, _ = calc_predictive_parity_multiclass(
             y_true, y_pred, protected
         )
         assert disparity <= 0.01
@@ -202,10 +202,10 @@ class TestPredictiveParityMulticlass:
         y_pred = pd.Series([0, 0, 0] + [1, 1, 1] + [2, 2, 2] * 7)
         protected = pd.Series(['A', 'B'] * 15)
         
-        macro = calc_predictive_parity_multiclass(
+        macro, _ = calc_predictive_parity_multiclass(
             y_true, y_pred, protected, strategy='macro'
         )
-        weighted = calc_predictive_parity_multiclass(
+        weighted, _ = calc_predictive_parity_multiclass(
             y_true, y_pred, protected, strategy='weighted'
         )
         
@@ -231,11 +231,9 @@ class TestMulticlassFairnessReport:
         # Check all keys present
         expected_keys = [
             'weighted_demographic_parity_macro',
-            'weighted_demographic_parity_weighted',
             'macro_equal_opportunity',
             'micro_equalized_odds',
             'predictive_parity_macro',
-            'predictive_parity_weighted',
         ]
         for key in expected_keys:
             assert key in report

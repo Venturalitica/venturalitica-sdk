@@ -58,7 +58,14 @@ class GovernanceValidator:
             if 'target' in context_mapping: eval_context['target'] = context_mapping['target']
             if 'prediction' in context_mapping: eval_context['prediction'] = context_mapping['prediction']
             
+            print(f"DEBUG MAPPING: {ctrl.input_mapping}")
             for role, var in ctrl.input_mapping.items():
+                # [Fix] Static Parameter Support for Scikit-Learn (e.g. average='macro')
+                if role == 'average':
+                    eval_context[role] = var
+                    print(f"    [Param] Set static parameter '{role}' = '{var}'")
+                    continue
+
                 actual_col = context_mapping.get(var)
                 
                 # [PLG] Auto-Binding: Smart discovery based on variable synonyms
@@ -97,7 +104,14 @@ class GovernanceValidator:
                     continue
 
                 # Execute the metric function with role-mapped columns
-                actual = calc_fn(data, **eval_context)
+                result_raw = calc_fn(data, **eval_context)
+                
+                # Support rich return types (value, metadata)
+                if isinstance(result_raw, tuple):
+                    actual, meta_data = result_raw
+                else:
+                    actual, meta_data = result_raw, {}
+
                 passed = self._check_condition(actual, ctrl.operator, ctrl.threshold)
                 
                 results.append(ComplianceResult(
@@ -108,7 +122,8 @@ class GovernanceValidator:
                     actual_value=actual,
                     operator=ctrl.operator,
                     passed=passed,
-                    severity=ctrl.severity
+                    severity=ctrl.severity,
+                    metadata=meta_data
                 ))
             except (ValueError, TypeError, KeyError) as e:
                 # Expected if columns are missing for a specific metric

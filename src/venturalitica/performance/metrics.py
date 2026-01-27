@@ -18,7 +18,8 @@ def calc_precision(df: pd.DataFrame, **kwargs) -> float:
         return 0.0
     if target not in df.columns or pred not in df.columns:
         return 0.0
-    return float(precision_score(df[target], df[pred], zero_division=0))
+    avg = kwargs.get('average', 'binary')
+    return float(precision_score(df[target], df[pred], average=avg, zero_division=0))
 
 def calc_recall(df: pd.DataFrame, **kwargs) -> float:
     target = kwargs.get('target')
@@ -27,7 +28,8 @@ def calc_recall(df: pd.DataFrame, **kwargs) -> float:
         return 0.0
     if target not in df.columns or pred not in df.columns:
         return 0.0
-    return float(recall_score(df[target], df[pred], zero_division=0))
+    avg = kwargs.get('average', 'binary')
+    return float(recall_score(df[target], df[pred], average=avg, zero_division=0))
 
 def calc_f1(df: pd.DataFrame, **kwargs) -> float:
     target = kwargs.get('target')
@@ -36,7 +38,8 @@ def calc_f1(df: pd.DataFrame, **kwargs) -> float:
         return 0.0
     if target not in df.columns or pred not in df.columns:
         return 0.0
-    return float(f1_score(df[target], df[pred], zero_division=0))
+    avg = kwargs.get('average', 'binary')
+    return float(f1_score(df[target], df[pred], average=avg, zero_division=0))
 
 def calc_mean(df: pd.DataFrame, **kwargs) -> float:
     """Generic mean calculation for benchmark scores (bias, preference, etc.)"""

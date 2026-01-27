@@ -37,8 +37,8 @@ Venturalítica v0.3 provides the foundation for **Glass Box AI**, but high-risk 
 
 We are building the future of Responsible AI. If you have a specific requirement to fulfill a compliance mandate, we want to hear from you.
 
-1.  **Open a [GitHub Issue](https://github.com/Venturalítica/venturalitica-sdk/issues/new)**.
+1.  **Open a [GitHub Issue](https://github.com/venturalitica/venturalitica-sdk/issues/new)**.
 2.  Tag it as `feature-request` + `compliance-gap`.
 3.  Describe the **Legal Article** (e.g., Art 13) or **Technical Pain** you are addressing.
 
-[View Roadmap Discussions](https://github.com/Venturalítica/venturalitica-sdk/discussions)
+[View Roadmap Discussions](https://github.com/venturalitica/venturalitica-sdk/discussions)

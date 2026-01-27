@@ -12,6 +12,7 @@ The Venturalítica SDK enables Data Scientists and ML Engineers to integrate com
 - **Local Sovereignty**: Zero-cloud dependency. All enforcement runs locally.
 - **TraceCollector Architecture**: Unified evidence gathering for BOM, metrics, and logs.
 - **Educational Audits**: Control descriptions that explain *why* metrics matter.
+- **Deep Integrations**: Seamless "Glass Box" syncing with MLflow & WandB.
 - **OSCAL-Native**: Policy-as-Code using standard NIST formats.
 - **Annex IV Ready**: Auto-draft technical documentation from local traces.
 
@@ -20,6 +21,22 @@ The Venturalítica SDK enables Data Scientists and ML Engineers to integrate com
 ```bash
 pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
 ```
+
+## ⚙️ Configuration
+
+The SDK supports the following Environment Variables. We recommend using a `.env` file (but **never commit it**!).
+
+| Variable | Description | Default | Required? |
+| :--- | :--- | :--- | :--- |
+| `MISTRAL_API_KEY` | [Get a Free Key](https://console.mistral.ai/). Used for Cloud Fallback if local Ollama fails. | None | **Recommended** |
+| `VENTURALITICA_LLM_PRO` | Set to `true` to use Mistral even if Ollama is available (Higher Quality). | `false` | No |
+| `MLFLOW_TRACKING_URI` | If set, `tracecollector` will auto-log audits to MLflow. | None | No |
+
+## 📋 Prerequisites
+
+*   **Python:** 3.11+
+*   **Local LLM (Optional):** [Ollama](https://ollama.com/) (Recommended for "Privacy-First" setups).
+    *   *Note: If you cannot run Ollama, please set `MISTRAL_API_KEY` for cloud generation.*
 
 ## 🚀 Quick Start
 

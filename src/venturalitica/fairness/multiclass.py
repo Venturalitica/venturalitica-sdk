@@ -18,9 +18,11 @@ References:
 - Buolamwini & Gebru (2018). Gender Shades (multi-class evaluation)
 """
 
-from typing import Dict, List, Tuple, Optional, Literal
+from typing import Dict, List, Tuple, Optional, Literal, Any
 import pandas as pd
 import numpy as np
+import torch
+import torch.nn as nn
 from collections import Counter
 
 
@@ -382,41 +384,146 @@ def calc_predictive_parity_multiclass(
         if precisions:
             disparity = max(precisions) - min(precisions)
             disparities.append(disparity)
+            
+            # [INTERSECTIONAL AUDIT] Inspect significant disparities
+            if disparity > 0.8:
+                 print(f"\n\033[1m[INTERSECTIONAL AUDIT] 🚨 Significant Disparity ({disparity:.3f}) for Class '{class_label}'\033[0m")
+                 print(f"  {'GROUP':<35} | {'TP':<5} | {'FP':<5} | {'PRECISION':<10}")
+                 print(f"  {'-'*35}-+-{'-'*5}-+-{'-'*5}-+-{'-'*10}")
+                 
+                 for group in groups:
+                     group_mask = (protected_attr == group)
+                     group_true = y_true[group_mask]
+                     group_pred = y_pred[group_mask]
+                     pred_pos = (group_pred == class_label).sum()
+                     if pred_pos > 0:
+                         tp = ((group_pred == class_label) & (group_true == class_label)).sum()
+                         fp = int(pred_pos - tp)
+                         prec = tp / pred_pos
+                         print(f"  {str(group):<35} | {int(tp):<5} | {fp:<5} | {prec:<10.3f}")
+                 print(f"  {'-'*35}-+-{'-'*5}-+-{'-'*5}-+-{'-'*10}\n")
+
             # Weight by frequency of this class
             weights.append(y_pred.value_counts(normalize=True).get(class_label, 1/len(classes)))
     
+    metadata = {
+        'total_samples': len(y_true),
+        'min_class_support': y_true.value_counts().min(),
+        'min_prediction_support': y_pred.value_counts().min()
+    }
+    
     if strategy == 'macro':
-        return max(disparities) if disparities else 0.0
+        val = max(disparities) if disparities else 0.0
+        return val, metadata
     elif strategy == 'weighted':
+        val = 0.0
         if disparities:
-            return sum(d * w for d, w in zip(disparities, weights)) / sum(weights)
-        return 0.0
+            val = sum(d * w for d, w in zip(disparities, weights)) / sum(weights)
+        return val, metadata
     else:
         raise ValueError(f"Unknown strategy: {strategy}")
+
+
+class GroupFairnessLoss(nn.Module):
+    """
+    In-processing Fairness Loss.
+    
+    Penalizes the variance of loss across protected groups.
+    Formula: TotalLoss = BaseLoss + lambda * Var(Loss_per_group)
+    
+    This encourages the model to 'focus' on groups where it performs poorly.
+    """
+    def __init__(self, base_criterion, protected_attr_key: str, alpha: float = 0.5):
+        super().__init__()
+        self.base_criterion = base_criterion
+        self.protected_attr_key = protected_attr_key
+        self.alpha = alpha
+        
+    def forward(self, logits, targets, meta):
+        # Base per-sample loss
+        per_sample_loss = self.base_criterion(logits, targets)
+        
+        # Calculate per-group loss
+        groups = meta[self.protected_attr_key]
+        unique_groups = set(groups)
+        
+        group_losses = []
+        for g in unique_groups:
+            mask = torch.tensor([gi == g for gi in groups], device=logits.device)
+            if mask.any():
+                group_loss = per_sample_loss[mask].mean()
+                group_losses.append(group_loss)
+        
+        if not group_losses:
+            return per_sample_loss.mean()
+            
+        group_losses = torch.stack(group_losses)
+        base_loss = per_sample_loss.mean()
+        
+        # Penalty: Variance or Max-Min difference
+        fairness_penalty = group_losses.var() if len(group_losses) > 1 else torch.tensor(0.0, device=logits.device)
+        
+        return base_loss + self.alpha * fairness_penalty
+
+
+def calc_intersectional_metrics(
+    y_true: pd.Series,
+    y_pred: pd.Series,
+    protected_attrs: Dict[str, pd.Series],
+    metric_fn: callable = None,
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Calculates metrics across combinations of protected attributes (Intersectional Bias).
+    
+    Example: Race x Gender slices.
+    Identify if 'Black Female' has significantly higher error than 'White Male'.
+    
+    Returns:
+        Dict: Metrics per intersectional group and 'worst_slice' disparity.
+    """
+    if metric_fn is None:
+        # Default to accuracy
+        metric_fn = lambda t, p: (t == p).mean()
+    
+    # Create combined intersectional key
+    attr_names = list(protected_attrs.keys())
+    combined_attr = protected_attrs[attr_names[0]].astype(str)
+    for name in attr_names[1:]:
+        combined_attr += " x " + protected_attrs[name].astype(str)
+    
+    slices = combined_attr.unique()
+    slice_metrics = {}
+    
+    for s in slices:
+        mask = (combined_attr == s)
+        if mask.sum() >= 5: # Minimum support
+            val = metric_fn(y_true[mask], y_pred[mask])
+            slice_metrics[str(s)] = float(val)
+            
+    if not slice_metrics:
+        return {'disparity': 0.0, 'slices': {}}
+        
+    vals = list(slice_metrics.values())
+    disparity = max(vals) - min(vals)
+    
+    return {
+        'intersectional_disparity': disparity,
+        'worst_slice': min(slice_metrics, key=slice_metrics.get),
+        'best_slice': max(slice_metrics, key=slice_metrics.get),
+        'slice_details': slice_metrics
+    }
 
 
 def calc_multiclass_fairness_report(
     y_true: pd.Series,
     y_pred: pd.Series,
     protected_attr: pd.Series,
+    intersectional_attrs: Optional[Dict[str, pd.Series]] = None,
     **kwargs
-) -> Dict[str, float]:
+) -> Dict[str, Any]:
     """
     Comprehensive Multi-class Fairness Report.
-    
-    Calculates all multi-class fairness metrics in one call.
-    
-    Returns:
-        dict: All multi-class fairness metrics
-    
-    Raises:
-        ValueError: If data insufficient
-    
-    Example:
-        >>> report = calc_multiclass_fairness_report(
-        ...     y_true, y_pred, protected_attr
-        ... )
-        >>> print(f"WDP Disparity: {report['weighted_demographic_parity']:.4f}")
     """
     
     if len(y_true) < 30:
@@ -426,9 +533,6 @@ def calc_multiclass_fairness_report(
         'weighted_demographic_parity_macro': calc_weighted_demographic_parity_multiclass(
             y_true, y_pred, protected_attr, strategy='macro'
         ),
-        'weighted_demographic_parity_weighted': calc_weighted_demographic_parity_multiclass(
-            y_true, y_pred, protected_attr, strategy='weighted'
-        ),
         'macro_equal_opportunity': calc_macro_equal_opportunity_multiclass(
             y_true, y_pred, protected_attr
         ),
@@ -437,11 +541,13 @@ def calc_multiclass_fairness_report(
         ),
         'predictive_parity_macro': calc_predictive_parity_multiclass(
             y_true, y_pred, protected_attr, strategy='macro'
-        ),
-        'predictive_parity_weighted': calc_predictive_parity_multiclass(
-            y_true, y_pred, protected_attr, strategy='weighted'
-        ),
+        )[0],
     }
+    
+    if intersectional_attrs:
+        inter_results = calc_intersectional_metrics(y_true, y_pred, intersectional_attrs)
+        report['intersectional_disparity'] = inter_results['intersectional_disparity']
+        report['worst_performing_slice'] = inter_results['worst_slice']
     
     return report
 

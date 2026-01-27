@@ -30,3 +30,4 @@ class ComplianceResult:
     operator: str
     passed: bool
     severity: str
+    metadata: dict = field(default_factory=dict)

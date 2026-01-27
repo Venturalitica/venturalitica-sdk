@@ -155,7 +155,7 @@ Venturalítica will draft a technical document that references your specific run
 > *"As evidenced in `trace_quickstart_loan.json`, the system was audited against **[OSCAL Policy: Credit Scoring Fairness]**. A deviation was detected in Age Disparity (0.36), identifying a potential risk of bias..."*
 
 ### References
-*   **Policy Used**: [`loan/risks.oscal.yaml`](https://github.com/Venturalítica/venturalitica-sdk-samples/blob/main/policies/loan/risks.oscal.yaml)
+*   **Policy Used**: [`loan/risks.oscal.yaml`](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/policies/loan/risks.oscal.yaml)
 *   **Legal Basis**:
     *   [EU AI Act Article 9 (Risk Management)](https://artificialintelligenceact.eu/article/9/)
     *   [EU AI Act Article 11 (Technical Documentation)](https://artificialintelligenceact.eu/article/11/)

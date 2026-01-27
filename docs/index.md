@@ -63,6 +63,6 @@ pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
 Venturalítica is an open-source movement to bring transparency to AI.
 
 *   **Have a specific compliance need?** Check our **[Compliance Gap Roadmap](compliance-gap.md)**.
-*   **Found a bug or want to propose a feature?** Open a **[GitHub Issue](https://github.com/Venturalítica/venturalitica-sdk/issues/new)**.
+*   **Found a bug or want to propose a feature?** Open a **[GitHub Issue](https://github.com/venturalitica/venturalitica-sdk/issues/new)**.
 
 © 2026 Venturalítica | Built for Responsible AI

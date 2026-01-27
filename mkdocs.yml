@@ -39,9 +39,25 @@ plugins:
   - search
   - macros:
       verbose: false
+  - i18n:
+      docs_structure: folder
+      languages:
+        - locale: en
+          name: English
+          default: true
+        - locale: es
+          name: Español 
+          build: true
 
 extra:
   version: "v0.3.0"
+  alternate:
+    - name: English
+      link: ""
+      lang: en
+    - name: Español
+      link: "es/"
+      lang: es
 
 markdown_extensions:
   - admonition
@@ -56,8 +72,11 @@ nav:
   - Home: index.md
   - Getting Started:
     - 🚀 Quickstart: quickstart.md
+    - 🎓 Tutorials:
+      - 🛡️ Writing Your First Policy (OSCAL): tutorials/01_writing_policy.md
   - Deep Dives:
     - 🛠️ Model Training Integration: training.md
+    - 🔗 Deep Integrations (MLOps): integrations.md
   - EU AI Act Governance:
     - 📊 The Regulatory Map (Art 9-15): compliance-dashboard.md
     - 📝 Technical Documentation (Annex IV): annex-iv.md

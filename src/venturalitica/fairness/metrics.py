@@ -197,6 +197,19 @@ def calc_predictive_parity(df: pd.DataFrame, **kwargs) -> float:
     if missing_cols:
         raise ValueError(f"Columns not found: {missing_cols}")
     
+    # Detect Multiclass
+    unique_classes = df[target].unique()
+    if len(unique_classes) > 2:
+        try:
+            from .multiclass import calc_predictive_parity_multiclass
+            return calc_predictive_parity_multiclass(
+                df[target], df[pred], df[dim], strategy='macro'
+            )
+        except ImportError:
+             pass # Fallback to binary logic if module missing
+        except Exception as e:
+             raise ValueError(f"Multiclass predictive parity failed: {e}")
+
     groups = df.groupby(dim)
     precisions = []
     
@@ -207,9 +220,43 @@ def calc_predictive_parity(df: pd.DataFrame, **kwargs) -> float:
             precisions.append(tp / (tp + fp))
     
     if not precisions:
-        raise ValueError("No predictions found for precision calculation")
+        # For multiclass treated as binary, this might happen. 
+        # But if we really have 0 predictions, returning 0.0 is safer than crashing 
+        # unless strictly required.
+        return 0.0
     
     return max(precisions) - min(precisions)
+
+def calc_predictive_equality(df: pd.DataFrame, **kwargs) -> float:
+    """
+    Calculates Predictive Equality Difference (FPR parity).
+    
+    Measures: max(FPR|A=a) - min(FPR|A=a) across protected groups
+    Only considers negative labels (target == 0)
+    
+    Returns:
+        float: Difference in false positive rates between groups (0-1)
+    """
+    target = kwargs.get('target')
+    pred = kwargs.get('prediction')
+    dim = kwargs.get('dimension')
+    
+    missing = [v for v in [target, pred, dim] if v in [None, "MISSING"]]
+    if missing:
+        raise ValueError(f"Missing columns: {missing}")
+    
+    groups = df.groupby(dim)
+    fprs = []
+    
+    for _, grp in groups:
+        neg_grp = grp[grp[target] == 0]
+        if len(neg_grp) > 0:
+            fprs.append((neg_grp[pred] == 1).mean())
+    
+    if not fprs:
+        raise ValueError("No negative samples found for predictive_equality calculation")
+    
+    return max(fprs) - min(fprs)
 
 
 # ============================================================================
