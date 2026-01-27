@@ -1,0 +1,30 @@
+# Venturalítica
+
+> Frictionless Governance for AI.
+
+## Academy
+
+- [⚡ Zero to Pro (5 min)](https://venturalitica.github.io/venturalitica-sdk/es/academy/index.md)
+- [🟢 Level 1 (The Engineer)](https://venturalitica.github.io/venturalitica-sdk/es/academy/level1_policy/index.md)
+- [🟡 Level 2 (The Integrator)](https://venturalitica.github.io/venturalitica-sdk/es/academy/level2_integrator/index.md)
+- [🟠 Level 3 (The Auditor)](https://venturalitica.github.io/venturalitica-sdk/es/academy/level3_auditor/index.md)
+- [🔴 Level 4 (The Architect)](https://venturalitica.github.io/venturalitica-sdk/es/academy/level4_annex_iv/index.md)
+
+## Guides
+
+- [Home](https://venturalitica.github.io/venturalitica-sdk/es/index.md)
+- [📝 Technical Documentation (Annex IV)](https://venturalitica.github.io/venturalitica-sdk/es/annex-iv/index.md)
+- [API Reference](https://venturalitica.github.io/venturalitica-sdk/es/api/index.md)
+- [📊 Compliance Dashboard](https://venturalitica.github.io/venturalitica-sdk/es/compliance-dashboard/index.md)
+- [🚀 The Compliance Gap](https://venturalitica.github.io/venturalitica-sdk/es/compliance-gap/index.md)
+- [📼 Evidence Recording](https://venturalitica.github.io/venturalitica-sdk/es/evidence-collection/index.md)
+- [🔗 Deep Integrations (MLOps)](https://venturalitica.github.io/venturalitica-sdk/es/integrations/index.md)
+- [Inicio Rápido en 60 Segundos](https://venturalitica.github.io/venturalitica-sdk/es/quickstart/index.md)
+- [🛠️ Model Training Integration](https://venturalitica.github.io/venturalitica-sdk/es/training/index.md)
+- [⚡ Zero to Pro (5 min)](https://venturalitica.github.io/venturalitica-sdk/es/academy/index.md)
+- [🟢 Level 1 (The Engineer)](https://venturalitica.github.io/venturalitica-sdk/es/academy/level1_policy/index.md)
+- [🟡 Level 2 (The Integrator)](https://venturalitica.github.io/venturalitica-sdk/es/academy/level2_integrator/index.md)
+- [🟠 Level 3 (The Auditor)](https://venturalitica.github.io/venturalitica-sdk/es/academy/level3_auditor/index.md)
+- [🔴 Level 4 (The Architect)](https://venturalitica.github.io/venturalitica-sdk/es/academy/level4_annex_iv/index.md)
+- [✍️ Writing Policies (OSCAL)](https://venturalitica.github.io/venturalitica-sdk/es/tutorials/01_writing_policy/index.md)
+

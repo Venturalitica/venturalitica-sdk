@@ -64,6 +64,41 @@
         <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/training/"/>
     </url>
     <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/level1_policy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level1_policy/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level1_policy/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/level2_integrator/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level2_integrator/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level2_integrator/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/level3_auditor/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level3_auditor/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level3_auditor/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/academy/level4_annex_iv/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level4_annex_iv/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level4_annex_iv/"/>
+    </url>
+    <url>
         <loc>https://venturalitica.github.io/venturalitica-sdk/tutorials/01_writing_policy/</loc>
         <lastmod>2026-01-27</lastmod>
         <changefreq>daily</changefreq>
@@ -132,6 +167,41 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/training/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/training/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/level1_policy/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level1_policy/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level1_policy/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/level2_integrator/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level2_integrator/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level2_integrator/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/level3_auditor/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level3_auditor/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level3_auditor/"/>
+    </url>
+    <url>
+        <loc>https://venturalitica.github.io/venturalitica-sdk/es/academy/level4_annex_iv/</loc>
+        <lastmod>2026-01-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://venturalitica.github.io/venturalitica-sdk/es/academy/level4_annex_iv/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://venturalitica.github.io/venturalitica-sdk/academy/level4_annex_iv/"/>
     </url>
     <url>
         <loc>https://venturalitica.github.io/venturalitica-sdk/es/tutorials/01_writing_policy/</loc>
