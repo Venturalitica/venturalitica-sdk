@@ -71,25 +71,6 @@ Compliance data matches your existing workflow.
             print("❌ Model is Biased. Do not deploy.")
     ```
 
-### 🧠 Deep Dive: Variable Mapping (The "Integrator" Handshake)
-Notice the subtle change in the code above:
-- **Level 1 (Data Audit)**: `target="class"` (Checking Ground Truth)
-- **Level 2 (Model Audit)**: `target="prediction"` (Checking AI Behavior)
-
-### 🍃 Green AI & Oversight (Article 15)
-
-The EU AI Act requires human oversight of resources. Use `vl.monitor()` to track energy and hardware automatically.
-
-```python
-# 1. Start the Monitor (Green AI)
-with vl.monitor("training_run_v1"):
-    model.fit(X_train, y_train)
-# Automatically logs CO2, RAM, and GPU usage.
-```
-
-The Policy (`> 0.5`) stayed the same. The **Mapping** changed.
-This is the power of decoupling Law from Code. You use the *same standard* to test the Raw Data (Engineering) and the Trained Model (MLOps).
-
 === "Weights & Biases"
 
     ```python
@@ -110,6 +91,25 @@ This is the power of decoupling Law from Code. You use the *same standard* to te
     
     wandb.log({"compliance_score": 1.0 if audit.passed else 0.0})
     ```
+
+### 🧠 Deep Dive: Variable Mapping (The "Integrator" Handshake)
+Notice the subtle change in the code above:
+- **Level 1 (Data Audit)**: `target="class"` (Checking Ground Truth)
+- **Level 2 (Model Audit)**: `target="prediction"` (Checking AI Behavior)
+
+The Policy (`> 0.5`) stayed the same. The **Mapping** changed.
+This is the power of decoupling Law from Code. You use the *same standard* to test the Raw Data (Engineering) and the Trained Model (MLOps).
+
+### 🍃 Green AI & Oversight (Article 15)
+
+The EU AI Act requires human oversight of resources. Use `vl.monitor()` to track energy and hardware automatically.
+
+```python
+# 1. Start the Monitor (Green AI)
+with vl.monitor("training_run_v1"):
+    model.fit(X_train, y_train)
+# Automatically logs CO2, RAM, and GPU usage.
+```
 
 ## 4. The Gate (CI/CD)
 
