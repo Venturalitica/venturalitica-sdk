@@ -16,7 +16,7 @@ Venturalítica treats "Governance" as a dependency. Instead of vague legal advic
 | Level | Role | Goal | Project |
 | :--- | :--- | :--- | :--- |
 | **[Start Here](#step-1-install)** | **Developer** | Run your first audit in < 60s. | `loan-credit-scoring` |
-| **[Level 1](level1_policy.md)** | **Engineer** | **Evaluate Risk** against Standards (ISO 42001). | Custom Policy |
+| **[Level 1](level1_policy.md)** | **Engineer** | **Implement Controls** for identified Risks. | Custom Policy |
 | **[Level 2](level2_integrator.md)** | **Integrator** | **Viz & MLOps**: "Compliance as Metadata". | MLOps / Dashboard |
 | **[Level 3](level3_auditor.md)** | **Auditor** | Proof: "Trust the Hash". | `vision-fairness` |
 | **[Level 4](level4_annex_iv.md)** | **Architect** | GenAI Docs: "Annex IV". | `medical-spine` |
@@ -71,7 +71,7 @@ Now that you've seen the failure, learn how to fix it and verify it.
 
 -   :material-shield-check: **[Level 1: The Engineer](level1_policy.md)**
     ---
-    Learn how to **Evaluate Risk** by configuring the `.yaml` Policy. **Detect & Block** non-compliant models.
+    Learn how to implement **Controls** that mitigate identified Risks. **Detect & Block** non-compliant models.
 
 -   :material-chart-bar: **[Level 2: The Integrator](level2_integrator.md)**
     ---
