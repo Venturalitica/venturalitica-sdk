@@ -49,3 +49,4 @@ htmlcov/
 *.svg
 gov_*.md
 Annex_IV.md
+.env
