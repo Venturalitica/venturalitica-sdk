@@ -1,34 +1,38 @@
 # Level 1: The Engineer (Policy & Configuration) 🟢
 
-**Goal**: Learn how to write the "Law" and **Detect Risk**.
+**Goal**: Learn how to implement **Controls** that mitigate **Risks**.
 
 **Prerequisite**: [Zero to Pro (Index)](index.md)
 
 ---
 
-## 1. The Scenario: "The Age Bias"
+## 1. The Scenario: From Risk to Control
 
-In the [Zero to Pro](index.md) quickstart, `vl.quickstart('loan')` FAILED.
+In a formal Management System (**ISO 42001**), governance follows a top-down flow:
+
+1.  **Risk Assessment**: The Compliance Officer (CO) identifies a business risk (e.g., *"Our lending AI might discriminate against elderly applicants, causing legal and reputational damage"*).
+2.  **Control Definition**: To mitigate this risk, the CO sets a **Control** (e.g., *"The Age Disparity Ratio must always be > 0.5"*).
+3.  **Technical Implementation**: That's your job. You take the CO's requirement and turn it into the technical "Law" (the OSCAL Policy).
+
+In the [Zero to Pro](index.md) quickstart, `vl.quickstart('loan')` FAILED:
 
 ```text
 credit-age-disparate   Age disparity          0.361      > 0.5      ❌ FAIL
 ```
 
 ### What happened?
-The "Law" (OSCAL Policy) said: "Age Disparity must be > 0.5".
-The "Reality" (Data) was: `0.361`.
+The **Control** successfully detected a **Compliance Gap**. The "Reality" of the data (`0.361`) violated the requirement set to mitigate the "Age Bias" risk.
 
-In **ISO 42001** terms, a **Technical Control** (your policy) has failed, revealing a **Compliance Gap**. This is the start of the **Risk Lifecycle**.
+> **Rule #1: The Handshake of Responsibility**.
+> Compliance Officers identify **Risks** and establish **Controls**. 
+> Engineers implement and **Verify** those controls using Evidence.
 
-As an Engineer, your job is not to "fix" the gap by lowering the threshold to 0.3. That would be bypassing the security control. Instead, you must provide the **Evidence** of the failure so it can be managed.
+If you lower the threshold to 0.3 just to make the test "pass," you aren't fixing the code—you are **bypassing a security control** and exposing the company to the original risk.
 
-> **Rule #1: The Risk Lifecycle is a Handshake**.
-> Engineers implement and **Verify** controls; Compliance Officers authorize the **Residual Risk**.
+## 2. Anatomy of a Control (OSCAL)
 
-## 2. Anatomy of a Policy (OSCAL)
-
-Your job is to translate the "Law" into Code. 
-Create a file named `my_policy.yaml`. Keep the threshold at **0.5 (The Standard)**.
+Your job is to translate the CO's requirement into Code. 
+Create a file named `my_policy.yaml`. Keep the threshold at **0.5 (The Organizational Standard)**.
 
 ```yaml
 assessment-plan:
