@@ -25,21 +25,31 @@ Venturalítica supports:
 
 We continue working on the "Loan Scoring" project.
 
+> 💡 **Full Code**: You can find the automation script for Annex IV generation here: [generate_annex_iv.py](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/generate_annex_iv.py)
+
 ### Run the High-Risk Audit
 
 Ensure you have run the collection steps:
 
 ```python
-# Run the Article 10 (Data) & Article 15 (Model) Governance Audit
+# 1. Load Data
+df = vl.load_sample("loan")
+train_df = df.sample(frac=0.8)
+val_df = df.drop(train_df.index)
+
+# 2. Run the Article 10 (Data) & Article 15 (Model) Governance Audit
 with vl.monitor("loan_annex_audit"):
-    # 1. Verify Training Data (Art 10)
-    vl.enforce(data=train_df, policy="data_governance.yaml", target="class")
+    # 2.1 Verify Training Data (Art 10)
+    # Download data_policy.oscal.yaml: https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml
+    vl.enforce(data=train_df, policy="data_policy.oscal.yaml", target="class")
     
-    # 2. Verify Model Performance (Art 15)
+    # 2.2 Verify Model Performance (Art 15)
+    # Download model_policy.oscal.yaml: https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/model_policy.oscal.yaml
     vl.enforce(
-        data=val_df.assign(prediction=model.predict(val_df)), 
-        policy="model_policy.yaml", 
-        target="prediction"
+        data=val_df.assign(prediction=val_df['class']), # Simulated model
+        policy="model_policy.oscal.yaml", 
+        target="class",
+        prediction="prediction"
     )
 ```
 

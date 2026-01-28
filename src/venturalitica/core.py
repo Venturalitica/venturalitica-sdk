@@ -7,9 +7,9 @@ from .models import InternalPolicy, InternalControl, ComplianceResult
 from .storage import BaseStorage, LocalFileSystemStorage
 
 class GovernanceValidator:
-    def __init__(self, policy: Union[str, Path], storage: Optional[BaseStorage] = None):
+    def __init__(self, policy: Union[str, Path, Dict[str, Any]], storage: Optional[BaseStorage] = None):
         self.storage = storage or LocalFileSystemStorage()
-        self.policy_name = str(policy)
+        self.policy_source = policy
         self.policy: Optional[InternalPolicy] = None
         self._load_policy()
 
@@ -30,9 +30,15 @@ class GovernanceValidator:
         ]
 
     def _load_policy(self):
-        """Loads and parses the OSCAL policy using the configured storage."""
-        # storage.get_policy might raise FileNotFoundError or other errors
-        self.policy = self.storage.get_policy(self.policy_name)
+        """Loads and parses the OSCAL policy using the configured storage or direct dict."""
+        if isinstance(self.policy_source, dict):
+            # Direct dict policy - use loader directly
+            from .loader import OSCALPolicyLoader
+            loader = OSCALPolicyLoader(self.policy_source)
+            self.policy = loader.load()
+        else:
+            # File-based policy - use storage
+            self.policy = self.storage.get_policy(str(self.policy_source))
 
     def compute_and_evaluate(self, data: pd.DataFrame, context_mapping: Dict[str, str]) -> List[ComplianceResult]:
         """Computes metrics and evaluates them against controls."""

@@ -92,7 +92,7 @@ def enforce(
     for p in policies:
         print(f"\n[Venturalítica v{__version__}] 🛡  Enforcing policy: {p}")
         try:
-            validator = GovernanceValidator(str(p))
+            validator = GovernanceValidator(p)
             results = []
 
             if data is not None:
@@ -209,7 +209,7 @@ def save_audit_results(results: List[ComplianceResult], path: str = ".venturalit
 # Import public API
 from .wrappers import wrap
 from .badges import generate_compliance_badge, generate_metric_badge
-from .quickstart import quickstart, load_sample, list_scenarios
+from .quickstart import quickstart, load_sample, list_scenarios,SAMPLE_SCENARIOS
 
 # Public API
 __all__ = [

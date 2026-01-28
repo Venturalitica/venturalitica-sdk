@@ -21,8 +21,17 @@ References:
 from typing import Dict, List, Tuple, Optional, Literal, Any
 import pandas as pd
 import numpy as np
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+    # Mock nn.Module to avoid crash on class definition
+    class MockModule: pass
+    nn = type('nn', (), {'Module': MockModule})
+    torch = None
+
 from collections import Counter
 
 

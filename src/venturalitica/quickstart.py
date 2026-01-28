@@ -7,7 +7,7 @@ import pandas as pd
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from .models import ComplianceResult
-from . import enforce
+from . import enforce, monitor
 from .output import render_compliance_results, print_aha_moment
 
 # UCI Dataset IDs from archive.ics.uci.edu
@@ -15,12 +15,61 @@ UCI_DATASETS = {
     'loan': 144,    # German Credit Data
 }
 
+# Embedded OSCAL policy for loan scenario (no file dependency)
+LOAN_POLICY_DICT = {
+    'assessment-plan': {
+        'metadata': {
+            'title': 'Credit Risk Assessment Policy (German Credit)',
+            'version': '1.1'
+        },
+        'control-implementations': [
+            {
+                'description': 'Credit Scoring Fairness Controls',
+                'implemented-requirements': [
+                    {
+                        'control-id': 'credit-data-imbalance',
+                        'description': 'Data Quality: Minority class (rejected loans) should represent at least 20% of the dataset to avoid biased training due to severe Class Imbalance.',
+                        'props': [
+                            {'name': 'metric_key', 'value': 'class_imbalance'},
+                            {'name': 'threshold', 'value': '0.2'},
+                            {'name': 'operator', 'value': 'gt'},
+                            {'name': 'input:target', 'value': 'target'}
+                        ]
+                    },
+                    {
+                        'control-id': 'credit-data-bias',
+                        'description': "Pre-training Fairness: Disparate impact ratio should follow the standard '80% Rule' (Four-Fifths Rule), ensuring favorable loan outcomes are representative across groups.",
+                        'props': [
+                            {'name': 'metric_key', 'value': 'disparate_impact'},
+                            {'name': 'threshold', 'value': '0.8'},
+                            {'name': 'operator', 'value': 'gt'},
+                            {'name': 'input:target', 'value': 'target'},
+                            {'name': 'input:dimension', 'value': 'gender'}
+                        ]
+                    },
+                    {
+                        'control-id': 'credit-age-disparate',
+                        'description': 'Disparate impact ratio for raw age (Proxy for seniority)',
+                        'props': [
+                            {'name': 'metric_key', 'value': 'disparate_impact'},
+                            {'name': 'threshold', 'value': '0.50'},
+                            {'name': 'operator', 'value': 'gt'},
+                            {'name': 'input:target', 'value': 'target'},
+                            {'name': 'input:dimension', 'value': 'age'}
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
 # Sample data registry
 SAMPLE_SCENARIOS = {
     'loan': {
         'name': 'Credit Scoring Fairness',
         'uci_id': 144,
-        'policy': 'loan/risks.oscal.yaml',
+        'policy': LOAN_POLICY_DICT,  # Use embedded dict instead of file path
         'target': 'class',
         'protected_attrs': {'gender': 'Attribute9', 'age': 'Attribute13'},
         'description': 'Detect bias in loan approval decisions (UCI German Credit)'
@@ -75,50 +124,18 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
     df = load_sample('loan', verbose=verbose)
     
     if verbose:
-        print(f"[Venturalítica] 🛡️  Policy: {config['policy']}")
+        print(f"[Venturalítica] 🛡️  Policy: Embedded (no file required)")
         print()
     
-    # Build policy path
-    sdk_root = Path(__file__).parent.parent.parent
-    # Handle both workspace and standalone installs
-    samples_candidates = [
-        sdk_root.parent.parent / 'venturalitica-sdk-samples',
-        Path.cwd() / 'venturalitica-sdk-samples',
-        Path.home() / 'venturalitica-sdk-samples',
-    ]
-    
-    samples_root = None
-    for cand in samples_candidates:
-        if cand.exists():
-            samples_root = cand
-            break
-            
-    if samples_root:
-        # Try root policies dir (legacy/extra)
-        policy_path = samples_root / 'policies' / config['policy']
-        
-        # Try scenario-specific policies dir (current standard)
-        if not policy_path.exists():
-            scenario_dir = 'loan-credit-scoring' if scenario == 'loan' else scenario
-            policy_path = samples_root / 'scenarios' / scenario_dir / 'policies' / config['policy']
-    else:
-        policy_path = Path('policies') / config['policy']
-    
-    # Fallback: try relative to cwd
-    if not policy_path.exists():
-        policy_path = Path('policies') / config['policy']
-    
-    if not policy_path.exists():
-        print(f"  ⚠️  Policy file not found: {policy_path}")
-        print(f"  Tip: Ensure venturalitica-sdk-samples is available.")
-        return []
+    # Use embedded policy dictionary (no file dependency)
+    policy = config['policy']
     
     # Enforce policy
     attrs = {**config['protected_attrs'], 'target': config['target']}
     
     # [v0.4] Auto-Trace: Capture runtime evidence via the Multimodal Monitor
     with monitor(f"quickstart_{scenario}"):
-        results = enforce(data=df, policy=str(policy_path), **attrs)
+        results = enforce(data=df, policy=policy, **attrs)
     
     if verbose:
         print_aha_moment(scenario, results)

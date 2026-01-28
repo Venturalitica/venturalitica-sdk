@@ -23,6 +23,8 @@ In a professional pipeline, governance is a layer that wraps your training. Ever
 
 Your experiment tracker now tracks two types of performance: **Accuracy** (Operational) and **Compliance** (Regulatory).
 
+> 💡 **Full Code**: You can find the complete, ready-to-run script for this level here: [03_mlops_integration.py](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/03_mlops_integration.py)
+
 === "MLflow"
 
     ```python
@@ -33,20 +35,36 @@ Your experiment tracker now tracks two types of performance: **Accuracy** (Opera
     mlflow.set_tracking_uri("sqlite:///mlflow.db")
     mlflow.set_experiment("loan-credit-scoring")
 
+    # 0. Data Preparation
+    df = vl.load_sample("loan")
+    X = df.select_dtypes(include=['number']).drop(columns=['class'])
+    y = df['class']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
     # 1. Start the GovOps Session (Implicitly captures 'Audit Trace')
     with mlflow.start_run(), vl.monitor("train_v1"):
-        # 2. Train your model
-        # model.fit(X_train, y_train)
+        # 2. Pre-training Data Audit (Article 10)
+        vl.enforce(
+            data=df,
+            target="class",
+            gender="Attribute9",
+            policy="data_policy.oscal.yaml"
+        )
+
+        # 3. Train your model
+        model = LogisticRegression()
+        model.fit(X_train, y_train)
         
-        # 3. Enforce Compliance (Article 15: Human Oversight)
+        # 4. Post-training Model Audit (Article 15: Human Oversight)
+        # Download model_policy.oscal.yaml: https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/model_policy.oscal.yaml
         results = vl.enforce(
             data=X_test.assign(prediction=model.predict(X_test)),
             target="prediction",               # 🧠 Checking Model Behavior
             gender="gender",
-            policy="model_policy.yaml"         # 🗝️ New policy for Model Governance
+            policy="model_policy.oscal.yaml"   # 🗝️ New policy for Model Governance
         )
         
-        # 4. Log everything to the Evidence Buffer
+        # 5. Log everything to the Evidence Buffer
         passed = all(r.passed for r in results)
         mlflow.log_metric("val_accuracy", 0.92)
         mlflow.log_metric("compliance_score", 1.0 if passed else 0.0)
@@ -67,14 +85,23 @@ Your experiment tracker now tracks two types of performance: **Accuracy** (Opera
 
     wandb.init(project="loan-credit-scoring")
 
+    # 0. Data Preparation
+    df = pd.read_csv("loan_data.csv")
+    X_train, X_test, y_train, y_test = train_test_split(df.drop('class', axis=1), df['class'])
+
     # 1. Open a Monitor Context
     with vl.monitor("wandb_sync"):
-        # model.fit(X_train, y_train)
+        # Pre-training Audit (Article 10)
+        vl.enforce(data=df, policy="data_policy.oscal.yaml", target="class")
+
+        # 2. Train and Audit
+        model.fit(X_train, y_train)
         
-        # 2. Run Enforce (Article 15)
+        # Post-training Audit (Article 15)
+        # Download model_policy.oscal.yaml: https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/model_policy.oscal.yaml
         audit = vl.enforce(
             data=pd.read_csv("val_data.csv"),
-            policy="model_policy.yaml",
+            policy="model_policy.oscal.yaml",
             target="prediction"
         )
 
@@ -117,8 +144,8 @@ Professional GovOps requires a separation of concerns. You are now managing two 
 
 | Stage | Variable Mapping | Policy File | Mandatory Requirement |
 | :--- | :--- | :--- | :--- |
-| **Data Audit** | `target="class"` | `data_policy.yaml` | **Article 10** (Data Governance) |
-| **Model Audit** | `target="prediction"` | `model_policy.yaml` | **Article 15** (Human Oversight) |
+| **Data Audit** | `target="class"` | [data_policy.oscal.yaml](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml) | **Article 10** (Data Governance) |
+| **Model Audit** | `target="prediction"` | [model_policy.oscal.yaml](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/model_policy.oscal.yaml) | **Article 15** (Human Oversight) |
 
 This decoupling is the core of the **Handshake**. Even if the Law (`> 0.5`) stays the same, the *subject* of the law changes from **Data** to **Math**.
 

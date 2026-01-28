@@ -5,15 +5,26 @@ from typing import Union, List, Dict, Any, Optional
 from .models import InternalPolicy, InternalControl
 
 class OSCALPolicyLoader:
-    def __init__(self, policy_path: Union[str, Path]):
-        self.policy_path = Path(policy_path)
-        if not self.policy_path.exists():
-            raise FileNotFoundError(f"OSCAL policy not found at: {self.policy_path}")
+    def __init__(self, policy_source: Union[str, Path, Dict[str, Any]]):
+        """Initialize loader with either a file path or an in-memory dict."""
+        if isinstance(policy_source, dict):
+            self.policy_dict = policy_source
+            self.policy_path = None
+        else:
+            self.policy_path = Path(policy_source)
+            self.policy_dict = None
+            if not self.policy_path.exists():
+                raise FileNotFoundError(f"OSCAL policy not found at: {self.policy_path}")
 
     def load(self) -> InternalPolicy:
-        """Loads and parses the OSCAL policy file into a standardized InternalPolicy."""
-        with open(self.policy_path, 'r') as f:
-            data = yaml.safe_load(f) or {}
+        """Loads and parses the OSCAL policy from file or dict into a standardized InternalPolicy."""
+        if self.policy_dict is not None:
+            # Use in-memory dict
+            data = self.policy_dict
+        else:
+            # Load from file
+            with open(self.policy_path, 'r') as f:
+                data = yaml.safe_load(f) or {}
 
         # Determine root object
         root_key = next((k for k in ['assessment-plan', 'catalog', 'profile', 'component-definition'] if k in data), None)
@@ -27,7 +38,7 @@ class OSCALPolicyLoader:
 
     def _parse_generic_oscal(self, obj: Dict[str, Any]) -> InternalPolicy:
         """A generic, permissive parser that looks for controls and implementations in any OSCAL object."""
-        title = obj.get('metadata', {}).get('title', self.policy_path.stem)
+        title = obj.get('metadata', {}).get('title', self.policy_path.stem if self.policy_path else "Embedded Policy")
         policy = InternalPolicy(title=title)
         
         # 1. Build Inventory of Metrics (from local-definitions or root)

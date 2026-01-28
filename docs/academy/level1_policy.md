@@ -32,7 +32,7 @@ If you lower the threshold to 0.3 just to make the test "pass," you aren't fixin
 ## 2. Anatomy of a Control (OSCAL)
 
 Your job is to translate the CO's requirement into Code. 
-Create a file named `data_governance.yaml`. Keep the threshold at **0.5 (The Organizational Standard)**.
+Create a file named `data_policy.oscal.yaml` (or [download it from GitHub](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml)). Keep the threshold at **0.5 (The Organizational Standard)**.
 
 ```yaml
 assessment-plan:
@@ -59,6 +59,8 @@ assessment-plan:
 
 Now, let's run the audit again with *your* configuration. Observe how we map the abstract `age` concept to your specific data column.
 
+> 💡 **Full Code**: You can find the complete, ready-to-run notebook for this level here: [00_engineer_policy.ipynb](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/00_engineer_policy.ipynb)
+
 ```python
 import venturalitica as vl
 from ucimlrepo import fetch_ucirepo
@@ -73,7 +75,7 @@ results = vl.enforce(
     data=df,
     target="class",
     age="Attribute13",    # 🗝️ MAPPING: 'age' is actually 'Attribute13'
-    policy="data_governance.yaml"
+    policy="data_policy.oscal.yaml"
 )
 
 # 3. Check Results
