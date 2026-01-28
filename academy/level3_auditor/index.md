@@ -31,11 +31,15 @@ Wrap your execution in `vl.monitor()`. This context manager captures the "Handsh
 
 ### 🔍 Deep Dive: Glass Box vs Black Box
 
+### 🔍 Deep Dive: Glass Box vs Black Box
+
 | Feature   | ⬛ Black Box (Standard)     | 🪟 **Glass Box (Venturalítica)**                                    |
 | --------- | --------------------------- | ------------------------------------------------------------------- |
 | **Logic** | "Trust me, I ran the code." | **AST Analysis**: We record *which* function mapped code to policy. |
 | **Data**  | "Here is the CSV."          | **Fingerprint**: We record the SHA-256 of the dataset at runtime.   |
 | **Scope** | Code                        | Code + Environment + Hardware Stats                                 |
+
+> 💡 **Full Code**: See the professional audit lifecycle in the [01_governance_audit.ipynb](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/01_governance_audit.ipynb) notebook.
 
 ```
 import venturalitica as vl
@@ -46,14 +50,17 @@ dataset = fetch_ucirepo(id=144)
 df = dataset.data.features
 df['class'] = dataset.data.targets
 
-# 2. Start the Multimodal Monitor (The Glass Box)
+# 1. Start the Multimodal Monitor (The Glass Box)
 with vl.monitor("loan_audit_v1"):
     # This block is now being watched by the Auditor
+    df = vl.load_sample("loan")
+
+    # Download data_policy.oscal.yaml: https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml
     results = vl.enforce(
         data=df,
         target="class",       # Checking Ground Truth
         age="Attribute13",    # Mapping Age
-        policy="data_governance.yaml"
+        policy="data_policy.oscal.yaml"
     )
     # The session trace file (.venturalitica/trace_loan_audit_v1.json) 
     # will prove NOT just the result, but HOW it was computed.

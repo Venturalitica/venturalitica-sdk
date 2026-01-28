@@ -576,6 +576,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#deep-dive-glass-box-vs-black-box_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Deep Dive: Glass Box vs Black Box
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1102,6 +1113,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#deep-dive-glass-box-vs-black-box_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Deep Dive: Glass Box vs Black Box
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1198,6 +1220,7 @@ An Auditor asks: <em>"Did you test on the real dataset, or did you filter out th
 <h3 id="run-with-the-native-monitor">Run with the Native Monitor</h3>
 <p>Wrap your execution in <code>vl.monitor()</code>. This context manager captures the "Handshake" between your code and the policy by harvesting both physical and logical metadata.</p>
 <h3 id="deep-dive-glass-box-vs-black-box">🔍 Deep Dive: Glass Box vs Black Box</h3>
+<h3 id="deep-dive-glass-box-vs-black-box_1">🔍 Deep Dive: Glass Box vs Black Box</h3>
 <table>
 <thead>
 <tr>
@@ -1224,6 +1247,9 @@ An Auditor asks: <em>"Did you test on the real dataset, or did you filter out th
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p>💡 <strong>Full Code</strong>: See the professional audit lifecycle in the <a href="https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/01_governance_audit.ipynb">01_governance_audit.ipynb</a> notebook.</p>
+</blockquote>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ucimlrepo</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch_ucirepo</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
@@ -1232,17 +1258,20 @@ An Auditor asks: <em>"Did you test on the real dataset, or did you filter out th
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">df</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">features</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">df</span><span class="p">[</span><span class="s1">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">targets</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># 2. Start the Multimodal Monitor (The Glass Box)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># 1. Start the Multimodal Monitor (The Glass Box)</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">with</span> <span class="n">vl</span><span class="o">.</span><span class="n">monitor</span><span class="p">(</span><span class="s2">&quot;loan_audit_v1&quot;</span><span class="p">):</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="c1"># This block is now being watched by the Auditor</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">enforce</span><span class="p">(</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="n">target</span><span class="o">=</span><span class="s2">&quot;class&quot;</span><span class="p">,</span>       <span class="c1"># Checking Ground Truth</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="n">age</span><span class="o">=</span><span class="s2">&quot;Attribute13&quot;</span><span class="p">,</span>    <span class="c1"># Mapping Age</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;data_governance.yaml&quot;</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="p">)</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="c1"># The session trace file (.venturalitica/trace_loan_audit_v1.json) </span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="c1"># will prove NOT just the result, but HOW it was computed.</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">df</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">load_sample</span><span class="p">(</span><span class="s2">&quot;loan&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="c1"># Download data_policy.oscal.yaml: https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">enforce</span><span class="p">(</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        <span class="n">target</span><span class="o">=</span><span class="s2">&quot;class&quot;</span><span class="p">,</span>       <span class="c1"># Checking Ground Truth</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="n">age</span><span class="o">=</span><span class="s2">&quot;Attribute13&quot;</span><span class="p">,</span>    <span class="c1"># Mapping Age</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;data_policy.oscal.yaml&quot;</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="p">)</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="c1"># The session trace file (.venturalitica/trace_loan_audit_v1.json) </span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="c1"># will prove NOT just the result, but HOW it was computed.</span>
 </code></pre></div>
 <h2 id="3-the-digital-seal-verification">3. The "Digital Seal" Verification</h2>
 <p>After running the audit, launch the UI:</p>

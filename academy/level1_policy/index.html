@@ -1157,7 +1157,7 @@ Engineers implement and <strong>Verify</strong> those controls using Evidence.</
 <p>If you lower the threshold to 0.3 just to make the test "pass," you aren't fixing the code—you are <strong>bypassing a security control</strong> and exposing the company to the original risk.</p>
 <h2 id="2-anatomy-of-a-control-oscal">2. Anatomy of a Control (OSCAL)</h2>
 <p>Your job is to translate the CO's requirement into Code. 
-Create a file named <code>data_governance.yaml</code>. Keep the threshold at <strong>0.5 (The Organizational Standard)</strong>.</p>
+Create a file named <code>data_policy.oscal.yaml</code> (or <a href="https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml">download it from GitHub</a>). Keep the threshold at <strong>0.5 (The Organizational Standard)</strong>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">assessment-plan</span><span class="p">:</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">metadata</span><span class="p">:</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Article</span><span class="nv"> </span><span class="s">10:</span><span class="nv"> </span><span class="s">Data</span><span class="nv"> </span><span class="s">Governance</span><span class="nv"> </span><span class="s">Standard&quot;</span>
@@ -1179,6 +1179,9 @@ Create a file named <code>data_governance.yaml</code>. Keep the threshold at <st
 </code></pre></div>
 <h2 id="3-run-your-custom-policy">3. Run Your Custom Policy</h2>
 <p>Now, let's run the audit again with <em>your</em> configuration. Observe how we map the abstract <code>age</code> concept to your specific data column.</p>
+<blockquote>
+<p>💡 <strong>Full Code</strong>: You can find the complete, ready-to-run notebook for this level here: <a href="https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/00_engineer_policy.ipynb">00_engineer_policy.ipynb</a></p>
+</blockquote>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">venturalitica</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vl</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ucimlrepo</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch_ucirepo</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
@@ -1192,7 +1195,7 @@ Create a file named <code>data_governance.yaml</code>. Keep the threshold at <st
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="n">target</span><span class="o">=</span><span class="s2">&quot;class&quot;</span><span class="p">,</span>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">age</span><span class="o">=</span><span class="s2">&quot;Attribute13&quot;</span><span class="p">,</span>    <span class="c1"># 🗝️ MAPPING: &#39;age&#39; is actually &#39;Attribute13&#39;</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;data_governance.yaml&quot;</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;data_policy.oscal.yaml&quot;</span>
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="p">)</span>
 <a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
 <a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="c1"># 3. Check Results</span>
