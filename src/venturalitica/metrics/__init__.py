@@ -9,7 +9,7 @@ from venturalitica.fairness import (
     calc_multiclass_confusion_metrics,
     HAS_FAIRLEARN
 )
-from venturalitica.quality import calc_disparate_impact, calc_class_imbalance
+from venturalitica.quality import calc_disparate_impact, calc_class_imbalance, calc_group_min_positive_rate, calc_data_completeness
 from venturalitica.privacy import calc_k_anonymity, calc_l_diversity, calc_t_closeness, calc_data_minimization_score
 from venturalitica.fairness import (
     calc_weighted_demographic_parity_multiclass,
@@ -54,6 +54,8 @@ METRIC_REGISTRY = {
     # Data quality
     "disparate_impact": calc_disparate_impact,
     "class_imbalance": calc_class_imbalance,
+    "group_min_positive_rate": calc_group_min_positive_rate,
+    "data_completeness": calc_data_completeness,
     
     # Privacy metrics
     "k_anonymity": calc_k_anonymity,
@@ -280,6 +282,24 @@ METRIC_METADATA = {
         "required_roles": ["target"],
         "ideal_value": 1.0,
         "scale": (0.0, 1.0),
+    },
+    "group_min_positive_rate": {
+        "name": "Group Minimum Positive Rate",
+        "description": "Minimum positive class rate across groups (e.g., by gender or age buckets).",
+        "category": "data_quality",
+        "required_roles": ["target", "dimension"],
+        "ideal_value": 0.5,
+        "scale": (0.0, 1.0),
+        "reference": "internal"
+    },
+    "data_completeness": {
+        "name": "Data Completeness",
+        "description": "Average fraction of non-missing values across dataset columns.",
+        "category": "data_quality",
+        "required_roles": [],
+        "ideal_value": 1.0,
+        "scale": (0.0, 1.0),
+        "reference": "internal"
     }
 }
 

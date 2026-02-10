@@ -39,26 +39,34 @@ def calc_k_anonymity(df: pd.DataFrame, **kwargs) -> float:
         2.0  # Min group size is 2
     """
     quasi_identifiers = kwargs.get('quasi_identifiers', [])
-    
+
+    # Accept comma-separated string or list input from policy props
+    if isinstance(quasi_identifiers, str):
+        quasi_identifiers = [q.strip() for q in quasi_identifiers.split(',') if q.strip()]
+
+    if isinstance(quasi_identifiers, (list, tuple)) and len(quasi_identifiers) == 1 and isinstance(quasi_identifiers[0], str) and ',' in quasi_identifiers[0]:
+        # Guard against nested comma string inside a list
+        quasi_identifiers = [q.strip() for q in quasi_identifiers[0].split(',') if q.strip()]
+
     if not quasi_identifiers:
         raise ValueError(
             "quasi_identifiers required for k-anonymity. "
             "💡 Did you mean? Specify columns that could re-identify: ['age', 'zip', 'gender']"
         )
-    
+
     missing_cols = [c for c in quasi_identifiers if c not in df.columns]
     if missing_cols:
         raise ValueError(
             f"Quasi-identifier columns not found: {missing_cols}. "
             f"Available: {list(df.columns)}"
         )
-    
+
     # Count frequency of each quasi-identifier combination
     group_sizes = df.groupby(quasi_identifiers).size()
-    
+
     # k-anonymity is the minimum group size
-    k = group_sizes.min()
-    
+    k = group_sizes.min() if not group_sizes.empty else 0
+
     return float(k)
 
 

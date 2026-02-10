@@ -27,14 +27,14 @@ class OSCALPolicyLoader:
                 data = yaml.safe_load(f) or {}
 
         # Determine root object
-        root_key = next((k for k in ['assessment-plan', 'catalog', 'profile', 'component-definition'] if k in data), None)
+        root_key = next((k for k in ['assessment-plan', 'catalog', 'profile', 'component-definition', 'system-security-plan'] if k in data), None)
         
         if root_key:
             return self._parse_generic_oscal(data[root_key])
         elif isinstance(data, list):
             return self._parse_flat_list(data)
         else:
-            raise ValueError("Unsupported OSCAL format or missing root element (assessment-plan, catalog, etc.)")
+            raise ValueError("Unsupported OSCAL format or missing root element (system-security-plan, assessment-plan, catalog, etc.)")
 
     def _parse_generic_oscal(self, obj: Dict[str, Any]) -> InternalPolicy:
         """A generic, permissive parser that looks for controls and implementations in any OSCAL object."""
@@ -66,11 +66,16 @@ class OSCALPolicyLoader:
         root_impls = obj.get('control-implementations', [])
         if isinstance(root_impls, list):
             control_impls.extend(root_impls)
+        
+        # [ISO 23894] Singular support for System Security Plan
+        singular_impl = obj.get('control-implementation', {})
+        if isinstance(singular_impl, dict):
+            control_impls.append(singular_impl)
 
         for impl in control_impls:
             for req in impl.get('implemented-requirements', []):
                 self._add_to_policy(policy, req, inventory)
-                
+        
         # 3. Process Controls directly (for Catalogs without explicit implementations)
         raw_controls = obj.get('controls', [])
         if isinstance(raw_controls, list):
@@ -81,7 +86,7 @@ class OSCALPolicyLoader:
 
     def _add_to_policy(self, policy: InternalPolicy, req: Dict[str, Any], inventory: Dict[str, Any]):
         """Helper to map a requirement and its links to the internal policy."""
-        control_id = req.get('control-id')
+        control_id = req.get('control-id') or req.get('uuid', 'unknown')
         description = req.get('description', '')
         
         # Extract severity and check for direct metric props
@@ -92,8 +97,10 @@ class OSCALPolicyLoader:
             value = p.get('value')
             if name == 'severity':
                 severity = value
-            elif name in ['metric_key', 'threshold', 'operator']:
-                direct_props[name] = value
+            elif name in ['metric_key', 'metric', 'threshold', 'operator']:
+                # Map 'metric' to 'metric_key' for compatibility
+                key = 'metric_key' if name == 'metric' else name
+                direct_props[key] = value
             elif name.startswith("input:"):
                 role = name.split(":", 1)[1]
                 if "input_mapping" not in direct_props:
@@ -103,7 +110,12 @@ class OSCALPolicyLoader:
                 if "required_vars" not in direct_props:
                     direct_props["required_vars"] = []
                 direct_props["required_vars"].append(value)
-        
+            else:
+                # Generic parameters for metric functions (e.g., quasi_identifiers)
+                if "params" not in direct_props:
+                    direct_props["params"] = {}
+                direct_props["params"][name] = value
+
         # 1. Direct props support (Simplified OSCAL)
         if "metric_key" in direct_props:
             policy.controls.append(InternalControl(
@@ -114,11 +126,12 @@ class OSCALPolicyLoader:
                 threshold=float(direct_props.get("threshold", 0.0)),
                 operator=direct_props.get("operator", "=="),
                 required_vars=direct_props.get("required_vars", []),
-                input_mapping=direct_props.get("input_mapping", {})
+                input_mapping=direct_props.get("input_mapping", {}),
+                params=direct_props.get("params", {})
             ))
             return # Skip link hunting if we have direct props
 
-        # 2. Link hunting (Standard OSCAL)
+        # Link hunting (Standard OSCAL - check explicit links that reference inventory items)
         for link in req.get('links', []):
             href = link.get('href', '')
             if href.startswith("#"):
@@ -126,6 +139,8 @@ class OSCALPolicyLoader:
                 if metric_uuid in inventory:
                     m_def = inventory[metric_uuid]
                     if "metric_key" in m_def:
+                        # Extract params from inventory definition (anything not an input: or known key)
+                        params = {k: v for k, v in m_def.items() if not k.startswith("input:") and k not in ["metric_key", "threshold", "operator"]}
                         policy.controls.append(InternalControl(
                             id=control_id,
                             description=description or f"Control {control_id}",
@@ -134,7 +149,8 @@ class OSCALPolicyLoader:
                             threshold=float(m_def.get("threshold", 0.0)),
                             operator=m_def.get("operator", "=="),
                             required_vars=[v for k, v in m_def.items() if k.startswith("input:")],
-                            input_mapping={k.split(":", 1)[1]: v for k, v in m_def.items() if k.startswith("input:")}
+                            input_mapping={k.split(":", 1)[1]: v for k, v in m_def.items() if k.startswith("input:")},
+                            params=params
                         ))
 
     def _process_catalog_recursive(self, control: Dict[str, Any], policy: InternalPolicy):
@@ -142,6 +158,8 @@ class OSCALPolicyLoader:
         props = {p['name']: p['value'] for p in control.get('props', []) if 'name' in p and 'value' in p}
         
         if "metric_key" in props:
+            # Generic params from control props (anything not input:* or known keys)
+            params = {k:v for k, v in props.items() if not k.startswith("input:") and k not in ["metric_key", "threshold", "operator", "severity"]}
             policy.controls.append(InternalControl(
                 id=control.get('id', 'unknown'),
                 description=control.get('title', control.get('id', '')),
@@ -150,7 +168,8 @@ class OSCALPolicyLoader:
                 threshold=float(props.get("threshold", 0.0)),
                 operator=props.get("operator", "=="),
                 required_vars=[v for k, v in props.items() if k.startswith("input:")],
-                input_mapping={k.split(":", 1)[1]: v for k, v in props.items() if k.startswith("input:")}
+                input_mapping={k.split(":", 1)[1]: v for k, v in props.items() if k.startswith("input:")},
+                params=params
             ))
             
         for sub in control.get('controls', []):

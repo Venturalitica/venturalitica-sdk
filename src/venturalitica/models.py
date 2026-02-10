@@ -12,6 +12,7 @@ class InternalControl:
     operator: str
     required_vars: List[str] = field(default_factory=list)
     input_mapping: dict = field(default_factory=dict) # Role -> VirtualVarName
+    params: dict = field(default_factory=dict)  # Additional params for metric functions (e.g., quasi_identifiers)
 
 @dataclass
 class InternalPolicy:

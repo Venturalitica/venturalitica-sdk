@@ -174,9 +174,10 @@ class TraceProbe(BaseProbe):
     Captures logical execution evidence: AST Code Analysis, Timestamps, and Call Context.
     This fulfills Articles 10 & 11 (Technical Documentation & Data Governance).
     """
-    def __init__(self, run_name: str = "default"):
+    def __init__(self, run_name: str = "default", label: Optional[str] = None):
         super().__init__("Audit Trace")
         self.run_name = run_name
+        self.label = label
         self.start_time: Optional[datetime] = None
 
     def start(self):
@@ -192,6 +193,7 @@ class TraceProbe(BaseProbe):
         # 1. Capture Contextual Metadata
         meta = {
             "name": self.run_name,
+            "label": self.label,
             "timestamp": end_time.isoformat(),
             "duration_seconds": duration,
             "success": sys.exc_info()[0] is None
