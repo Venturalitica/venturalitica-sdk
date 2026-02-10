@@ -32,6 +32,7 @@ The SDK supports the following Environment Variables. We recommend using a `.env
 | :--- | :--- | :--- | :--- |
 | `MISTRAL_API_KEY` | [Get a Free Key](https://console.mistral.ai/). Used for Cloud Fallback if local Ollama fails. | None | **Recommended** |
 | `VENTURALITICA_LLM_PRO` | Set to `true` to use Mistral even if Ollama is available (Higher Quality). | `false` | No |
+| `VENTURALITICA_STRICT` | Set to `true` to enforce strict compliance checks (fail on missing metrics). | `false` | No |
 | `MLFLOW_TRACKING_URI` | If set, `monitor()` will auto-log audits to MLflow. | None | No |
 
 ## 📋 Prerequisites
@@ -133,20 +134,16 @@ Control descriptions include regulatory context:
 
 ## 🛠️ CLI Tools
 
-### BOM Scanner
+### BOM & Supply Chain
 
-Generate a **CycloneDX ML-BOM** (Machine Learning Bill of Materials):
-
-```bash
-venturalitica scan --target ./my-ml-project
-```
+The SDK automatically generates a **CycloneDX ML-BOM** during execution via `vl.monitor()`.
 
 **Detects:**
 - Python dependencies (`requirements.txt`, `pyproject.toml`)
 - ML models (scikit-learn, PyTorch, TensorFlow, XGBoost, etc.)
 - MLOps frameworks (MLflow, WandB, ClearML)
 
-**Output:** `bom.json` - Standardized inventory for supply chain security and EU AI Act compliance.
+**Output:** `bom` key within your audit trace JSON.
 
 ### Compliance Dashboard
 
@@ -164,9 +161,21 @@ venturalitica ui
 *   **Annex IV Draft**: Generate the PDF-ready markdown file with `venturalitica doc`.
 
 **Integrates with:**
-*   `bom.json` (from scanner)
+*   `trace_*.json` (from `vl.monitor()`)
 *   `emissions.csv` (from CodeCarbon)
 *   OSCAL policies
+
+### Compliance Bundle
+
+Package your evidence into a cryptographically verifiable bundle:
+
+```bash
+venturalitica bundle
+```
+
+**Features:**
+*   **Integrity Checksum**: Signed hash of metrics and BOM to prevent tampering.
+*   **Unified Artifact**: Combines results, BOM, and documentation into `bundle.json`.
 
 ## 🔒 Data Sovereignty & Privacy
 
