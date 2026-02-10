@@ -106,7 +106,7 @@ Your experiment tracker now tracks two types of performance: **Accuracy** (Opera
         )
 
     # 3. Log Compliance Artifacts
-    artifact = wandb.Artifact('compliance-bundle', type='evidence')
+    artifact = wandb.Artifact('compliance-evidence', type='evidence')
     artifact.add_file(".venturalitica/results.json")
     artifact.add_file(".venturalitica/trace_wandb_sync.json")
     wandb.log_artifact(artifact)

@@ -165,17 +165,6 @@ venturalitica ui
 *   `emissions.csv` (from CodeCarbon)
 *   OSCAL policies
 
-### Compliance Bundle
-
-Package your evidence into a cryptographically verifiable bundle:
-
-```bash
-venturalitica bundle
-```
-
-**Features:**
-*   **Integrity Checksum**: Signed hash of metrics and BOM to prevent tampering.
-*   **Unified Artifact**: Combines results, BOM, and documentation into `bundle.json`.
 
 ## 🔒 Data Sovereignty & Privacy
 

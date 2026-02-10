@@ -79,7 +79,7 @@ Tu tracker de experimentos ahora rastrea dos tipos de rendimiento: **Precisión*
         )
 
     # 3. Registrar Artefactos de Cumplimiento
-    artifact = wandb.Artifact('compliance-bundle', type='evidence')
+    artifact = wandb.Artifact('compliance-evidence', type='evidence')
     artifact.add_file(".venturalitica/results.json")
     artifact.add_file(".venturalitica/trace_wandb_sync.json")
     wandb.log_artifact(artifact)
