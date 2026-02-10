@@ -12,10 +12,18 @@ class GovernanceValidator:
         self,
         policy: Union[str, Path, Dict[str, Any]],
         storage: Optional[BaseStorage] = None,
+        strict: bool = False,
     ):
+        import os
         self.storage = storage or LocalFileSystemStorage()
         self.policy_source = policy
         self.policy: Optional[InternalPolicy] = None
+        
+        # Auto-detect Strict Mode (CI or Explicit Env)
+        self.strict = strict or os.getenv("CI") == "true" or os.getenv("VENTURALITICA_STRICT") == "true"
+        if self.strict and not strict:
+             print("    [Strict] Enforcing strict compliance mode (CI/Env detected).")
+             
         self._load_policy()
 
     @property
@@ -48,14 +56,19 @@ class GovernanceValidator:
             self.policy = self.storage.get_policy(str(self.policy_source))
 
     def compute_and_evaluate(
-        self, data: pd.DataFrame, context_mapping: Dict[str, str], strict: bool = False
+        self, data: pd.DataFrame, context_mapping: Dict[str, str], strict: Optional[bool] = None
     ) -> List[ComplianceResult]:
         """Computes metrics and evaluates them against controls.
 
-        If `strict` is True, any control that cannot be evaluated due to missing
-        metric implementation or missing role bindings will raise a ValueError.
+        If `strict` is True (or if the validator was initialized in strict mode via CI env vars),
+        any control that cannot be evaluated due to missing metric implementation or missing role
+        bindings will raise a ValueError.
         """
+        import os
         from .metrics import METRIC_REGISTRY
+
+        # Use method argument if provided, otherwise fall back to instance setting
+        strict = strict if strict is not None else self.strict
 
         if not isinstance(data, pd.DataFrame):
             raise ValueError("Data must be a pandas DataFrame")

@@ -95,6 +95,7 @@ nav:
     - ✍️ Writing Policies (OSCAL): tutorials/01_writing_policy.md
     - 🛠️ Model Training Integration: training.md
     - 🔗 Deep Integrations (MLOps): integrations.md
+    - 🔒 Strict Mode (CI/CD): strict_mode.md
     - 📊 Compliance Dashboard: compliance-dashboard.md
   - EU AI Act Reference:
     - 📝 Technical Documentation (Annex IV): annex-iv.md

@@ -13,13 +13,13 @@ Venturalítica treats "Governance" as a dependency. Instead of vague legal advic
 
 ### The Curriculum
 
-| Level | Role | Goal | Project |
-| :--- | :--- | :--- | :--- |
-| **[Start Here](#step-1-install)** | **Developer** | Run your first audit in < 60s. | [loan-credit-scoring](https://github.com/venturalitica/venturalitica-sdk-samples/tree/main/scenarios/loan-credit-scoring) |
-| **[Level 1](level1_policy.md)** | **Engineer** | **Implement Controls** for identified Risks. | [00_engineer_policy.ipynb](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/00_engineer_policy.ipynb) |
-| **[Level 2](level2_integrator.md)** | **Integrator** | **Viz & MLOps**: "Compliance as Metadata". | [03_mlops_integration.py](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/03_mlops_integration.py) |
-| **[Level 3](level3_auditor.md)** | **Auditor** | Proof: "Trust the Glass Box". | [01_governance_audit.ipynb](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/01_governance_audit.ipynb) |
-| **[Level 4](level4_annex_iv.md)** | **Architect** | GenAI Docs: "Annex IV". | `loan-credit-scoring` (Annex IV) |
+| Level | Role | Goal |
+| :--- | :--- | :--- |
+| **[Start Here](#step-1-install)** | **Developer** | Run your first audit in < 60s. |
+| **[Level 1](level1_policy.md)** | **Engineer** | **Implement Controls** for identified Risks. |
+| **[Level 2](level2_integrator.md)** | **Integrator** | **Viz & MLOps**: "Compliance as Metadata". |
+| **[Level 3](level3_auditor.md)** | **Auditor** | Proof: "Trust the Glass Box". |
+| **[Level 4](level4_annex_iv.md)** | **Architect** | GenAI Docs: "Annex IV". |
 
 ---
 

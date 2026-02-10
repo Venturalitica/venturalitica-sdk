@@ -17,6 +17,17 @@ Genera automáticamente la documentación técnica requerida por el **Anexo IV d
 ### 🇪🇺 Soberanía Local (Privacy-First)
 Tu código, tus datos, tu infraestructura. El SDK se ejecuta **100% en local**. Ni un solo byte de tus datos de entrenamiento sale de tu servidor.
 
+## ✨ Características Clave
+
+- **Gobernanza de Caja de Cristal**: Mapeo regulatorio secuencial (Art 9-15) para transparencia total.
+- **Modo Estricto**: Auto-aplicación de verificaciones de cumplimiento en entornos CI/CD.
+- **Procedencia Profunda**: Rastrea el linaje de datos a través de Archivos, SQL y S3 usando `ArtifactProbe`.
+- **Arquitectura TraceCollector**: Recopilación unificada de evidencia para BOM, métricas y logs.
+- **Auditorías Educativas**: Descripciones de control que explican *por qué* importan las métricas.
+- **Integraciones Profundas**: Sincronización perfecta con MLflow y WandB.
+- **Nativo de OSCAL**: Política como Código usando formatos estándar de NIST.
+- **Listo para Anexo IV**: Auto-redacción de documentación técnica a partir de trazas locales.
+
 ---
 
 ## 🚀 Inicio Rápido

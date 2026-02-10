@@ -13,13 +13,13 @@ Venturalítica trata la "Gobernanza" como una dependencia. En lugar de consejos 
 
 ### El Plan de Estudios
 
-| Nivel | Rol | Objetivo | Proyecto |
-| :--- | :--- | :--- | :--- |
-| **[Empieza Aquí](#paso-1-instalacion)** | **Desarrollador** | Ejecuta tu primera auditoría en < 60s. | `loan-credit-scoring` |
-| **[Nivel 1](level1_policy.md)** | **Ingeniero** | **Implementar Controles** para Riesgos. | Política Personalizada |
-| **[Nivel 2](level2_integrator.md)** | **Integrador** | **Viz & MLOps**: "Cumplimiento como Metadata". | MLOps / Dashboard |
-| **[Nivel 3](level3_auditor.md)** | **Auditor** | Prueba: "Confía en la Caja de Cristal". | `loan-credit-scoring` (Avanzado) |
-| **[Nivel 4](level4_annex_iv.md)** | **Arquitecto** | Docs GenAI: "Anexo IV". | `loan-credit-scoring` (Anexo IV) |
+| Nivel | Rol | Objetivo |
+| :--- | :--- | :--- |
+| **[Empieza Aquí](#paso-1-instalacion)** | **Desarrollador** | Ejecuta tu primera auditoría en < 60s. |
+| **[Nivel 1](level1_policy.md)** | **Ingeniero** | **Implementar Controles** para Riesgos. |
+| **[Nivel 2](level2_integrator.md)** | **Integrador** | **Viz & MLOps**: "Cumplimiento como Metadata". |
+| **[Nivel 3](level3_auditor.md)** | **Auditor** | Prueba: "Confía en la Caja de Cristal". |
+| **[Nivel 4](level4_annex_iv.md)** | **Arquitecto** | Docs GenAI: "Anexo IV". |
 
 ---
 

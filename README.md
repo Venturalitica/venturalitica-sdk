@@ -9,8 +9,10 @@ The Venturalítica SDK enables Data Scientists and ML Engineers to integrate com
 ## ✨ Key Features
 
 - **Glass Box Governance**: Sequential regulatory mapping (Art 9-15) for total transparency.
+- **Strict Mode**: Auto-enforcement of compliance checks in CI/CD environments.
+- **Deep Provenance**: Trace data lineage across Files, SQL, and S3 using `ArtifactProbe`.
 - **Local Sovereignty**: Zero-cloud dependency. All enforcement runs locally.
-- **TraceCollector Architecture**: Unified evidence gathering for BOM, metrics, and logs.
+- **TraceCollector Architecture**: Unified evidence gathering for BOM, metrics, anlogs.
 - **Educational Audits**: Control descriptions that explain *why* metrics matter.
 - **Deep Integrations**: Seamless "Glass Box" syncing with MLflow & WandB.
 - **OSCAL-Native**: Policy-as-Code using standard NIST formats.
@@ -102,6 +104,7 @@ vl.enforce(
 
 - **[Tutorial: Zero-Setup Audit](docs/tutorials/local-audit.md)**: "Hello World" - Scan & Visualize in 2 minutes
 - **[Tutorial: Training Integration](docs/training.md)**: Add compliance checks to your Python code
+- **[Concept: Strict Mode](docs/strict_mode.md)**: Enforcing compliance in CI/CD chains
 - **[Concept: The Regulatory Map](docs/compliance-dashboard.md)**: Understanding the Dashboard (Art 9-15)
 - **[Concept: Evidence Collection](docs/evidence-collection.md)**: How to record your audits
 - **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)**: Real-world examples

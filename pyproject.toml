@@ -1,6 +1,6 @@
 [project]
 name = "venturalitica"
-version = "0.4.1"
+version = "0.4.2"
 description = "Frictionless Governance for AI. Enforce policies in your ML training with one line of code."
 requires-python = ">=3.11"
 readme = "README.md"
@@ -64,7 +64,7 @@ torch = [
     "torch>=2.0.0",
 ]
 full = [
-    "venturalitica[metrics,torch]",
+    "venturalitica[metrics,torch,green]",
 ]
 green = [
     "codecarbon>=2.3.0",

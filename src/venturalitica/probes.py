@@ -239,3 +239,92 @@ class TraceProbe(BaseProbe):
     def get_summary(self) -> str:
         file_name = self.results.get("code_context", {}).get("file", "Unknown")
         return f"  📜 [Trace] Context: {file_name} | Evidence saved to .venturalitica/trace_{self.run_name}.json"
+
+
+class BOMProbe(BaseProbe):
+    """
+    Captures the Software Bill of Materials (SBOM) at runtime.
+    Ensures that the specific versions of libraries (pip freeze) are bound to the audit.
+    """
+    def __init__(self, target_dir: str = "."):
+        super().__init__("Software Supply Chain")
+        self.target_dir = target_dir
+
+    def start(self):
+        # BOM capture is a snapshot, no need for continuous monitoring
+        pass
+
+    def stop(self) -> Dict[str, Any]:
+        try:
+            from .scanner import BOMScanner
+            # Simple scan of current environment
+            scanner = BOMScanner(self.target_dir)
+            bom = scanner.scan()
+            
+            # Persist BOM to .venturalitica/bom.json as a backup/debug artifact
+            # But primarily return it to be embedded in the trace
+            bom_json = json.loads(JsonV1Dot5(bom).output_as_string())
+            
+            os.makedirs(".venturalitica", exist_ok=True)
+            with open(".venturalitica/bom.json", "w") as f:
+                json.dump(bom_json, f, indent=2)
+                
+            self.results = {
+                "component_count": len(bom.components),
+                "bom": bom_json, # EMBEDDED IN TRACE
+                "bom_path": ".venturalitica/bom.json"
+            }
+        except Exception as e:
+            self.results = {"error": str(e)}
+            
+        return self.results
+
+    def get_summary(self) -> str:
+        count = self.results.get("component_count")
+        if count is not None:
+            return f"  📦 [Supply Chain] BOM Captured: {count} components linked."
+        return f"  ⚠ [Supply Chain] Failed to capture BOM: {self.results.get('error')}"
+
+
+class ArtifactProbe(BaseProbe):
+    """
+    Captures input datasets and output artifacts (models, plots).
+    Tracks deep metadata (hashes, URIs, SQL queries) to ensure data lineage.
+    """
+    def __init__(self, inputs: list = None, outputs: list = None):
+        super().__init__("Data & Artifacts")
+        self.inputs = self._normalize_artifacts(inputs or [])
+        self.outputs = self._normalize_artifacts(outputs or [])
+        self._start_snapshots: Dict[str, Any] = {}
+        
+    def _normalize_artifacts(self, items: list) -> list:
+        from .artifacts import Artifact, FileArtifact
+        normalized = []
+        for item in items:
+            if isinstance(item, str):
+                normalized.append(FileArtifact(item))
+            elif isinstance(item, Artifact):
+                normalized.append(item)
+        return normalized
+
+    def start(self):
+        # Snapshot input state at start
+        for inp in self.inputs:
+            self._start_snapshots[inp.name] = inp.to_dict()
+            
+    def stop(self) -> Dict[str, Any]:
+        # Snapshot output state at stop
+        output_snapshots = {}
+        for out in self.outputs:
+            output_snapshots[out.name] = out.to_dict()
+            
+        self.results = {
+            "inputs": self._start_snapshots,
+            "outputs": output_snapshots
+        }
+        return self.results
+
+    def get_summary(self) -> str:
+        in_count = len(self.inputs)
+        out_count = len(self.outputs)
+        return f"  💾 [Artifacts] Inputs: {in_count} | Outputs: {out_count} (Deep Integration)"

@@ -52,3 +52,4 @@ Annex_IV*.md
 .env
 coverage_output*.txt
 site/
+.pypirc

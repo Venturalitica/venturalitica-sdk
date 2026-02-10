@@ -136,11 +136,7 @@ def bundle(output: str = ".venturalitica/bundle.json"):
     console.print("[bold blue]📦 Creating compliance bundle...[/bold blue]")
 
     # 1. Verification of Synchronized State
-    if not os.path.exists("bom.json"):
-        console.print(
-            "[yellow]Warning:[/yellow] bom.json missing. Running 'venturalitica scan'..."
-        )
-        scan()
+    # (BOM is now loaded from the latest trace, not a standalone file)
 
     if not os.path.exists(".venturalitica/results.json"):
         console.print(
@@ -178,17 +174,13 @@ def bundle(output: str = ".venturalitica/bundle.json"):
                 elif "Hardware:" in line:
                     annex_iv["hardware"] = line.split(":", 1)[1].strip()
 
-    # 4. Generate Bundle
-    with open("bom.json", "r") as f:
-        bom = json.load(f)
+    # Intelligent Metrics Extraction
+    metrics = []
     
+    # 3. Load Results
     with open(".venturalitica/results.json", "r") as f:
         results_data = json.load(f)
 
-    # Intelligent Metrics Extraction
-    metrics = []
-    artifacts = []
-    
     if isinstance(results_data, list):
         metrics = results_data
     elif isinstance(results_data, dict):
@@ -207,8 +199,11 @@ def bundle(output: str = ".venturalitica/bundle.json"):
             artifacts.extend(results_data["artifacts"])
             console.print(f"  ✓ Included {len(results_data['artifacts'])} local artifacts from results")
 
-    # 4. Auto-discover Audit Traces
+    # 4. Auto-discover Audit Traces and Extract BOM
     trace_dir = ".venturalitica"
+    bom = {}
+    latest_trace_time = 0
+    
     if os.path.exists(trace_dir):
         for f in os.listdir(trace_dir):
             if f.startswith("trace_") and f.endswith(".json"):
@@ -216,6 +211,20 @@ def bundle(output: str = ".venturalitica/bundle.json"):
                     with open(os.path.join(trace_dir, f), "r") as tf:
                         trace_data = json.load(tf)
                         label = trace_data.get("label") or trace_data.get("name") or "Audit Trace"
+                        
+                        # Extract BOM from trace (if present)
+                        # We prioritize the most recent trace's BOM
+                        trace_ts = trace_data.get("timestamp_unix", 0) # Assumes we add this
+                        if not trace_ts: 
+                            # Fallback to file mtime if timestamp missing
+                            trace_ts = os.path.getmtime(os.path.join(trace_dir, f))
+                            
+                        if "bom" in trace_data:
+                             if trace_ts > latest_trace_time:
+                                 bom = trace_data["bom"]
+                                 latest_trace_time = trace_ts
+                                 console.print(f"  ✓ Linked BOM from trace: [bold]{label}[/bold]")
+                        
                         artifacts.append({
                             "name": label,
                             "type": "CODE",
@@ -226,20 +235,46 @@ def bundle(output: str = ".venturalitica/bundle.json"):
                         console.print(f"  ✓ Auto-discovered trace artifact: [bold]{label}[/bold]")
                 except:
                     pass
+    
+    # Fallback to local .venturalitica/bom.json if trace didn't have it (backward compat)
+    if not bom and os.path.exists(".venturalitica/bom.json"):
+          with open(".venturalitica/bom.json", "r") as f:
+            bom = json.load(f)
+            console.print("  ✓ Loaded BOM from .venturalitica/bom.json")
 
-    # Simplified signing for now: hash of metrics + timestamp
+    # Cryptographic Signing (HMAC-SHA256)
+    # Using the project's secret key from credentials.json if available, else a generated local key.
+    
+    import hmac
     import hashlib
     import time
-
+    
     timestamp = time.time()
-    sign_payload = f"{json.dumps(metrics)}{timestamp}".encode()
-    signature = hashlib.sha256(sign_payload).hexdigest()
+    
+    # Load secret key
+    secret_key = b"default-local-key" # Fallback
+    creds_path = get_config_path("credentials.json")
+    if os.path.exists(creds_path):
+        try:
+             with open(creds_path, "r") as f:
+                creds = json.load(f)
+                if "key" in creds:
+                    secret_key = creds["key"].encode()
+        except:
+            pass
+            
+    # Payload to sign: Metrics + Timestamp + BOM Content Hash
+    bom_hash = hashlib.sha256(json.dumps(bom, sort_keys=True).encode()).hexdigest()
+    sign_payload = f"{json.dumps(metrics, sort_keys=True)}{timestamp}{bom_hash}".encode()
+    
+    signature = hmac.new(secret_key, sign_payload, hashlib.sha256).hexdigest()
 
     bundle_data = {
         "bundle": {
             "name": f"Compliance Bundle {time.strftime('%Y-%m-%d %H:%M:%S')}",
             "annex_iv": annex_iv,
-            "signature": signature,
+            "signature": signature, # HMAC Signature
+            "signature_type": "HMAC-SHA256",
             "timestamp": timestamp,
             "metadata": results_data.get("training_metadata") if isinstance(results_data, dict) else {}
         },
@@ -252,7 +287,7 @@ def bundle(output: str = ".venturalitica/bundle.json"):
     with open(output, "w") as f:
         json.dump(bundle_data, f, indent=2)
 
-    console.print(f"[bold green]✓ Bundle created successfully:[/bold green] {output}")
+    console.print(f"[bold green]✓ Bundle created & signed:[/bold green] {output}")
     console.print(
         f"  Captured {len(artifacts)} shadow artifacts and {len(metrics)} metrics."
     )
@@ -331,35 +366,10 @@ def refresh():
     console.print("[bold blue]🔄 Refreshing signature keys...[/bold blue]")
     # In a real impl, this would call /api/refresh
     console.print(
-        "[bold green]✓ Keys renewed. Validity extended for 30 days.[/bold green]"
+        "[bold green]✓ Integrity checksums refreshed. Validity extended for 30 days.[/bold green]"
     )
 
 
-@app.command()
-def scan(target: str = "."):
-    """
-    Scans the target directory to generate a CycloneDX ML-BOM.
-    """
-    console.print(f"[bold green]Scanning target:[/bold green] {target}")
-
-    try:
-        scanner = BOMScanner(target)
-        output = scanner.scan()
-
-        # Ensure we write to current directory, regardless of target path
-        output_file = "bom.json"
-        with open(output_file, "w") as f:
-            f.write(output)
-
-        # Count components from the generated JSON
-        bom_data = json.loads(output)
-        component_count = len(bom_data.get("components", []))
-
-        console.print(f"[bold green]✓ BOM generated:[/bold green] {output_file}")
-        console.print(f"Found {component_count} components.")
-
-    except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] {e}")
 
 
 @app.command()
@@ -369,8 +379,8 @@ def ui():
     """
     console.print("[bold green]🚀 Launching Venturalítica UI...[/bold green]")
 
-    # Path to dashboard.py
-    dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard.py")
+    # Path to dashboard/main.py
+    dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard", "main.py")
 
     if not os.path.exists(dashboard_path):
         console.print(
