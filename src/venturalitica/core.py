@@ -1,13 +1,12 @@
-import yaml
 import pandas as pd
 from pathlib import Path
-from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Union
-from .models import InternalPolicy, InternalControl, ComplianceResult
+from .models import InternalPolicy, ComplianceResult
 from .storage import BaseStorage, LocalFileSystemStorage
+from .binding import COLUMN_SYNONYMS, resolve_col_names
 
 
-class GovernanceValidator:
+class AssuranceValidator:
     def __init__(
         self,
         policy: Union[str, Path, Dict[str, Any]],
@@ -15,15 +14,20 @@ class GovernanceValidator:
         strict: bool = False,
     ):
         import os
+
         self.storage = storage or LocalFileSystemStorage()
         self.policy_source = policy
         self.policy: Optional[InternalPolicy] = None
-        
+
         # Auto-detect Strict Mode (CI or Explicit Env)
-        self.strict = strict or os.getenv("CI") == "true" or os.getenv("VENTURALITICA_STRICT") == "true"
+        self.strict = (
+            strict
+            or os.getenv("CI") == "true"
+            or os.getenv("VENTURALITICA_STRICT") == "true"
+        )
         if self.strict and not strict:
-             print("    [Strict] Enforcing strict compliance mode (CI/Env detected).")
-             
+            print("    [Strict] Enforcing strict compliance mode (CI/Env detected).")
+
         self._load_policy()
 
     @property
@@ -45,7 +49,11 @@ class GovernanceValidator:
 
     def _load_policy(self):
         """Loads and parses the OSCAL policy using the configured storage or direct dict."""
-        if isinstance(self.policy_source, dict):
+        from .models import InternalPolicy
+
+        if isinstance(self.policy_source, InternalPolicy):
+            self.policy = self.policy_source
+        elif isinstance(self.policy_source, dict):
             # Direct dict policy - use loader directly
             from .loader import OSCALPolicyLoader
 
@@ -56,7 +64,10 @@ class GovernanceValidator:
             self.policy = self.storage.get_policy(str(self.policy_source))
 
     def compute_and_evaluate(
-        self, data: pd.DataFrame, context_mapping: Dict[str, str], strict: Optional[bool] = None
+        self,
+        data: pd.DataFrame,
+        context_mapping: Dict[str, str],
+        strict: Optional[bool] = None,
     ) -> List[ComplianceResult]:
         """Computes metrics and evaluates them against controls.
 
@@ -64,7 +75,6 @@ class GovernanceValidator:
         any control that cannot be evaluated due to missing metric implementation or missing role
         bindings will raise a ValueError.
         """
-        import os
         from .metrics import METRIC_REGISTRY
 
         # Use method argument if provided, otherwise fall back to instance setting
@@ -114,51 +124,19 @@ class GovernanceValidator:
 
                 # [PLG] Auto-Binding: Smart discovery based on variable synonyms
                 if not actual_col:
-                    synonyms = {
-                        "gender": ["sex", "gender", "sexo", "Attribute9"],
-                        "age": ["age", "age_group", "edad", "Attribute13"],
-                        "race": ["race", "ethnicity", "raza"],
-                        "target": [
-                            "target",
-                            "class",
-                            "label",
-                            "y",
-                            "true_label",
-                            "ground_truth",
-                            "approved",
-                            "default",
-                            "outcome",
-                        ],
-                        "prediction": [
-                            "prediction",
-                            "pred",
-                            "y_pred",
-                            "predictions",
-                            "score",
-                            "proba",
-                            "output",
-                        ],
-                        "dimension": [
-                            "sex",
-                            "gender",
-                            "age",
-                            "race",
-                            "Attribute9",
-                            "Attribute13",
-                        ],
-                    }
                     if var in data.columns:
                         actual_col = var
                     else:
-                        for cand in synonyms.get(var, []) + synonyms.get(role, []):
+                        for cand in COLUMN_SYNONYMS.get(var, []) + COLUMN_SYNONYMS.get(
+                            role, []
+                        ):
                             if cand in data.columns:
                                 actual_col = cand
                                 break
 
                 if not actual_col:
-                    # Fallback: Treat as literal value if not found in columns
-                    # actual_col = "MISSING"
-                    actual_col = var
+                    # Fallback: Treat as MISSING if not found in columns
+                    actual_col = "MISSING"
 
                 eval_context[role] = actual_col
                 print(
@@ -183,78 +161,10 @@ class GovernanceValidator:
 
                 # Resolve any quasi-identifier or column-like params to actual dataframe columns
                 # using the same synonym discovery logic as for virtual role binding.
-                synonyms = {
-                    "gender": ["sex", "gender", "sexo", "Attribute9"],
-                    "age": ["age", "age_group", "edad", "Attribute13"],
-                    "race": ["race", "ethnicity", "raza"],
-                    "target": [
-                        "target",
-                        "class",
-                        "label",
-                        "y",
-                        "true_label",
-                        "ground_truth",
-                        "approved",
-                        "default",
-                        "outcome",
-                    ],
-                    "prediction": [
-                        "prediction",
-                        "pred",
-                        "y_pred",
-                        "predictions",
-                        "score",
-                        "proba",
-                        "output",
-                    ],
-                    "dimension": [
-                        "sex",
-                        "gender",
-                        "age",
-                        "race",
-                        "Attribute9",
-                        "Attribute13",
-                    ],
-                }
-
-                def resolve_col_names(val):
-                    if isinstance(val, str):
-                        parts = [s.strip() for s in val.split(",") if s.strip()]
-                    elif isinstance(val, (list, tuple)):
-                        parts = list(val)
-                    else:
-                        return val
-
-                    resolved = []
-                    for item in parts:
-                        if item in data.columns:
-                            resolved.append(item)
-                            continue
-                        # try to find a synonym group that contains this item
-                        found = None
-                        for key, cand_list in synonyms.items():
-                            if item in cand_list or item == key:
-                                for cand in cand_list:
-                                    if cand in data.columns:
-                                        found = cand
-                                        break
-                                if found:
-                                    break
-                        if found:
-                            resolved.append(found)
-                        else:
-                            # fallback to lower-cased column name if exists
-                            if item.lower() in data.columns:
-                                resolved.append(item.lower())
-                            else:
-                                # keep original (metric functions may handle missing columns themselves)
-                                resolved.append(item)
-                    return resolved
-
                 resolved_params = {}
                 for k, v in params.items():
                     if k in ("quasi_identifiers", "sensitive_columns"):
-                        resolved = resolve_col_names(v)
+                        resolved = resolve_col_names(v, data, COLUMN_SYNONYMS)
                         resolved_params[k] = resolved
                     else:
                         resolved_params[k] = v

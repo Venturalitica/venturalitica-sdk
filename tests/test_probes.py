@@ -95,3 +95,18 @@ def test_handshake_probe():
     res = probe.stop()
     assert "is_compliant" in res
     assert res["is_compliant"] is True
+
+def test_abstract_probe():
+    """Test BaseProbe abstract class can be subclassed."""
+    from venturalitica.probes import BaseProbe
+    
+    class DummyProbe(BaseProbe):
+        def start(self):
+            return super().start()
+        def stop(self):
+            return super().stop()
+    
+    p = DummyProbe("test")
+    p.start()
+    p.stop()
+    assert p.get_summary() == ""

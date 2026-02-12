@@ -1,5 +1,7 @@
-from .core import GovernanceValidator, ComplianceResult
+from .core import AssuranceValidator, ComplianceResult
 from .integrations import auto_log
+from .binding import COLUMN_SYNONYMS, discover_column
+from .formatting import VenturalíticaJSONEncoder, print_summary
 from pathlib import Path
 from typing import Dict, Union, Any, List, Optional
 import time
@@ -7,8 +9,7 @@ import json
 import os
 from contextlib import contextmanager
 from dataclasses import asdict
-import numpy as np
-from datetime import datetime
+from .session import GovernanceSession
 
 # We need the version for the enforce print statement
 try:
@@ -18,32 +19,18 @@ except ImportError:
 
 _SESSION_ENFORCED = False
 
-# Custom JSON encoder para tipos complejos
-class VenturalíticaJSONEncoder(json.JSONEncoder):
-    """Encoder que maneja tipos complejos de numpy, pandas y datetime"""
-
-    def default(self, o):
-        if isinstance(o, (np.bool_, np.integer, np.floating)):
-            return o.item()
-        if isinstance(o, (datetime,)):
-            return o.isoformat()
-        try:
-            # Intenta para pandas Timestamp y Series
-            if hasattr(o, "isoformat"):
-                return o.isoformat()
-            if hasattr(o, "tolist"):
-                return o.tolist()
-        except:
-            pass
-        return super().default(o)
-
 
 def _is_enforced():
     return _SESSION_ENFORCED
 
 
 @contextmanager
-def monitor(name: str = "Training Task", label: Optional[str] = None):
+def monitor(
+    name: str = "Training Task",
+    label: Optional[str] = None,
+    inputs: Optional[List[str]] = None,
+    outputs: Optional[List[str]] = None,
+):
     """
     Multimodal Monitor: Extensible probe-based observation platform.
     Tracks Green AI, Hardware Telemetry, Security Integrity, and Audit Trace.
@@ -55,22 +42,7 @@ def monitor(name: str = "Training Task", label: Optional[str] = None):
         HandshakeProbe,
         TraceProbe,
         BOMProbe,
-    )
-
-    from .probes import (
-        CarbonProbe,
-        HardwareProbe,
-        IntegrityProbe,
-        HandshakeProbe,
-        TraceProbe,
-        BOMProbe,
         ArtifactProbe,
-    )
-    from .artifacts import (
-        Artifact,
-        FileArtifact,
-        SQLArtifact,
-        S3Artifact
     )
 
     probes = [
@@ -83,8 +55,21 @@ def monitor(name: str = "Training Task", label: Optional[str] = None):
         TraceProbe(run_name=name, label=label),
     ]
 
+    # [GovOps] Initialize Session
+    session = GovernanceSession.start(name)
+    run_dir = session.base_dir
+
     print(f"\n[Venturalítica] 🟢 Starting monitor: {name}")
+    print(f"  📂 Evidence Vault: {run_dir}")
     start_time = time.time()
+
+    # Telemetry Start
+    try:
+        from .telemetry import telemetry
+
+        telemetry.capture("sdk_monitor_start", {"name": name, "label": label})
+    except ImportError:
+        pass
 
     for probe in probes:
         probe.start()
@@ -96,11 +81,18 @@ def monitor(name: str = "Training Task", label: Optional[str] = None):
         print(f"[Venturalítica] 🔴 Monitor stopped: {name}")
         print(f"  ⏱  Duration: {duration:.2f}s")
 
+        try:
+            telemetry.capture("sdk_monitor_end", {"name": name, "duration": duration})
+        except Exception:
+            pass
+
         for probe in probes:
             probe.stop()
             summary = probe.get_summary()
             if summary:
                 print(summary)
+
+        GovernanceSession.stop()
 
 
 def enforce(
@@ -113,7 +105,7 @@ def enforce(
     **attributes,
 ) -> List[ComplianceResult]:
     """
-    Main entry point for enforcing governance policies.
+    Main entry point for enforcing AI Assurance policies.
     """
     global _SESSION_ENFORCED
     _SESSION_ENFORCED = True
@@ -124,54 +116,31 @@ def enforce(
     for p in policies:
         print(f"\n[Venturalítica v{__version__}] 🛡  Enforcing policy: {p}")
         try:
-            validator = GovernanceValidator(p)
+            validator = AssuranceValidator(p)
             results = []
 
             if data is not None:
                 mapping = {}
 
-                # [PLG] Robust Column Discovery for critical roles
-                actual_target = target if target in data.columns else None
-                if not actual_target:
-                    # Common industry names for targets
-                    target_cands = [
-                        "target",
-                        "class",
-                        "label",
-                        "y",
-                        "true_label",
-                        "ground_truth",
-                        "approved",
-                        "default",
-                        "outcome",
-                    ]
-                    for cand in target_cands:
-                        if cand in data.columns:
-                            actual_target = cand
-                            break
+                # [PLG] Robust Column Discovery for critical roles using shared binding module
+                # First, try explicit parameters, then discover
+                if target and target in data.columns:
+                    mapping["target"] = target
+                else:
+                    discovered_target = discover_column(
+                        "target", {}, data, COLUMN_SYNONYMS
+                    )
+                    if discovered_target != "MISSING":
+                        mapping["target"] = discovered_target
 
-                actual_prediction = prediction if prediction in data.columns else None
-                if not actual_prediction:
-                    # Common industry names for predictions
-                    pred_cands = [
-                        "prediction",
-                        "pred",
-                        "y_pred",
-                        "predictions",
-                        "score",
-                        "proba",
-                        "output",
-                        "logit", # Added extra synonym
-                    ]
-                    for cand in pred_cands:
-                        if cand in data.columns:
-                            actual_prediction = cand
-                            break
-
-                if actual_target:
-                    mapping["target"] = actual_target
-                if actual_prediction:
-                    mapping["prediction"] = actual_prediction
+                if prediction and prediction in data.columns:
+                    mapping["prediction"] = prediction
+                else:
+                    discovered_pred = discover_column(
+                        "prediction", {}, data, COLUMN_SYNONYMS
+                    )
+                    if discovered_pred != "MISSING":
+                        mapping["prediction"] = discovered_pred
 
                 mapping.update(attributes)
                 # pass strict flag to validator so missing/skip behavior can be enforced
@@ -181,7 +150,7 @@ def enforce(
 
             if results:
                 all_results.extend(results)
-                _print_summary(results, is_data_only=(prediction is None))
+                print_summary(results, is_data_only=(prediction is None))
             else:
                 print(f"  ⚠ No applicable controls found in {p}")
 
@@ -206,15 +175,15 @@ def enforce(
                 try:
                     with open(results_path, "r") as f:
                         existing_results = json.load(f)
-                except:
+                except Exception:
                     pass
 
             # Normalize existing results to a list if file contains a bundle/dict
             if isinstance(existing_results, dict):
-                if isinstance(existing_results.get('metrics'), list):
-                    existing_results = existing_results.get('metrics')
-                elif isinstance(existing_results.get('post_metrics'), list):
-                    existing_results = existing_results.get('post_metrics')
+                if isinstance(existing_results.get("metrics"), list):
+                    existing_results = existing_results.get("metrics")
+                elif isinstance(existing_results.get("post_metrics"), list):
+                    existing_results = existing_results.get("post_metrics")
                 else:
                     # Flatten any list values inside dict
                     flattened = []
@@ -230,94 +199,17 @@ def enforce(
 
             with open(results_path, "w") as f:
                 json.dump(combined, f, indent=2, cls=VenturalíticaJSONEncoder)
+
+            # [GovOps] Save to Session-specific storage
+            session = GovernanceSession.get_current()
+            if session:
+                session.save_results(all_results, encoder=VenturalíticaJSONEncoder)
+                print(f"  ✓ Evidence Synced: {session.results_file}")
+
             print(
-                f"  ✓ Results cached. Run 'venturalitica ui' to see the Compliance Dashboard."
+                "  ✓ Results cached. Run 'venturalitica ui' to see the Compliance Dashboard."
             )
         except Exception as e:
             print(f"  ⚠ Failed to cache results: {e}")
 
     return all_results
-
-
-def _print_summary(results: List[ComplianceResult], is_data_only: bool):
-    """Prints a beautiful table summary to the console."""
-    if not results:
-        return
-
-    # ANSI colors for premium terminal feel
-    C_G, C_R, C_Y, C_B, C_0 = "\033[92m", "\033[91m", "\033[93m", "\033[1m", "\033[0m"
-
-    passed = sum(1 for r in results if r.passed)
-    total = len(results)
-
-    # Table Header
-    print(
-        f"\n  {C_B}{'CONTROL':<22} {'DESCRIPTION':<38} {'ACTUAL':<10} {'LIMIT':<10} {'RESULT'}{C_0}"
-    )
-    print(f"  {'─' * 96}")
-
-    for r in results:
-        res_label = f"{C_G}✅ PASS{C_0}" if r.passed else f"{C_R}❌ FAIL{C_0}"
-
-        # Map operator to symbol
-        op_map = {"gt": ">", "lt": "<", "ge": ">=", "le": "<=", "eq": "==", "ne": "!="}
-        limit_str = f"{op_map.get(r.operator, r.operator)} {r.threshold}"
-
-        # Clean description and ID
-        desc = (
-            (r.description[:35] + "...") if len(r.description) > 35 else r.description
-        )
-        ctrl_id = r.control_id[:20]
-
-        print(
-            f"  {ctrl_id:<22} {desc:<38} {r.actual_value:<10.3f} {limit_str:<10} {res_label}"
-        )
-
-        # [Enhancement] Show stability context if available
-        if hasattr(r, "metadata") and r.metadata:
-            # Filter for key stability metrics to keep it clean
-            meta_str = ", ".join([f"{k}={v}" for k, v in r.metadata.items()])
-            print(f"  {'':<22} {C_Y}↳ Stability: {meta_str}{C_0}")
-
-    print(f"  {'─' * 96}")
-    verdict = (
-        f"{C_G}✅ POLICY MET{C_0}" if passed == total else f"{C_R}❌ VIOLATION{C_0}"
-    )
-    print(f"  {C_B}Audit Summary: {verdict} | {passed}/{total} controls passed{C_0}\n")
-
-
-def save_audit_results(
-    results: List[ComplianceResult], path: str = ".venturalitica/results.json"
-):
-    """
-    Manually persists audit results to a JSON file for later processing by the CLI.
-    Converts ComplianceResult to MetricInput format expected by SaaS.
-    """
-    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-
-    # Convert ComplianceResult to MetricInput format
-    metrics = []
-    for result in results:
-        # Map operator to comparison
-        comparison = "equal"
-        if result.operator == "gt":
-            comparison = "greater"
-        elif result.operator == "lt":
-            comparison = "less"
-
-        metric_input = {
-            "name": result.control_id,
-            "control_id": result.control_id,
-            "metric_key": result.metric_key,
-            "value": result.actual_value,
-            "threshold": result.threshold,
-            "passed": result.passed,
-            "severity": result.severity,
-            "comparison": comparison,
-            "context": {"description": result.description, "metadata": result.metadata},
-        }
-        metrics.append(metric_input)
-
-    with open(path, "w") as f:
-        json.dump(metrics, f, indent=2, cls=VenturalíticaJSONEncoder)
-    print(f"  ✓ Results saved to {path} ({len(metrics)} metrics)")
