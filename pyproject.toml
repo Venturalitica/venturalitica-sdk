@@ -1,6 +1,6 @@
 [project]
 name = "venturalitica"
-version = "0.4.2"
+version = "0.5.0"
 description = "Frictionless Governance for AI. Enforce policies in your ML training with one line of code."
 requires-python = ">=3.11"
 readme = "README.md"
