@@ -1,15 +1,14 @@
-import pytest
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
 from venturalitica.inference import (
     SystemDescription,
-    infer_system_description,
     infer_risk_classification,
+    infer_system_description,
     infer_technical_documentation,
 )
-from venturalitica.models import TechnicalDocumentation, RiskAssessment
-
+from venturalitica.models import RiskAssessment, TechnicalDocumentation
 
 # ===================================================================
 # EXISTING TESTS (preserved)

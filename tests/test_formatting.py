@@ -1,17 +1,17 @@
 """Tests for formatting module - JSON encoding and console output."""
 
 import json
-import pytest
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
-from datetime import datetime
-from io import StringIO
-import sys
+import pytest
+
+from venturalitica.core import ComplianceResult
 from venturalitica.formatting import (
     VenturalíticaJSONEncoder,
     print_summary,
 )
-from venturalitica.core import ComplianceResult
 
 
 class TestVenturalíticaJSONEncoder:

@@ -1,11 +1,12 @@
 """Tests for binding module - column name resolution and synonym discovery."""
 
-import pytest
 import pandas as pd
+import pytest
+
 from venturalitica.binding import (
-    resolve_col_names,
-    discover_column,
     COLUMN_SYNONYMS,
+    discover_column,
+    resolve_col_names,
 )
 
 

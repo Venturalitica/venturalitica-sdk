@@ -1,10 +1,7 @@
-import pytest
-import pandas as pd
-import os
-import json
-import sys
 from unittest.mock import MagicMock, patch
-from venturalitica.probes import CarbonProbe, HardwareProbe, IntegrityProbe, HandshakeProbe
+
+from venturalitica.probes import CarbonProbe, HandshakeProbe, HardwareProbe, IntegrityProbe
+
 
 def test_carbon_probe():
     # Mock codecarbon module

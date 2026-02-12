@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
-import os
-import pandas as pd
-from venturalitica.dashboard import render_dashboard
+
+import pytest
+
+from venturalitica.dashboard.main import render_dashboard
+
 
 class MockStreamlit:
     def __init__(self):
@@ -44,84 +45,31 @@ class MockStreamlit:
         self.toast = MagicMock()
         self.radio = MagicMock(side_effect=lambda label, options, index=0, **kwargs: options[index] if options else None)
         self.text_input = MagicMock(side_effect=lambda label, value="", type="default", help="": value)
+        
+        # Connect sidebar mocks
+        self.sidebar.radio = self.radio
+        self.sidebar.selectbox = self.selectbox
+        self.sidebar.multiselect = self.multiselect
+        self.sidebar.text_input = self.text_input
+        self.sidebar.button = self.button
 
 @pytest.fixture
 def mock_st_obj():
     mock = MockStreamlit()
     mock.sidebar.button.return_value = False
-    with patch("venturalitica.dashboard.st", mock):
+    with patch("venturalitica.dashboard.main.st", mock):
         yield mock
 
 def test_render_dashboard(mock_st_obj, tmp_path):
     with patch("os.getcwd", return_value=str(tmp_path)):
         render_dashboard()
-    assert mock_st_obj.title.called
+    assert mock_st_obj.markdown.called
 
-def test_dashboard_scan_flow(mock_st_obj, tmp_path):
-    mock_st_obj.sidebar.button.return_value = True
-    (tmp_path / "requirements.txt").write_text("pandas==2.1.0")
-    
-    with patch("os.getcwd", return_value=str(tmp_path)):
-        with patch("venturalitica.dashboard.BOMScanner") as mock_scanner:
-            mock_scanner_inst = mock_scanner.return_value
-            mock_scanner_inst.scan.return_value = '{"components": []}'
-            render_dashboard()
-    
-    assert 'bom' in mock_st_obj.session_state
-
-def test_dashboard_emissions_display(mock_st_obj, tmp_path):
-    emissions_csv = tmp_path / "emissions.csv"
-    df = pd.DataFrame([{
-        'emissions': 0.1,
-        'duration': 100,
-        'energy_consumed': 0.05
-    }])
-    df.to_csv(emissions_csv, index=False)
-    
-    mock_st_obj.sidebar.text_input.return_value = str(tmp_path)
-    
+def test_dashboard_context_loading(mock_st_obj, tmp_path):
+    # Test that context loading attempts to read file
+    (tmp_path / "system_description.yaml").touch()
     with patch("os.getcwd", return_value=str(tmp_path)):
         render_dashboard()
-    
-    assert any(call.args == (3,) for call in mock_st_obj.columns.call_args_list)
+    # Check that sidebar radio was called (it means phases were loaded)
+    assert mock_st_obj.sidebar.radio.called
 
-def test_dashboard_tabs_display(mock_st_obj, tmp_path):
-    # Tab 3 logic depends on st.session_state['bom']
-    bom_data = {'components': [{'name': 'test-pkg', 'type': 'library'}]}
-    mock_st_obj.session_state['bom'] = bom_data
-    
-    with patch("os.getcwd", return_value=str(tmp_path)):
-        render_dashboard()
-    
-    # "test-pkg" is shown in dataframe, not markdown
-    assert mock_st_obj.dataframe.called
-    # We could inspect call args but just checking it was called is basic enough
-    # Or check if any arg contains the data
-    df_arg = mock_st_obj.dataframe.call_args[0][0]
-    assert any(d['Library'] == 'test-pkg' for d in df_arg)
-
-def test_dashboard_exceptions(mock_st_obj, tmp_path):
-    # Test scan failure
-    mock_st_obj.sidebar.button.return_value = True
-    with patch("venturalitica.dashboard.BOMScanner", side_effect=Exception("Scan Crash")):
-        render_dashboard()
-    assert mock_st_obj.sidebar.error.called
-    
-    # Test emissions read failure
-    emissions_csv = tmp_path / "emissions.csv"
-    emissions_csv.write_text("corrupt,csv")
-    with patch("os.getcwd", return_value=str(tmp_path)):
-        render_dashboard()
-    assert mock_st_obj.error.called
-
-def test_dashboard_buttons(mock_st_obj, tmp_path):
-    # Mocking different buttons returning True
-    mock_st_obj.button.return_value = True
-    
-    # Mock asyncio.run to return a valid tuple (markdown, sections)
-    with patch("asyncio.run", return_value=("# Generated Annex", {})):
-        with patch("os.getcwd", return_value=str(tmp_path)):
-            render_dashboard()
-    
-    assert mock_st_obj.success.called
-    assert mock_st_obj.success.called

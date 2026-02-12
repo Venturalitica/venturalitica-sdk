@@ -3,20 +3,19 @@ Comprehensive edge case tests for probes subpackage modules.
 Tests cover error paths, boundary conditions, and special scenarios.
 """
 
-import pytest
-import os
-import json
 import tempfile
-import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from venturalitica.probes import (
     BaseProbe,
+    BOMProbe,
     CarbonProbe,
+    HandshakeProbe,
     HardwareProbe,
     IntegrityProbe,
-    HandshakeProbe,
-    BOMProbe,
     TraceProbe,
 )
 
@@ -54,7 +53,6 @@ class TestCarbonProbeEdgeCases:
 
     def test_carbon_probe_multiple_start_stop_cycles(self):
         """Test multiple start/stop cycles."""
-        mock_tracker = MagicMock()
         mock_instance = MagicMock()
         mock_instance.stop.return_value = 0.001
 
@@ -71,7 +69,6 @@ class TestCarbonProbeEdgeCases:
 
     def test_carbon_probe_zero_emissions(self):
         """Test carbon probe with zero emissions."""
-        mock_tracker = MagicMock()
         mock_instance = MagicMock()
         mock_instance.stop.return_value = 0.0
 
@@ -87,7 +84,6 @@ class TestCarbonProbeEdgeCases:
 
     def test_carbon_probe_very_small_emissions(self):
         """Test with very small emissions (e.g., 1e-9)."""
-        mock_tracker = MagicMock()
         mock_instance = MagicMock()
         mock_instance.stop.return_value = 1e-9
 
@@ -103,7 +99,6 @@ class TestCarbonProbeEdgeCases:
 
     def test_carbon_probe_large_emissions(self):
         """Test with large emissions value."""
-        mock_tracker = MagicMock()
         mock_instance = MagicMock()
         mock_instance.stop.return_value = 1000.5
 
@@ -243,9 +238,7 @@ class TestBOMProbeEdgeCases:
     def test_bom_probe_no_session_creates_fallback(self):
         """Test BOMProbe creates fallback directory when no session."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch(
-                "venturalitica.session.GovernanceSession.get_current", return_value=None
-            ):
+            with patch("venturalitica.session.GovernanceSession.get_current", return_value=None):
                 with patch("venturalitica.probes.bom.BOMScanner") as mock_scanner_class:
                     mock_scanner = MagicMock()
                     mock_scanner.scan.return_value = '{"components": []}'
@@ -278,9 +271,7 @@ class TestBOMProbeEdgeCases:
             mock_scanner.bom.components = []
             mock_scanner_class.return_value = mock_scanner
 
-            with patch(
-                "venturalitica.session.GovernanceSession.get_current", return_value=None
-            ):
+            with patch("venturalitica.session.GovernanceSession.get_current", return_value=None):
                 probe = BOMProbe()
                 result = probe.stop()
                 assert result.get("component_count") == 0
@@ -294,9 +285,7 @@ class TestBOMProbeEdgeCases:
             mock_scanner.bom.components = [MagicMock() for _ in range(1000)]
             mock_scanner_class.return_value = mock_scanner
 
-            with patch(
-                "venturalitica.session.GovernanceSession.get_current", return_value=None
-            ):
+            with patch("venturalitica.session.GovernanceSession.get_current", return_value=None):
                 probe = BOMProbe()
                 result = probe.stop()
                 assert result.get("component_count") == 1000
@@ -343,12 +332,8 @@ class TestTraceProbeEdgeCases:
 
     def test_trace_probe_ast_failure_doesnt_crash(self):
         """Test that AST parsing failure doesn't crash probe."""
-        with patch(
-            "venturalitica.assurance.graph.parser.ASTCodeScanner"
-        ) as mock_scanner:
-            mock_scanner.return_value.scan_file.side_effect = Exception(
-                "AST Parse Error"
-            )
+        with patch("venturalitica.assurance.graph.parser.ASTCodeScanner") as mock_scanner:
+            mock_scanner.return_value.scan_file.side_effect = Exception("AST Parse Error")
 
             probe = TraceProbe()
             probe.start()

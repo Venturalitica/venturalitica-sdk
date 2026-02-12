@@ -113,3 +113,30 @@ filterwarnings = [
     # Only show warnings from our code
     "default::UserWarning",
 ]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# Standard rules: E (pycodestyle errors), F (pyflakes), I (isort imports)
+select = ["E", "F", "I"]
+# Ignore line too long (E501 - handled by format)
+ignore = ["E501"]
+# Exclude certain patterns
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    ".tox",
+    ".eggs",
+    "*.egg",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint.isort]
+# isort configuration for import sorting
+known-first-party = ["venturalitica"]
+known-third-party = ["pandas", "numpy", "pytest"]

@@ -111,15 +111,40 @@ This suppresses 60+ external library warnings while keeping user code warnings v
 - **Subpackage reorganizations**: 2 major hierarchies
 - **Ruff linting**: 100% clean
 - **Regressions**: 0
-- **Backward compatibility**: 100%
+- **Breaking changes**: 5 deprecated import paths removed (see Breaking Changes section)
+- **Forward compatibility**: 100% for non-deprecated imports
 
 ## Breaking Changes
 
-**None.** All changes are backward compatible via re-exports in `__init__.py` files.
+### Removed Deprecated Shim Modules
+
+The following deprecated import paths have been **removed**:
+
+| Old Import (Removed) | New Import (Use This) |
+|---|---|
+| `from venturalitica import causal` | `from venturalitica.assurance.causal import ...` |
+| `from venturalitica import fairness` | `from venturalitica.assurance.fairness import ...` |
+| `from venturalitica import performance` | `from venturalitica.assurance.performance import ...` |
+| `from venturalitica import privacy` | `from venturalitica.assurance.privacy import ...` |
+| `from venturalitica import quality` | `from venturalitica.assurance.quality import ...` |
+
+These shim modules provided backward compatibility shortcuts but are no longer needed. Users should update their imports to use the `venturalitica.assurance.*` namespace directly.
+
+**Migration:** If you were using deprecated imports, simply update your code:
+
+```python
+# Old (no longer works):
+from venturalitica import quality
+
+# New (use this):
+from venturalitica.assurance.quality import QualityMetrics
+```
 
 ## Migration Guide
 
-No changes required. All public APIs remain the same. Imports work exactly as before:
+### If You Don't Use Deprecated Imports
+
+No changes required. All public APIs remain the same. These imports work exactly as before:
 
 ```python
 # These all still work:
@@ -128,6 +153,10 @@ from venturalitica.formatting import VenturalíticaJSONEncoder, print_summary
 from venturalitica.inference import ProjectContext, infer_system_description
 from venturalitica.probes import CarbonProbe, HardwareProbe, IntegrityProbe
 ```
+
+### If You Were Using Deprecated Imports
+
+See the **Breaking Changes** section above for migration instructions.
 
 ## Dependencies
 

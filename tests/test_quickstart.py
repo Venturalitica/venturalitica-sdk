@@ -1,10 +1,13 @@
 
-import pytest
-from unittest.mock import patch, MagicMock, Mock
-import pandas as pd
 import sys
-from venturalitica.quickstart import quickstart, load_sample, list_scenarios, show_code, SAMPLE_SCENARIOS
+from unittest.mock import MagicMock, patch
+
+import pandas as pd
+import pytest
+
 from venturalitica.models import ComplianceResult
+from venturalitica.quickstart import list_scenarios, load_sample, quickstart, show_code
+
 
 # --- Test list_scenarios ---
 def test_list_scenarios():
@@ -20,7 +23,7 @@ def test_show_code(capsys):
 
 # --- Test load_sample ---
 def test_load_sample_unknown():
-    with pytest.raises(ValueError, match="Unknown sample"):
+    with pytest.raises(ValueError, match="Only 'loan' sample is available"):
         load_sample('unknown_scenario')
 
 def test_load_sample_uci_success():
