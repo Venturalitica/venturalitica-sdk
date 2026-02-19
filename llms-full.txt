@@ -8,6 +8,10 @@
 
 Venturalítica transforms your Python code into **Legal Evidence**. It automatically maps your technical metrics, data audits, and execution logs to the **EU AI Act (Articles 9-15)** without leaving your local environment.
 
+**Open Source & Free.** Help us build the standard for AI compliance in Europe.
+
+[⭐ Star on GitHub](https://github.com/venturalitica/venturalitica-sdk)[📦 View on PyPI](https://pypi.org/project/venturalitica/)
+
 ***
 
 ## Quickstart in 60 Seconds
@@ -211,6 +215,10 @@ Requires Python 3.11+.
 [Quickstart Guide](/venturalitica-sdk/quickstart/) | [API Reference](/venturalitica-sdk/reference/api/) | [GitHub](https://github.com/venturalitica/venturalitica-sdk)
 
 * **Found a bug or want to propose a feature?** Open a **[GitHub Issue](https://github.com/venturalitica/venturalitica-sdk/issues/new)**.
+
+🇪🇺 **Building AI in Europe?** Star us to stay updated on EU AI Act tooling.
+
+[⭐ Star on GitHub](https://github.com/venturalitica/venturalitica-sdk)
 
 (c) 2026 Venturalitica | Built for Responsible AI
 
@@ -2888,6 +2896,12 @@ Venturalitica will draft a technical document that references your specific run:
 * **[Policy Authoring Guide](/venturalitica-sdk/guides/policy-authoring/)** — Write your own OSCAL policies from scratch
 * **[Metrics Reference](/venturalitica-sdk/reference/metrics/)** — All 35+ available metrics
 * **[Venturalitica Academy](/venturalitica-sdk/academy/index/)** — Guided learning path from Engineer to Architect
+
+***
+
+🎉 **You just ran your first compliance audit!** If Venturalítica saved you time, help others discover it.
+
+[⭐ Star on GitHub](https://github.com/venturalitica/venturalitica-sdk)
 
 # API Reference
 
