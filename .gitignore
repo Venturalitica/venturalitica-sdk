@@ -53,3 +53,7 @@ Annex_IV*.md
 coverage_output*.txt
 site/
 .pypirc
+results.json
+venturalitica_technical_doc.json
+system_description.yaml
+bom.json
