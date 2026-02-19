@@ -25,6 +25,9 @@ export default defineConfig({
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/venturalitica/venturalitica-sdk' },
       ],
+      components: {
+        Banner: './src/components/Banner.astro',
+      },
       defaultLocale: 'root',
       locales: {
         root: {

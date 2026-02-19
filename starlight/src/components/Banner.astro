@@ -1,0 +1,38 @@
+---
+/**
+ * Custom Banner override — always-visible "Star on GitHub" CTA.
+ * Replaces the default Starlight Banner component.
+ * PostHog tracking fires on click (posthog is loaded globally via head config).
+ */
+---
+
+<div class="sl-banner gh-star-banner">
+  If this project helps you with EU AI Act compliance,
+  <a
+    href="https://github.com/venturalitica/venturalitica-sdk"
+    onclick="window.posthog&&posthog.capture('github_star_clicked',{source:'banner'})"
+  >
+    give us a &#11088; on GitHub
+  </a>
+  &mdash; it helps others find us!
+</div>
+
+<style>
+  .gh-star-banner {
+    --__sl-banner-text: var(--sl-color-banner-text, var(--sl-color-text-invert));
+    padding: var(--sl-nav-pad-y) var(--sl-nav-pad-x);
+    background-color: var(--sl-color-banner-bg, var(--sl-color-bg-accent));
+    color: var(--__sl-banner-text);
+    line-height: var(--sl-line-height-headings);
+    text-align: center;
+    text-wrap: balance;
+    box-shadow: var(--sl-shadow-sm);
+    font-size: var(--sl-text-sm);
+  }
+  .gh-star-banner a {
+    color: var(--__sl-banner-text);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+</style>

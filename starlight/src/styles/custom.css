@@ -224,3 +224,83 @@ dialog::backdrop {
   background: rgba(11, 50, 96, 0.15);
   color: inherit;
 }
+
+/* ----------------------------------------------------------
+   GitHub Star Banner (Starlight banner slot)
+   ---------------------------------------------------------- */
+.gh-star-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: var(--sl-text-sm);
+}
+
+.gh-star-banner a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* ----------------------------------------------------------
+   GitHub Star CTA blocks (homepage + page footers)
+   ---------------------------------------------------------- */
+.gh-star-cta,
+.gh-star-footer {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  margin: 1.5rem 0;
+  border-radius: 0.75rem;
+  border: 1px solid var(--sl-color-accent);
+  background: var(--sl-color-accent-low);
+}
+
+.gh-star-cta p,
+.gh-star-footer p {
+  margin: 0 0 1rem 0;
+  font-size: var(--sl-text-base);
+}
+
+.gh-star-button,
+.gh-pypi-button {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: var(--sl-text-sm);
+  text-decoration: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin: 0.25rem;
+}
+
+.gh-star-button {
+  background: var(--sl-color-accent);
+  color: #071a37 !important;
+}
+
+.gh-pypi-button {
+  background: transparent;
+  color: var(--sl-color-accent) !important;
+  border: 2px solid var(--sl-color-accent);
+}
+
+.gh-star-button:hover,
+.gh-pypi-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(235, 176, 36, 0.3);
+}
+
+:root[data-theme='light'] .gh-star-button {
+  background: #0b3260;
+  color: #fefefd !important;
+}
+
+:root[data-theme='light'] .gh-pypi-button {
+  color: #0b3260 !important;
+  border-color: #0b3260;
+}
+
+:root[data-theme='light'] .gh-star-button:hover,
+:root[data-theme='light'] .gh-pypi-button:hover {
+  box-shadow: 0 4px 12px rgba(11, 50, 96, 0.2);
+}
