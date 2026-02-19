@@ -1,0 +1,195 @@
+---
+title: "60-Second Quickstart"
+sidebar:
+  label: "Quickstart"
+description: "Your first bias audit in under 60 seconds."
+---
+
+**Goal**: Your first bias audit in under 60 seconds.
+
+---
+
+## The Fundamentals: From Risk to Code
+
+Building High-Risk AI requires a fundamental shift in how we approach testing. It is no longer enough to check for technical accuracy (e.g., F1 Score); we must now mathematically prove that the system respects fundamental rights, such as non-discrimination or data quality, as mandated by the **EU AI Act**.
+
+Venturalitica automates this by treating "Assurance" as a dependency. Instead of vague legal requirements, you define strict policies (OSCAL) that your model must pass before it can be deployed. This turns compliance into a deterministic engineering problem.
+
+:::note
+**Is my System High-Risk?**
+
+According to [**Article 6**](https://artificialintelligenceact.eu/es/article/6/) of EU AI Act, a system is High-Risk if it is covered by [**Annex I**](https://artificialintelligenceact.eu/es/annex/1/) (Safety Components like machinery/medical devices) or listed in [**Annex III**](https://artificialintelligenceact.eu/es/annex/3/) (Biometrics, Critical Infrastructure, Education, Employment, Essential Services, Law Enforcement, Migration, Justice/Democracy).
+:::
+
+**The Translation Layer:**
+
+1.  **Fundamental Risk**: "The model must not discriminate against protected groups" (Art 9).
+
+2.  **Policy Control**: "Disparate Impact Ratio must be > 0.8".
+
+3.  **Code Assertion**: `assert calculated_metric > 0.8`.
+
+When you run `quickstart()`, you are technically running a **Unit Test for Ethics**.
+
+---
+
+## Step 1: Install
+
+```bash
+pip install venturalitica
+```
+
+:::tip[Optional extras]
+Install with extras for additional capabilities:
+- `pip install "venturalitica[metrics]"` — Fairlearn fairness metrics
+- `pip install "venturalitica[dashboard]"` — Streamlit Glass Box dashboard
+- `pip install "venturalitica[agentic]"` — LangGraph agent support
+- `pip install "venturalitica[green]"` — CodeCarbon energy tracking
+- `pip install "venturalitica[full]"` — All of the above
+:::
+
+---
+
+## Step 2: Run Your First Audit
+
+```python
+import venturalitica as vl
+
+vl.quickstart('loan')
+```
+
+**Output:**
+
+```text
+[Venturalítica] Scenario: Fairness Audit loan_scoring_v2
+[Venturalítica] Loaded: UCI Dataset #144 (1000 samples)
+
+  CONTROL                DESCRIPTION                            ACTUAL     LIMIT      RESULT
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  credit-data-imbalance  Data Quality                           0.429      > 0.2      PASS
+  credit-data-bias       Disparate impact                       0.818      > 0.8      PASS
+  credit-age-disparate   Age disparity                          0.286      > 0.5      FAIL
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  Audit Summary: VIOLATION | 2/3 controls passed
+```
+
+:::note
+The audit detected age-based bias in the UCI German Credit dataset.
+:::
+
+
+
+## Step 3: What's Happening Under the Hood
+
+The `quickstart()` function is a wrapper that performs the full compliance lifecycle in one go:
+
+1.  **Downloads Data**: Fetches the UCI German Credit dataset.
+2.  **Loads Policy**: Uses a built-in OSCAL policy that defines fairness rules (thresholds, metrics, protected attributes).
+3.  **Enforces**: Runs the audit (`vl.enforce`).
+4.  **Records**: Captures the evidence (`trace.json`) for the dashboard.
+
+Here's what the equivalent "manual" flow looks like. In the [Full Lifecycle](/full-lifecycle/) guide you will write your own OSCAL policies and run this yourself:
+
+```python
+from ucimlrepo import fetch_ucirepo
+import venturalitica as vl
+
+# 1. Load Data (The "Risk Source")
+dataset = fetch_ucirepo(id=144)
+df = dataset.data.features
+df['class'] = dataset.data.targets
+
+# 2. Define the Policy (The "Law")
+# quickstart() uses a built-in policy dict.
+# In real projects, you write your own OSCAL YAML file.
+# See the Full Lifecycle guide for a copy-paste example.
+
+# 3. Run the Audit (The "Test")
+# This automatically generates the Evidence Bill of Materials (BOM)
+with vl.monitor("manual_audit"):
+    vl.enforce(
+        data=df,
+        target="class",          # The outcome (True/False)
+        gender="Attribute9",     # Protected Group A
+        age="Attribute13",       # Protected Group B
+        policy="data_policy.oscal.yaml"  # Your OSCAL policy file
+    )
+```
+
+:::note
+The code above requires a `data_policy.oscal.yaml` file. Head to the [Full Lifecycle](/full-lifecycle/) guide (Step 2) for the complete copy-paste YAML, or jump straight to [Level 1: The Engineer](/academy/level1-policy/) to learn how to write one from scratch.
+:::
+
+### The Policy Logic
+
+The OSCAL policy is the bridge between law and code. It tells the SDK *what* to check so you don't have to hardcode it.
+
+```yaml
+# ... inside your OSCAL policy YAML ...
+- control-id: credit-data-bias
+  description: "Disparate impact ratio must be > 0.8 (80% rule)"
+  props:
+    - name: metric_key
+      value: disparate_impact   # <--- The Python Function to call
+    - name: threshold
+      value: "0.8"              # <--- The Limit to enforce
+    - name: operator
+      value: ">"                # <--- The Logic (> 0.8)
+    - name: "input:dimension"
+      value: gender             # <--- Maps to "Attribute9"
+```
+
+This design decouples **Assurance** (the policy file) from **Engineering** (the python code).
+
+---
+
+## Why This Matters
+
+Without this mechanism, your AI model is a legal "Black Box":
+
+*   **Liability**: You cannot prove you checked for bias *before* deployment (Art 9).
+*   **Fragility**: Compliance is a manual checklist, easily forgotten or skipped.
+*   **Opacity**: Auditors cannot see the link between your code and the law.
+
+By running `quickstart()`, you have just generated an immutable **Compliance Artifact**. Even if the laws change, your evidence remains.
+
+## Step 4: The "Glass Box" Dashboard
+
+Now that we have the evidence (the "Black Box" recording), let's inspect it in the **Regulatory Map**.
+
+```bash
+venturalitica ui
+```
+
+Navigate through the **Compliance Map** tabs:
+
+*   **Article 9 (Risk)**: See the failed `credit-age-disparate` control. This is your technical evidence of "Risk Monitoring".
+*   **Article 10 (Data)**: See the data distribution and quality checks.
+*   **Article 13 (Transparency)**: Review the "Transparency Feed" to see your Python dependencies (BOM).
+
+---
+
+## Step 5: Generate Documentation (Annex IV)
+
+The final step is to turn this evidence into a legal document.
+
+1.  In the Dashboard, go to the **"Generation"** tab.
+2.  Select **"English"** (or Spanish/Catalan/Euskera).
+3.  Click **"Generate Annex IV"**.
+
+Venturalitica will draft a technical document that references your specific run:
+
+> *"As evidenced in `trace_quickstart_loan.json`, the system was audited against **[OSCAL Policy: Credit Scoring Fairness]**. A deviation was detected in Age Disparity (0.36), identifying a potential risk of bias..."*
+
+### References
+*   **Policy Used**: [`loan/risks.oscal.yaml`](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/policies/loan/risks.oscal.yaml)
+*   **Legal Basis**:
+    *   [EU AI Act Article 9 (Risk Management)](https://artificialintelligenceact.eu/article/9/)
+    *   [EU AI Act Article 11 (Technical Documentation)](https://artificialintelligenceact.eu/article/11/)
+
+## What's Next?
+
+- **[API Reference](/reference/api/)** -- Full function signatures and parameters
+- **[Policy Authoring Guide](/guides/policy-authoring/)** -- Write your own OSCAL policies from scratch
+- **[Metrics Reference](/reference/metrics/)** -- All 35+ available metrics
+- **[Venturalitica Academy](/academy/index/)** -- Guided learning path from Engineer to Architect

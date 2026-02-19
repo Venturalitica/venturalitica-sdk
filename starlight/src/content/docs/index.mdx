@@ -1,0 +1,191 @@
+---
+title: "Venturalítica AI Assurance SDK"
+sidebar:
+  label: "Introduction"
+description: "Compliance-as-Code for High-Risk AI. Transform Python code into Legal Evidence."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+**AI Assurance through Compliance-as-Code.**
+
+Venturalítica transforms your Python code into **Legal Evidence**. It automatically maps your technical metrics, data audits, and execution logs to the **EU AI Act (Articles 9-15)** without leaving your local environment.
+
+---
+
+## Quickstart in 60 Seconds
+
+<Tabs>
+  <TabItem label="Core">
+    ```bash
+    pip install venturalitica
+    ```
+  </TabItem>
+  <TabItem label="Fairness">
+    ```bash
+    pip install "venturalitica[metrics]"
+    ```
+  </TabItem>
+  <TabItem label="Dashboard">
+    ```bash
+    pip install "venturalitica[dashboard]"
+    ```
+  </TabItem>
+  <TabItem label="Agentic">
+    ```bash
+    pip install "venturalitica[agentic]"
+    ```
+  </TabItem>
+  <TabItem label="Full">
+    ```bash
+    pip install "venturalitica[full]"
+    ```
+  </TabItem>
+</Tabs>
+
+Detect bias in your datasets or models with one line of code:
+
+```python
+import venturalitica as vl
+
+# Run a full AI Assurance audit on the built-in loan scenario
+results = vl.quickstart('loan')
+```
+
+Then launch the **AI Assurance Dashboard** to explore results:
+
+```bash
+venturalitica ui
+```
+
+---
+
+## Key Features
+
+| Feature | Description |
+| :--- | :--- |
+| **`enforce()`** | Audit datasets and models against OSCAL policies with 35+ built-in metrics. |
+| **`monitor()`** | Wrap training runs with automatic evidence collection (BOM, hardware, carbon). |
+| **Glass Box Dashboard** | 4-phase regulatory workflow: Identity, Policy, Verify, Report. |
+| **Policy as Code** | Define assurance rules in OSCAL `assessment-plan` format. |
+| **Column Binding** | Decouple policies from schemas via synonym-based column resolution. |
+| **Local Sovereignty** | Zero-cloud dependency. All enforcement runs locally. |
+| **Annex IV** | Auto-draft technical documentation from local traces. |
+
+---
+
+## Architecture
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                     Your ML Pipeline                        │
+│                                                             │
+│   DataFrame ──► vl.enforce(policy=…) ──► ComplianceResult[] │
+│                        │                                    │
+│                  OSCAL Policy                               │
+│               (assessment-plan)                             │
+└───────────┬─────────────────────────────────┬───────────────┘
+            │                                 │
+     ┌──────▼──────┐                   ┌──────▼──────┐
+     │  35+ Metrics │                  │  7 Probes   │
+     │  ─────────── │                  │  ─────────  │
+     │  Fairness    │                  │  Hardware   │
+     │  Data Quality│                  │  Carbon     │
+     │  Performance │                  │  BOM        │
+     │  Privacy     │                  │  Artifact   │
+     │  Robustness  │                  │  Trace      │
+     └──────┬──────┘                   └──────┬──────┘
+            │                                 │
+            └───────────────┬─────────────────┘
+                            │
+                     ┌──────▼──────┐
+                     │  Dashboard  │
+                     │  ─────────  │
+                     │  Identity   │
+                     │  Policy     │
+                     │  Verify     │
+                     │  Report     │
+                     └─────────────┘
+```
+
+---
+
+## Documentation
+
+| Guide | Description |
+| :--- | :--- |
+| **[Quickstart](/quickstart/)** | Run a full compliance scan in 2 minutes. |
+| **[API Reference](/reference/api/)** | `enforce()`, `monitor()`, `wrap()`, `quickstart()`, `PolicyManager`. |
+| **[Metrics Reference](/reference/metrics/)** | All 35+ metrics across 7 categories. |
+| **[Policy Authoring](/guides/policy-authoring/)** | Write OSCAL policies from scratch. |
+| **[Dashboard Guide](/guides/dashboard/)** | The Glass Box 4-phase workflow. |
+| **[Column Binding](/guides/column-binding/)** | Map abstract names to DataFrame columns. |
+| **[Probes Reference](/reference/probes/)** | 7 evidence probes for EU AI Act compliance. |
+| **[Experimental Features](/guides/experimental/)** | CLI `login`/`pull`/`push` (SaaS preview). |
+
+### Academy (Step-by-Step Learning)
+
+| Level | Role | Focus |
+| :--- | :--- | :--- |
+| **[Level 1](/academy/level1-policy/)** | Policy Author | Write your first OSCAL policy for the loan scenario. |
+| **[Level 2](/academy/level2-integrator/)** | Integrator | Add `enforce()` to your ML pipeline. |
+| **[Level 3](/academy/level3-auditor/)** | Auditor | Review evidence and interpret results. |
+| **[Level 4](/academy/level4-annex-iv/)** | Compliance Lead | Generate Annex IV technical documentation. |
+
+### Tutorials
+
+- **[Writing Code-First Policy](/tutorials/writing-policy/)** -- Translate legal requirements into OSCAL controls.
+
+---
+
+## Installation
+
+<Tabs>
+  <TabItem label="Core">
+    ```bash
+    pip install venturalitica
+    ```
+  </TabItem>
+  <TabItem label="Fairness">
+    ```bash
+    pip install "venturalitica[metrics]"
+    ```
+    Adds [Fairlearn](https://fairlearn.org/) for advanced fairness metrics.
+  </TabItem>
+  <TabItem label="Dashboard">
+    ```bash
+    pip install "venturalitica[dashboard]"
+    ```
+    Adds [Streamlit](https://streamlit.io/) for the Glass Box dashboard.
+  </TabItem>
+  <TabItem label="Agentic">
+    ```bash
+    pip install "venturalitica[agentic]"
+    ```
+    Adds LangGraph, LangChain, and llama-cpp-python for agent workflows.
+  </TabItem>
+  <TabItem label="Green">
+    ```bash
+    pip install "venturalitica[green]"
+    ```
+    Adds [CodeCarbon](https://codecarbon.io/) for energy consumption tracking.
+  </TabItem>
+  <TabItem label="Full">
+    ```bash
+    pip install "venturalitica[full]"
+    ```
+    Installs all optional packages (metrics + dashboard + agentic + green + torch).
+  </TabItem>
+</Tabs>
+
+Requires Python 3.11+.
+
+---
+
+## Links
+
+[Quickstart Guide](/quickstart/) | [API Reference](/reference/api/) | [GitHub](https://github.com/venturalitica/venturalitica-sdk)
+
+*   **Found a bug or want to propose a feature?** Open a **[GitHub Issue](https://github.com/venturalitica/venturalitica-sdk/issues/new)**.
+
+(c) 2026 Venturalitica | Built for Responsible AI
