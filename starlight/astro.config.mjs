@@ -4,6 +4,7 @@ import starlightLlmsTxt from 'starlight-llms-txt';
 
 export default defineConfig({
   site: 'https://venturalitica.github.io/venturalitica-sdk',
+  base: '/venturalitica-sdk',
   integrations: [
     starlight({
       title: {
