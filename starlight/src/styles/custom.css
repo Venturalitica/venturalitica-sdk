@@ -227,19 +227,42 @@ dialog::backdrop {
 
 /* ----------------------------------------------------------
    GitHub Star Banner (Starlight banner slot)
+   .banner-pad mirrors .content-panel padding so the inner
+   .gh-star-banner aligns with .sl-container page content.
    ---------------------------------------------------------- */
+.banner-pad {
+  padding-inline: var(--sl-content-pad-x);
+}
+
 .gh-star-banner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
+  max-width: var(--sl-content-width);
   font-size: var(--sl-text-sm);
+  padding: 0.625rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--sl-color-accent);
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-text);
+  line-height: var(--sl-line-height-headings);
+  text-align: center;
+  text-wrap: balance;
+}
+
+@media (min-width: 72rem) {
+  .gh-star-banner {
+    margin-inline: var(--sl-content-margin-inline, auto);
+  }
 }
 
 .gh-star-banner a {
+  color: var(--sl-color-accent);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 0.15em;
+}
+
+:root[data-theme='light'] .gh-star-banner a {
+  color: var(--sl-color-accent);
 }
 
 /* ----------------------------------------------------------
