@@ -120,33 +120,33 @@ venturalitica ui
 
 [Section titled “Documentation”](#documentation)
 
-| Guide                                              | Description                                                          |
-| :------------------------------------------------- | :------------------------------------------------------------------- |
-| **[Quickstart](/quickstart/)**                     | Run a full compliance scan in 2 minutes.                             |
-| **[API Reference](/reference/api/)**               | `enforce()`, `monitor()`, `wrap()`, `quickstart()`, `PolicyManager`. |
-| **[Metrics Reference](/reference/metrics/)**       | All 35+ metrics across 7 categories.                                 |
-| **[Policy Authoring](/guides/policy-authoring/)**  | Write OSCAL policies from scratch.                                   |
-| **[Dashboard Guide](/guides/dashboard/)**          | The Glass Box 4-phase workflow.                                      |
-| **[Column Binding](/guides/column-binding/)**      | Map abstract names to DataFrame columns.                             |
-| **[Probes Reference](/reference/probes/)**         | 7 evidence probes for EU AI Act compliance.                          |
-| **[Experimental Features](/guides/experimental/)** | CLI `login`/`pull`/`push` (SaaS preview).                            |
+| Guide                                                                | Description                                                          |
+| :------------------------------------------------------------------- | :------------------------------------------------------------------- |
+| **[Quickstart](/venturalitica-sdk/quickstart/)**                     | Run a full compliance scan in 2 minutes.                             |
+| **[API Reference](/venturalitica-sdk/reference/api/)**               | `enforce()`, `monitor()`, `wrap()`, `quickstart()`, `PolicyManager`. |
+| **[Metrics Reference](/venturalitica-sdk/reference/metrics/)**       | All 35+ metrics across 7 categories.                                 |
+| **[Policy Authoring](/venturalitica-sdk/guides/policy-authoring/)**  | Write OSCAL policies from scratch.                                   |
+| **[Dashboard Guide](/venturalitica-sdk/guides/dashboard/)**          | The Glass Box 4-phase workflow.                                      |
+| **[Column Binding](/venturalitica-sdk/guides/column-binding/)**      | Map abstract names to DataFrame columns.                             |
+| **[Probes Reference](/venturalitica-sdk/reference/probes/)**         | 7 evidence probes for EU AI Act compliance.                          |
+| **[Experimental Features](/venturalitica-sdk/guides/experimental/)** | CLI `login`/`pull`/`push` (SaaS preview).                            |
 
 ### Academy (Step-by-Step Learning)
 
 [Section titled “Academy (Step-by-Step Learning)”](#academy-step-by-step-learning)
 
-| Level                                      | Role            | Focus                                                |
-| :----------------------------------------- | :-------------- | :--------------------------------------------------- |
-| **[Level 1](/academy/level1-policy/)**     | Policy Author   | Write your first OSCAL policy for the loan scenario. |
-| **[Level 2](/academy/level2-integrator/)** | Integrator      | Add `enforce()` to your ML pipeline.                 |
-| **[Level 3](/academy/level3-auditor/)**    | Auditor         | Review evidence and interpret results.               |
-| **[Level 4](/academy/level4-annex-iv/)**   | Compliance Lead | Generate Annex IV technical documentation.           |
+| Level                                                        | Role            | Focus                                                |
+| :----------------------------------------------------------- | :-------------- | :--------------------------------------------------- |
+| **[Level 1](/venturalitica-sdk/academy/level1-policy/)**     | Policy Author   | Write your first OSCAL policy for the loan scenario. |
+| **[Level 2](/venturalitica-sdk/academy/level2-integrator/)** | Integrator      | Add `enforce()` to your ML pipeline.                 |
+| **[Level 3](/venturalitica-sdk/academy/level3-auditor/)**    | Auditor         | Review evidence and interpret results.               |
+| **[Level 4](/venturalitica-sdk/academy/level4-annex-iv/)**   | Compliance Lead | Generate Annex IV technical documentation.           |
 
 ### Tutorials
 
 [Section titled “Tutorials”](#tutorials)
 
-* **[Writing Code-First Policy](/tutorials/writing-policy/)** — Translate legal requirements into OSCAL controls.
+* **[Writing Code-First Policy](/venturalitica-sdk/tutorials/writing-policy/)** — Translate legal requirements into OSCAL controls.
 
 ***
 
@@ -208,7 +208,7 @@ Requires Python 3.11+.
 
 [Section titled “Links”](#links)
 
-[Quickstart Guide](/quickstart/) | [API Reference](/reference/api/) | [GitHub](https://github.com/venturalitica/venturalitica-sdk)
+[Quickstart Guide](/venturalitica-sdk/quickstart/) | [API Reference](/venturalitica-sdk/reference/api/) | [GitHub](https://github.com/venturalitica/venturalitica-sdk)
 
 * **Found a bug or want to propose a feature?** Open a **[GitHub Issue](https://github.com/venturalitica/venturalitica-sdk/issues/new)**.
 
@@ -234,13 +234,13 @@ Venturalitica treats “Assurance” as a dependency. Instead of vague legal adv
 
 [Section titled “The Curriculum”](#the-curriculum)
 
-| Level                                      | Role           | Goal                                         |
-| :----------------------------------------- | :------------- | :------------------------------------------- |
-| **[Start Here](#step-1-install)**          | **Developer**  | Run your first audit in < 60s.               |
-| **[Level 1](/academy/level1-policy/)**     | **Engineer**   | **Implement Controls** for identified Risks. |
-| **[Level 2](/academy/level2-integrator/)** | **Integrator** | **Viz & MLOps**: “Compliance as Metadata”.   |
-| **[Level 3](/academy/level3-auditor/)**    | **Auditor**    | Proof: “Trust the Glass Box”.                |
-| **[Level 4](/academy/level4-annex-iv/)**   | **Architect**  | GenAI Docs: “Annex IV”.                      |
+| Level                                                        | Role           | Goal                                         |
+| :----------------------------------------------------------- | :------------- | :------------------------------------------- |
+| **[Start Here](#step-1-install)**                            | **Developer**  | Run your first audit in < 60s.               |
+| **[Level 1](/venturalitica-sdk/academy/level1-policy/)**     | **Engineer**   | **Implement Controls** for identified Risks. |
+| **[Level 2](/venturalitica-sdk/academy/level2-integrator/)** | **Integrator** | **Viz & MLOps**: “Compliance as Metadata”.   |
+| **[Level 3](/venturalitica-sdk/academy/level3-auditor/)**    | **Auditor**    | Proof: “Trust the Glass Box”.                |
+| **[Level 4](/venturalitica-sdk/academy/level4-annex-iv/)**   | **Architect**  | GenAI Docs: “Annex IV”.                      |
 
 ***
 
@@ -323,10 +323,10 @@ You didn’t need a lawyer. You just needed a visible test failure.
 
 Now that you’ve seen the failure, learn how to fix it and verify it.
 
-* **[Level 1: The Engineer](/academy/level1-policy/)** — Learn how to implement **Controls** that mitigate identified Risks. **Detect & Block** non-compliant models.
-* **[Level 2: The Integrator](/academy/level2-integrator/)** — Log outcomes to MLOps tools and verify results visually in the **Dashboard**.
-* **[Level 3: The Auditor](/academy/level3-auditor/)** — Learn how to perform a “Glass Box” audit on the loan model and generate cryptographic proofs.
-* **[Level 4: The Architect](/academy/level4-annex-iv/)** — The Boss Level. Train a high-risk financial model and generate the massive Technical Documentation required by the EU AI Act.
+* **[Level 1: The Engineer](/venturalitica-sdk/academy/level1-policy/)** — Learn how to implement **Controls** that mitigate identified Risks. **Detect & Block** non-compliant models.
+* **[Level 2: The Integrator](/venturalitica-sdk/academy/level2-integrator/)** — Log outcomes to MLOps tools and verify results visually in the **Dashboard**.
+* **[Level 3: The Auditor](/venturalitica-sdk/academy/level3-auditor/)** — Learn how to perform a “Glass Box” audit on the loan model and generate cryptographic proofs.
+* **[Level 4: The Architect](/venturalitica-sdk/academy/level4-annex-iv/)** — The Boss Level. Train a high-risk financial model and generate the massive Technical Documentation required by the EU AI Act.
 
 ***
 
@@ -344,7 +344,7 @@ Now that you’ve seen the failure, learn how to fix it and verify it.
 
 **Goal**: Learn how to implement **Controls** that mitigate **Risks**.
 
-**Prerequisite**: [Zero to Pro (Academy Index)](/academy/)
+**Prerequisite**: [Zero to Pro (Academy Index)](/venturalitica-sdk/academy/)
 
 ***
 
@@ -358,7 +358,7 @@ In a formal Management System (**ISO 42001**), assurance follows a top-down flow
 2. **Control Definition**: To mitigate this risk, the CO sets a **Control** (e.g., *“The Age Disparity Ratio must always be > 0.5”*).
 3. **Technical Implementation**: That’s your job. You take the CO’s requirement and turn it into the technical “Law” (**Article 10: Data Assurance**).
 
-In the [Zero to Pro](/academy/) quickstart, `vl.quickstart('loan')` FAILED:
+In the [Zero to Pro](/venturalitica-sdk/academy/) quickstart, `vl.quickstart('loan')` FAILED:
 
 ```text
 credit-age-disparate   Age disparity          0.286      > 0.5      FAIL
@@ -451,14 +451,14 @@ assessment-plan:
 
 [Section titled “What each prop does”](#what-each-prop-does)
 
-| Property           | Purpose                                                                 | Example                                                                  |
-| :----------------- | :---------------------------------------------------------------------- | :----------------------------------------------------------------------- |
-| `metric_key`       | Which metric to compute (from [Metrics Reference](/reference/metrics/)) | `disparate_impact`, `class_imbalance`, `accuracy_score`                  |
-| `threshold`        | The numeric boundary                                                    | `"0.8"`                                                                  |
-| `operator`         | Comparison operator: `gt`, `gte`, `lt`, `lte`, `eq`                     | `gt` = greater than                                                      |
-| `input:target`     | Column containing ground truth labels                                   | `target` (resolved via column binding)                                   |
-| `input:dimension`  | Protected attribute to slice by                                         | `gender`, `age` (resolved via [Column Binding](/guides/column-binding/)) |
-| `input:prediction` | Column containing model predictions (model audits)                      | `prediction`                                                             |
+| Property           | Purpose                                                                                   | Example                                                                                    |
+| :----------------- | :---------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
+| `metric_key`       | Which metric to compute (from [Metrics Reference](/venturalitica-sdk/reference/metrics/)) | `disparate_impact`, `class_imbalance`, `accuracy_score`                                    |
+| `threshold`        | The numeric boundary                                                                      | `"0.8"`                                                                                    |
+| `operator`         | Comparison operator: `gt`, `gte`, `lt`, `lte`, `eq`                                       | `gt` = greater than                                                                        |
+| `input:target`     | Column containing ground truth labels                                                     | `target` (resolved via column binding)                                                     |
+| `input:dimension`  | Protected attribute to slice by                                                           | `gender`, `age` (resolved via [Column Binding](/venturalitica-sdk/guides/column-binding/)) |
+| `input:prediction` | Column containing model predictions (model audits)                                        | `prediction`                                                                               |
 
 ## 3. Run Your Custom Policy
 
@@ -525,7 +525,7 @@ OSCAL Policy              Python Code                DataFrame
 +-----------+       +------------------+       +---------------+
 ```
 
-See [Column Binding](/guides/column-binding/) for the full resolution algorithm.
+See [Column Binding](/venturalitica-sdk/guides/column-binding/) for the full resolution algorithm.
 
 ## 4. Visual Verification
 
@@ -557,7 +557,7 @@ You have successfully prevented a non-compliant AI from reaching production by m
 
 **Next Step**: The audit failed locally. How do we integrate this into an ML pipeline?
 
-**[Go to Level 2: The Integrator (MLOps)](/academy/level2-integrator/)**
+**[Go to Level 2: The Integrator (MLOps)](/venturalitica-sdk/academy/level2-integrator/)**
 
 # Level 2: The Integrator (GovOps & Visibility)
 
@@ -565,7 +565,7 @@ You have successfully prevented a non-compliant AI from reaching production by m
 
 **Goal**: Transform MLOps artifacts into Regulatory Evidence with a **GovOps** layer.
 
-**Prerequisite**: [Level 1 (The Engineer)](/academy/level1-policy/)
+**Prerequisite**: [Level 1 (The Engineer)](/venturalitica-sdk/academy/level1-policy/)
 
 **Context**: Continuing with “The Project” (Loan Credit Scoring).
 
@@ -765,7 +765,7 @@ Now that the code has run, let’s verify what we shipped.
 
 **Key Insight**: “The report looks professional, and I didn’t write a single word of it.”
 
-![Evidence Graph](/images/dashboard_overview.png)
+![Evidence Graph](/venturalitica-sdk/images/dashboard_overview.png)
 
 ***
 
@@ -808,12 +808,12 @@ If `compliance_score == 0`, the build fails. GitLab CI / GitHub Actions can now 
 
 [Section titled “References”](#references)
 
-* **[API Reference](/reference/api/)** — `enforce()` and `monitor()` signatures
-* **[Policy Authoring](/guides/policy-authoring/)** — How to write OSCAL policies
-* **[Probes Reference](/reference/probes/)** — What `monitor()` captures automatically
-* **[Column Binding](/guides/column-binding/)** — How `gender="Attribute9"` works
+* **[API Reference](/venturalitica-sdk/reference/api/)** — `enforce()` and `monitor()` signatures
+* **[Policy Authoring](/venturalitica-sdk/guides/policy-authoring/)** — How to write OSCAL policies
+* **[Probes Reference](/venturalitica-sdk/reference/probes/)** — What `monitor()` captures automatically
+* **[Column Binding](/venturalitica-sdk/guides/column-binding/)** — How `gender="Attribute9"` works
 
-**[Next: Level 3 (The Auditor)](/academy/level3-auditor/)**
+**[Next: Level 3 (The Auditor)](/venturalitica-sdk/academy/level3-auditor/)**
 
 # Level 3: The Auditor (Glass Box Trace)
 
@@ -821,7 +821,7 @@ If `compliance_score == 0`, the build fails. GitLab CI / GitHub Actions can now 
 
 **Goal**: Verify your policy visually and cryptographically using the **Glass Box** method.
 
-**Prerequisite**: [Level 2 (The Integrator)](/academy/level2-integrator/)
+**Prerequisite**: [Level 2 (The Integrator)](/venturalitica-sdk/academy/level2-integrator/)
 
 ***
 
@@ -949,11 +949,11 @@ The Dashboard translates JSON evidence into the language of the **EU AI Act**.
 
 [Section titled “References”](#references)
 
-* **[Probes Reference](/reference/probes/)** — Details on all 7 evidence probes
-* **[Dashboard Guide](/guides/dashboard/)** — Full walkthrough of the Dashboard phases
-* **[Full Lifecycle](/full-lifecycle/)** — End-to-end guide in one page
+* **[Probes Reference](/venturalitica-sdk/reference/probes/)** — Details on all 7 evidence probes
+* **[Dashboard Guide](/venturalitica-sdk/guides/dashboard/)** — Full walkthrough of the Dashboard phases
+* **[Full Lifecycle](/venturalitica-sdk/full-lifecycle/)** — End-to-end guide in one page
 
-**[Go to Level 4: The Architect](/academy/level4-annex-iv/)**
+**[Go to Level 4: The Architect](/venturalitica-sdk/academy/level4-annex-iv/)**
 
 # Level 4: The Architect (Annex IV Generation)
 
@@ -961,7 +961,7 @@ The Dashboard translates JSON evidence into the language of the **EU AI Act**.
 
 **Goal**: Automate the creation of 50+ page regulatory documents.
 
-**Prerequisite**: [Level 3 (The Auditor)](/academy/level3-auditor/)
+**Prerequisite**: [Level 3 (The Auditor)](/venturalitica-sdk/academy/level3-auditor/)
 
 ***
 
@@ -1049,7 +1049,7 @@ with vl.monitor("loan_annex_audit"):
 
 4. Click **“Generate Annex IV”**.
 
-   ![Annex IV Generator](/images/annex_iv_generator.png)
+   ![Annex IV Generator](/venturalitica-sdk/images/annex_iv_generator.png)
 
 ### The Generation Process
 
@@ -1126,10 +1126,10 @@ You have completed the **Venturalitica Academy**. You are now ready to integrate
 
 [Section titled “References”](#references)
 
-* **[Full Lifecycle](/full-lifecycle/)** — The entire flow in one copy-paste page
-* **[Dashboard Guide](/guides/dashboard/)** — Detailed Dashboard and Phase 4 walkthrough
-* **[Metrics Reference](/reference/metrics/)** — All 35+ metrics available for policies
-* **[Policy Authoring](/guides/policy-authoring/)** — Write custom OSCAL policies
+* **[Full Lifecycle](/venturalitica-sdk/full-lifecycle/)** — The entire flow in one copy-paste page
+* **[Dashboard Guide](/venturalitica-sdk/guides/dashboard/)** — Detailed Dashboard and Phase 4 walkthrough
+* **[Metrics Reference](/venturalitica-sdk/reference/metrics/)** — All 35+ metrics available for policies
+* **[Policy Authoring](/venturalitica-sdk/guides/policy-authoring/)** — Write custom OSCAL policies
 
 # Full Lifecycle: Zero to Annex IV
 
@@ -1175,7 +1175,7 @@ pip install venturalitica
 
 Optional extras
 
-Need fairness metrics? `pip install "venturalitica[metrics]"`. See all extras on the [Introduction](/) page.
+Need fairness metrics? `pip install "venturalitica[metrics]"`. See all extras on the [Introduction](/venturalitica-sdk/) page.
 
 Quick smoke test:
 
@@ -1296,7 +1296,7 @@ assessment-plan:
               value: gender
 ```
 
-See [Policy Authoring Guide](/guides/policy-authoring/) for the full format reference.
+See [Policy Authoring Guide](/venturalitica-sdk/guides/policy-authoring/) for the full format reference.
 
 ***
 
@@ -1453,7 +1453,7 @@ The `monitor()` context manager automatically captures:
 * **Artifact probe**: SHA-256 hashes of data and policy files
 * **Trace probe**: AST analysis of executed code
 
-See [Probes Reference](/reference/probes/) for details on each probe.
+See [Probes Reference](/venturalitica-sdk/reference/probes/) for details on each probe.
 
 ***
 
@@ -1525,10 +1525,10 @@ my-project/
 
 [Section titled “What’s Next”](#whats-next)
 
-* **[Metrics Reference](/reference/metrics/)** — All 35+ available metrics
-* **[Academy Level 1](/academy/level1-policy/)** — Deep dive into policy writing
-* **[Column Binding](/guides/column-binding/)** — How abstract names map to columns
-* **[Dashboard Guide](/guides/dashboard/)** — Detailed Dashboard walkthrough
+* **[Metrics Reference](/venturalitica-sdk/reference/metrics/)** — All 35+ available metrics
+* **[Academy Level 1](/venturalitica-sdk/academy/level1-policy/)** — Deep dive into policy writing
+* **[Column Binding](/venturalitica-sdk/guides/column-binding/)** — How abstract names map to columns
+* **[Dashboard Guide](/venturalitica-sdk/guides/dashboard/)** — Detailed Dashboard walkthrough
 
 # Column Binding
 
@@ -1909,11 +1909,11 @@ A complete compliance audit produces the following evidence chain:
 
 [Section titled “Related”](#related)
 
-* **[Full Lifecycle](/full-lifecycle/)** — Step-by-step guide implementing this mapping
-* **[Policy Authoring](/guides/policy-authoring/)** — Write OSCAL controls for each article
-* **[Metrics Reference](/reference/metrics/)** — All available metrics by category
-* **[Probes Reference](/reference/probes/)** — Evidence probes mapped to EU AI Act articles
-* **[Dashboard Guide](/guides/dashboard/)** — 4-phase workflow aligned with regulatory requirements
+* **[Full Lifecycle](/venturalitica-sdk/full-lifecycle/)** — Step-by-step guide implementing this mapping
+* **[Policy Authoring](/venturalitica-sdk/guides/policy-authoring/)** — Write OSCAL controls for each article
+* **[Metrics Reference](/venturalitica-sdk/reference/metrics/)** — All available metrics by category
+* **[Probes Reference](/venturalitica-sdk/reference/probes/)** — Evidence probes mapped to EU AI Act articles
+* **[Dashboard Guide](/venturalitica-sdk/guides/dashboard/)** — 4-phase workflow aligned with regulatory requirements
 
 # Glass Box Dashboard
 
@@ -1984,7 +1984,7 @@ The home screen presents 4 steps as a progress dashboard. Each step shows its ev
 
 Click any step card to navigate directly to that phase.
 
-![Dashboard Home — AI Assurance Evidence Collection](/images/dashboard_overview.png)
+![Dashboard Home — AI Assurance Evidence Collection](/venturalitica-sdk/images/dashboard_overview.png)
 
 ***
 
@@ -2004,7 +2004,7 @@ Define the “ground truth” of your AI system using the **System Identity Edit
 
 The editor provides a structured form. All fields map directly to Annex IV.1 requirements.
 
-![Phase 1 — System Identity Editor](/images/phase1_system_identity.png)
+![Phase 1 — System Identity Editor](/venturalitica-sdk/images/phase1_system_identity.png)
 
 ***
 
@@ -2031,9 +2031,9 @@ The **Policy Editor** lets you create and edit OSCAL policy files visually — t
 
 Tip
 
-The Policy Editor generates `assessment-plan` format, which is the canonical OSCAL format used throughout the SDK. See [Policy Authoring Guide](/guides/policy-authoring/) for the manual YAML format.
+The Policy Editor generates `assessment-plan` format, which is the canonical OSCAL format used throughout the SDK. See [Policy Authoring Guide](/venturalitica-sdk/guides/policy-authoring/) for the manual YAML format.
 
-![Phase 2 — Risk Policy Editor](/images/phase2_risk_policy.png)
+![Phase 2 — Risk Policy Editor](/venturalitica-sdk/images/phase2_risk_policy.png)
 
 ***
 
@@ -2045,7 +2045,7 @@ The Policy Editor generates `assessment-plan` format, which is the canonical OSC
 
 This phase requires evidence from running `vl.enforce()` and `vl.monitor()`. Select an evidence session from the sidebar to inspect.
 
-![Phase 3 — Verify & Evaluate](/images/phase3_verify_evaluate.png)
+![Phase 3 — Verify & Evaluate](/venturalitica-sdk/images/phase3_verify_evaluate.png)
 
 ### Session Selector
 
@@ -2098,7 +2098,7 @@ Maps to **Article 9** (Risk Management). Shows:
 
 The **Annex IV Generator** produces the comprehensive technical documentation required for High-Risk AI systems. It combines:
 
-![Phase 4 — Annex IV Generator](/images/annex_iv_generator.png)
+![Phase 4 — Annex IV Generator](/venturalitica-sdk/images/annex_iv_generator.png)
 
 * **Phase 1 data**: System identity from `system_description.yaml`
 * **Phase 2 data**: Risk policies from OSCAL files
@@ -2264,7 +2264,7 @@ Launch the local Glass Box Dashboard. This command is **stable** and fully docum
 venturalitica ui
 ```
 
-See [Dashboard Guide](/guides/dashboard/) for full documentation.
+See [Dashboard Guide](/venturalitica-sdk/guides/dashboard/) for full documentation.
 
 ***
 
@@ -2556,7 +2556,7 @@ vl.enforce(
 
 [Section titled “Available Metrics”](#available-metrics)
 
-Any metric registered in `METRIC_REGISTRY` can be used as a `metric_key`. See [Metrics Reference](/reference/metrics/) for the full list. Common ones:
+Any metric registered in `METRIC_REGISTRY` can be used as a `metric_key`. See [Metrics Reference](/venturalitica-sdk/reference/metrics/) for the full list. Common ones:
 
 | Category         | Metric Key                | Typical Operator | Typical Threshold |
 | :--------------- | :------------------------ | :--------------- | :---------------- |
@@ -2574,7 +2574,7 @@ Any metric registered in `METRIC_REGISTRY` can be used as a `metric_key`. See [M
 
 [Section titled “Dimension Mapping”](#dimension-mapping)
 
-The `input:dimension` prop tells the SDK which protected attribute to analyze. The value is an abstract name that gets resolved via [Column Binding](/guides/column-binding/):
+The `input:dimension` prop tells the SDK which protected attribute to analyze. The value is an abstract name that gets resolved via [Column Binding](/venturalitica-sdk/guides/column-binding/):
 
 ```yaml
 # In your policy:
@@ -2632,7 +2632,7 @@ The Dashboard Policy Editor provides a visual interface for creating policies:
 3. Use the form to add controls, select metrics, and set thresholds
 4. The editor generates `assessment-plan` OSCAL YAML and saves it to your project
 
-See [Dashboard Guide](/guides/dashboard/) for details.
+See [Dashboard Guide](/venturalitica-sdk/guides/dashboard/) for details.
 
 ***
 
@@ -2765,7 +2765,7 @@ The `quickstart()` function is a wrapper that performs the full compliance lifec
 3. **Enforces**: Runs the audit (`vl.enforce`).
 4. **Records**: Captures the evidence (`trace.json`) for the dashboard.
 
-Here’s what the equivalent “manual” flow looks like. In the [Full Lifecycle](/full-lifecycle/) guide you will write your own OSCAL policies and run this yourself:
+Here’s what the equivalent “manual” flow looks like. In the [Full Lifecycle](/venturalitica-sdk/full-lifecycle/) guide you will write your own OSCAL policies and run this yourself:
 
 ```python
 from ucimlrepo import fetch_ucirepo
@@ -2798,7 +2798,7 @@ with vl.monitor("manual_audit"):
 
 Note
 
-The code above requires a `data_policy.oscal.yaml` file. Head to the [Full Lifecycle](/full-lifecycle/) guide (Step 2) for the complete copy-paste YAML, or jump straight to [Level 1: The Engineer](/academy/level1-policy/) to learn how to write one from scratch.
+The code above requires a `data_policy.oscal.yaml` file. Head to the [Full Lifecycle](/venturalitica-sdk/full-lifecycle/) guide (Step 2) for the complete copy-paste YAML, or jump straight to [Level 1: The Engineer](/venturalitica-sdk/academy/level1-policy/) to learn how to write one from scratch.
 
 ### The Policy Logic
 
@@ -2884,10 +2884,10 @@ Venturalitica will draft a technical document that references your specific run:
 
 [Section titled “What’s Next?”](#whats-next)
 
-* **[API Reference](/reference/api/)** — Full function signatures and parameters
-* **[Policy Authoring Guide](/guides/policy-authoring/)** — Write your own OSCAL policies from scratch
-* **[Metrics Reference](/reference/metrics/)** — All 35+ available metrics
-* **[Venturalitica Academy](/academy/index/)** — Guided learning path from Engineer to Architect
+* **[API Reference](/venturalitica-sdk/reference/api/)** — Full function signatures and parameters
+* **[Policy Authoring Guide](/venturalitica-sdk/guides/policy-authoring/)** — Write your own OSCAL policies from scratch
+* **[Metrics Reference](/venturalitica-sdk/reference/metrics/)** — All 35+ available metrics
+* **[Venturalitica Academy](/venturalitica-sdk/academy/index/)** — Guided learning path from Engineer to Architect
 
 # API Reference
 
@@ -2987,7 +2987,7 @@ results = vl.enforce(
 
 [Section titled “Column Binding”](#column-binding)
 
-When using DataFrame mode, the SDK resolves column names through a synonym system (see [Column Binding](/guides/column-binding/)):
+When using DataFrame mode, the SDK resolves column names through a synonym system (see [Column Binding](/venturalitica-sdk/guides/column-binding/)):
 
 * `target` and `prediction` are resolved first via explicit parameters, then via synonym discovery.
 * `**attributes` (e.g., `gender="Attribute9"`) are passed directly to metric functions as the `dimension` parameter.
@@ -3053,7 +3053,7 @@ with vl.monitor("credit_model_v1"):
 
 [Section titled “Probes Collected”](#probes-collected)
 
-`monitor()` initializes 7 probes automatically. See [Probes Reference](/reference/probes/) for details.
+`monitor()` initializes 7 probes automatically. See [Probes Reference](/venturalitica-sdk/reference/probes/) for details.
 
 | Probe            | What It Captures                                  | EU AI Act Article |
 | :--------------- | :------------------------------------------------ | :---------------- |
@@ -3249,7 +3249,7 @@ Measures precision equality across groups. When a positive prediction is made, i
 
 [Section titled “Multiclass Fairness Metrics”](#multiclass-fairness-metrics)
 
-For multi-class classification tasks. See [Multiclass Fairness](/reference/multiclass-fairness/) for detailed usage.
+For multi-class classification tasks. See [Multiclass Fairness](/venturalitica-sdk/reference/multiclass-fairness/) for detailed usage.
 
 | Registry Key                             | Description                                |
 | :--------------------------------------- | :----------------------------------------- |
@@ -3454,7 +3454,7 @@ assessment-plan:
               value: gender                  # <-- Protected attribute
 ```
 
-See [Policy Authoring Guide](/guides/policy-authoring/) for the complete OSCAL format reference.
+See [Policy Authoring Guide](/venturalitica-sdk/guides/policy-authoring/) for the complete OSCAL format reference.
 
 ***
 
@@ -3756,9 +3756,9 @@ results = calc_intersectional_metrics(
 
 [Section titled “Related”](#related)
 
-* **[Metrics Reference](/reference/metrics/)** — All 35+ metrics including binary fairness, privacy, and performance
-* **[Policy Authoring](/guides/policy-authoring/)** — How to use metric keys in OSCAL controls
-* **[Column Binding](/guides/column-binding/)** — How `dimension`, `target`, `prediction` map to columns
+* **[Metrics Reference](/venturalitica-sdk/reference/metrics/)** — All 35+ metrics including binary fairness, privacy, and performance
+* **[Policy Authoring](/venturalitica-sdk/guides/policy-authoring/)** — How to use metric keys in OSCAL controls
+* **[Column Binding](/venturalitica-sdk/guides/column-binding/)** — How `dimension`, `target`, `prediction` map to columns
 
 # Probes Reference
 
@@ -4222,4 +4222,4 @@ Create a second file: `model_policy.yaml`.
 
 [Section titled “What’s Next?”](#whats-next)
 
-You have now created the **specification**. Hand these files (`data_policy.yaml` and `model_policy.yaml`) to your Data Scientist. They will use them in **[Level 2](/academy/level2-integrator/)** to audit their training pipeline.
+You have now created the **specification**. Hand these files (`data_policy.yaml` and `model_policy.yaml`) to your Data Scientist. They will use them in **[Level 2](/venturalitica-sdk/academy/level2-integrator/)** to audit their training pipeline.
