@@ -265,23 +265,26 @@ dialog::backdrop {
 .gh-pypi-button {
   display: inline-block;
   padding: 0.6rem 1.5rem;
+  border: 2px solid transparent;
   border-radius: 0.5rem;
   font-weight: 700;
   font-size: var(--sl-text-sm);
   text-decoration: none !important;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   margin: 0.25rem;
+  vertical-align: middle;
 }
 
 .gh-star-button {
   background: var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
   color: #071a37 !important;
 }
 
 .gh-pypi-button {
   background: transparent;
   color: var(--sl-color-accent) !important;
-  border: 2px solid var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
 }
 
 .gh-star-button:hover,
