@@ -7,7 +7,7 @@ description: "Learn how to implement Controls that mitigate Risks using OSCAL po
 
 **Goal**: Learn how to implement **Controls** that mitigate **Risks**.
 
-**Prerequisite**: [Zero to Pro (Academy Index)](/academy/)
+**Prerequisite**: [Zero to Pro (Academy Index)](/venturalitica-sdk/academy/)
 
 ---
 
@@ -19,7 +19,7 @@ In a formal Management System (**ISO 42001**), assurance follows a top-down flow
 2.  **Control Definition**: To mitigate this risk, the CO sets a **Control** (e.g., *"The Age Disparity Ratio must always be > 0.5"*).
 3.  **Technical Implementation**: That's your job. You take the CO's requirement and turn it into the technical "Law" (**Article 10: Data Assurance**).
 
-In the [Zero to Pro](/academy/) quickstart, `vl.quickstart('loan')` FAILED:
+In the [Zero to Pro](/venturalitica-sdk/academy/) quickstart, `vl.quickstart('loan')` FAILED:
 
 ```text
 credit-age-disparate   Age disparity          0.286      > 0.5      FAIL
@@ -108,11 +108,11 @@ assessment-plan:
 
 | Property | Purpose | Example |
 | :--- | :--- | :--- |
-| `metric_key` | Which metric to compute (from [Metrics Reference](/reference/metrics/)) | `disparate_impact`, `class_imbalance`, `accuracy_score` |
+| `metric_key` | Which metric to compute (from [Metrics Reference](/venturalitica-sdk/reference/metrics/)) | `disparate_impact`, `class_imbalance`, `accuracy_score` |
 | `threshold` | The numeric boundary | `"0.8"` |
 | `operator` | Comparison operator: `gt`, `gte`, `lt`, `lte`, `eq` | `gt` = greater than |
 | `input:target` | Column containing ground truth labels | `target` (resolved via column binding) |
-| `input:dimension` | Protected attribute to slice by | `gender`, `age` (resolved via [Column Binding](/guides/column-binding/)) |
+| `input:dimension` | Protected attribute to slice by | `gender`, `age` (resolved via [Column Binding](/venturalitica-sdk/guides/column-binding/)) |
 | `input:prediction` | Column containing model predictions (model audits) | `prediction` |
 
 ## 3. Run Your Custom Policy
@@ -171,7 +171,7 @@ OSCAL Policy              Python Code                DataFrame
 +-----------+       +------------------+       +---------------+
 ```
 
-See [Column Binding](/guides/column-binding/) for the full resolution algorithm.
+See [Column Binding](/venturalitica-sdk/guides/column-binding/) for the full resolution algorithm.
 
 ## 4. Visual Verification
 
@@ -200,4 +200,4 @@ You have successfully prevented a non-compliant AI from reaching production by m
 
 **Next Step**: The audit failed locally. How do we integrate this into an ML pipeline?
 
-**[Go to Level 2: The Integrator (MLOps)](/academy/level2-integrator/)**
+**[Go to Level 2: The Integrator (MLOps)](/venturalitica-sdk/academy/level2-integrator/)**

@@ -88,7 +88,7 @@ results = vl.enforce(
 
 #### Column Binding
 
-When using DataFrame mode, the SDK resolves column names through a synonym system (see [Column Binding](/guides/column-binding/)):
+When using DataFrame mode, the SDK resolves column names through a synonym system (see [Column Binding](/venturalitica-sdk/guides/column-binding/)):
 
 - `target` and `prediction` are resolved first via explicit parameters, then via synonym discovery.
 - `**attributes` (e.g., `gender="Attribute9"`) are passed directly to metric functions as the `dimension` parameter.
@@ -144,7 +144,7 @@ with vl.monitor("credit_model_v1"):
 
 #### Probes Collected
 
-`monitor()` initializes 7 probes automatically. See [Probes Reference](/reference/probes/) for details.
+`monitor()` initializes 7 probes automatically. See [Probes Reference](/venturalitica-sdk/reference/probes/) for details.
 
 | Probe | What It Captures | EU AI Act Article |
 | :--- | :--- | :--- |

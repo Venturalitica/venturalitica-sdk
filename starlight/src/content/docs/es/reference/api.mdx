@@ -88,7 +88,7 @@ results = vl.enforce(
 
 #### Vinculación de Columnas
 
-Al usar el modo DataFrame, el SDK resuelve los nombres de columna mediante un sistema de sinónimos (ver [Vinculación de Columnas](/guides/column-binding/)):
+Al usar el modo DataFrame, el SDK resuelve los nombres de columna mediante un sistema de sinónimos (ver [Vinculación de Columnas](/venturalitica-sdk/guides/column-binding/)):
 
 - `target` y `prediction` se resuelven primero a través de los parámetros explícitos, y luego mediante descubrimiento de sinónimos.
 - `**attributes` (p.ej., `gender="Attribute9"`) se pasan directamente a las funciones de métricas como el parámetro `dimension`.
@@ -144,7 +144,7 @@ with vl.monitor("credit_model_v1"):
 
 #### Sondas Recopiladas
 
-`monitor()` inicializa 7 sondas automáticamente. Consulta la [Referencia de Sondas](/reference/probes/) para más detalles.
+`monitor()` inicializa 7 sondas automáticamente. Consulta la [Referencia de Sondas](/venturalitica-sdk/reference/probes/) para más detalles.
 
 | Sonda | Qué Captura | Artículo de la Ley de IA de la UE |
 | :--- | :--- | :--- |

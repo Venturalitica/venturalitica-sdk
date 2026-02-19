@@ -7,7 +7,7 @@ description: "Aprende a implementar Controles que mitiguen Riesgos usando polít
 
 **Objetivo**: Aprender a implementar **Controles** que mitiguen **Riesgos**.
 
-**Prerrequisito**: [De Cero a Pro (Índice)](/academy/)
+**Prerrequisito**: [De Cero a Pro (Índice)](/venturalitica-sdk/academy/)
 
 ---
 
@@ -19,7 +19,7 @@ En un Sistema de Gestión formal (**ISO 42001**), la Assurance sigue un flujo to
 2.  **Definición del Control**: Para mitigar este riesgo, el CO establece un **Control** (ej. *"El Ratio de Disparidad por Edad debe ser siempre > 0.5"*).
 3.  **Implementación Técnica**: Ese es tu trabajo. Tomas el requisito del CO y lo conviertes en la "Ley" técnica (**Artículo 10: Assurance de Datos**).
 
-En el inicio rápido [De Cero a Pro](/academy/), `vl.quickstart('loan')` FALLÓ:
+En el inicio rápido [De Cero a Pro](/venturalitica-sdk/academy/), `vl.quickstart('loan')` FALLÓ:
 
 ```text
 credit-age-disparate   Age disparity          0.286      > 0.5      FAIL
@@ -106,11 +106,11 @@ assessment-plan:
 
 | Propiedad | Propósito | Ejemplo |
 | :--- | :--- | :--- |
-| `metric_key` | Qué métrica calcular (ver [Referencia de Métricas](/reference/metrics/)) | `disparate_impact`, `class_imbalance`, `accuracy_score` |
+| `metric_key` | Qué métrica calcular (ver [Referencia de Métricas](/venturalitica-sdk/reference/metrics/)) | `disparate_impact`, `class_imbalance`, `accuracy_score` |
 | `threshold` | El límite numérico | `"0.8"` |
 | `operator` | Operador de comparación: `gt`, `gte`, `lt`, `lte`, `eq` | `gt` = mayor que |
 | `input:target` | Columna que contiene las etiquetas de verdad | `target` (resuelto via column binding) |
-| `input:dimension` | Atributo protegido por el cual segmentar | `gender`, `age` (resuelto via [Column Binding](/guides/column-binding/)) |
+| `input:dimension` | Atributo protegido por el cual segmentar | `gender`, `age` (resuelto via [Column Binding](/venturalitica-sdk/guides/column-binding/)) |
 | `input:prediction` | Columna que contiene las predicciones del modelo (auditorías de modelo) | `prediction` |
 
 ## 3. Ejecuta Tu Política Personalizada
@@ -169,7 +169,7 @@ OSCAL Policy              Python Code                DataFrame
 +-----------+       +------------------+       +---------------+
 ```
 
-Consulta [Column Binding](/guides/column-binding/) para ver el algoritmo completo de resolución.
+Consulta [Column Binding](/venturalitica-sdk/guides/column-binding/) para ver el algoritmo completo de resolución.
 
 ## 4. Verificación Visual
 
@@ -198,4 +198,4 @@ Has prevenido exitosamente que una IA no conforme llegue a producción midiendo 
 
 **Siguiente Paso**: La auditoría falló localmente. Cómo la integramos en un Pipeline de ML?
 
-**[Ir al Nivel 2: El Integrador (MLOps)](/academy/level2-integrator/)**
+**[Ir al Nivel 2: El Integrador (MLOps)](/venturalitica-sdk/academy/level2-integrator/)**

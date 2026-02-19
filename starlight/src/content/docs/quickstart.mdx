@@ -88,7 +88,7 @@ The `quickstart()` function is a wrapper that performs the full compliance lifec
 3.  **Enforces**: Runs the audit (`vl.enforce`).
 4.  **Records**: Captures the evidence (`trace.json`) for the dashboard.
 
-Here's what the equivalent "manual" flow looks like. In the [Full Lifecycle](/full-lifecycle/) guide you will write your own OSCAL policies and run this yourself:
+Here's what the equivalent "manual" flow looks like. In the [Full Lifecycle](/venturalitica-sdk/full-lifecycle/) guide you will write your own OSCAL policies and run this yourself:
 
 ```python
 from ucimlrepo import fetch_ucirepo
@@ -117,7 +117,7 @@ with vl.monitor("manual_audit"):
 ```
 
 :::note
-The code above requires a `data_policy.oscal.yaml` file. Head to the [Full Lifecycle](/full-lifecycle/) guide (Step 2) for the complete copy-paste YAML, or jump straight to [Level 1: The Engineer](/academy/level1-policy/) to learn how to write one from scratch.
+The code above requires a `data_policy.oscal.yaml` file. Head to the [Full Lifecycle](/venturalitica-sdk/full-lifecycle/) guide (Step 2) for the complete copy-paste YAML, or jump straight to [Level 1: The Engineer](/venturalitica-sdk/academy/level1-policy/) to learn how to write one from scratch.
 :::
 
 ### The Policy Logic
@@ -189,7 +189,7 @@ Venturalitica will draft a technical document that references your specific run:
 
 ## What's Next?
 
-- **[API Reference](/reference/api/)** -- Full function signatures and parameters
-- **[Policy Authoring Guide](/guides/policy-authoring/)** -- Write your own OSCAL policies from scratch
-- **[Metrics Reference](/reference/metrics/)** -- All 35+ available metrics
-- **[Venturalitica Academy](/academy/index/)** -- Guided learning path from Engineer to Architect
+- **[API Reference](/venturalitica-sdk/reference/api/)** -- Full function signatures and parameters
+- **[Policy Authoring Guide](/venturalitica-sdk/guides/policy-authoring/)** -- Write your own OSCAL policies from scratch
+- **[Metrics Reference](/venturalitica-sdk/reference/metrics/)** -- All 35+ available metrics
+- **[Venturalitica Academy](/venturalitica-sdk/academy/index/)** -- Guided learning path from Engineer to Architect
