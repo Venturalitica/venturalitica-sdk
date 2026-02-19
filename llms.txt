@@ -4,8 +4,8 @@
 
 ## Documentation Sets
 
-- [Abridged documentation](https://venturalitica.github.io/llms-small.txt): a compact version of the documentation for Venturalítica, with non-essential content removed
-- [Complete documentation](https://venturalitica.github.io/llms-full.txt): the full documentation for Venturalítica
+- [Abridged documentation](https://venturalitica.github.io/venturalitica-sdk/llms-small.txt): a compact version of the documentation for Venturalítica, with non-essential content removed
+- [Complete documentation](https://venturalitica.github.io/venturalitica-sdk/llms-full.txt): the full documentation for Venturalítica
 
 ## Notes
 
