@@ -1,0 +1,202 @@
+---
+title: "Mapeo de Cumplimiento: EU AI Act e ISO 42001"
+sidebar:
+  label: "Mapeo de Cumplimiento"
+description: "Mapeo de las capacidades del SDK a los artículos del EU AI Act y controles de ISO/IEC 42001."
+---
+
+Este documento mapea las capacidades del Venturalitica SDK a los artículos del **EU AI Act** y los controles de **ISO/IEC 42001** relevantes para sistemas de IA de alto riesgo.
+
+---
+
+## Mapeo de Artículos del EU AI Act
+
+### Artículo 9: Sistema de Gestión de Riesgos
+
+**Requisito**: Establecer un sistema de gestión de riesgos a lo largo del ciclo de vida del sistema de IA.
+
+| Capacidad del SDK | Cómo cumple con Art 9 |
+| :--- | :--- |
+| Archivos de política OSCAL | Controles de riesgo codificados como reglas legibles por máquina |
+| `enforce()` | Evaluación automatizada de riesgos contra controles definidos |
+| Dashboard Fase 1 | Documentación de identidad del sistema y contexto de riesgo |
+| Dashboard Fase 2 | Editor visual de políticas para definición de controles de riesgo |
+
+**Ejemplo**: Definir un control de riesgo que verifique la disparidad por edad:
+
+```yaml
+- control-id: credit-age-disparate
+  description: "Age disparate impact ratio > 0.5"
+  props:
+    - name: metric_key
+      value: disparate_impact
+    - name: threshold
+      value: "0.50"
+    - name: operator
+      value: gt
+    - name: "input:dimension"
+      value: age
+```
+
+---
+
+### Artículo 10: Datos y Gobernanza de Datos
+
+**Requisito**: Los conjuntos de datos de entrenamiento, validación y prueba deben ser relevantes, representativos, libres de errores y completos.
+
+| Capacidad del SDK | Cómo cumple con Art 10 |
+| :--- | :--- |
+| Métrica `class_imbalance` | Verifica la representación de clases minoritarias |
+| Métrica `disparate_impact` | Verifica tasas de selección a nivel de grupo |
+| Métrica `data_completeness` | Mide valores faltantes |
+| `k_anonymity`, `l_diversity`, `t_closeness` | Calidad de datos con preservación de privacidad |
+| Patrón de política de datos | Archivo separado `data_policy.oscal.yaml` para verificaciones previas al entrenamiento |
+
+**Métricas clave para Art 10**:
+
+| Métrica | Cláusula Art 10 | Propósito |
+| :--- | :--- | :--- |
+| `class_imbalance` | 10.3 (representativo) | Asegurar que las clases minoritarias no sean eliminadas |
+| `disparate_impact` | 10.2.f (examen de sesgo) | Regla de los Cuatro Quintos entre grupos |
+| `data_completeness` | 10.3 (libre de errores) | Detectar datos faltantes |
+| `group_min_positive_rate` | 10.3 (representativo) | Tasa positiva mínima por grupo |
+
+---
+
+### Artículo 11: Documentación Técnica (Anexo IV)
+
+**Requisito**: La documentación técnica debe elaborarse antes de que el sistema de IA se comercialice.
+
+| Capacidad del SDK | Cómo cumple con Art 11 |
+| :--- | :--- |
+| Archivos de traza de `monitor()` | Recopilación automática de evidencia (código, datos, hardware) |
+| Hash de evidencia (SHA-256) | Prueba criptográfica de integridad de ejecución |
+| Dashboard Fase 4 | Generación del documento del Anexo IV mediante LLM |
+| Sonda BOM | Lista de materiales de software para reproducibilidad |
+
+**Archivos de evidencia producidos**:
+
+```text
+.venturalitica/
+  trace_<session>.json    # Execution trace with AST analysis
+  results.json            # Compliance results per control
+  Annex_IV.md             # Generated documentation (Phase 4)
+```
+
+---
+
+### Artículo 13: Transparencia
+
+**Requisito**: Los sistemas de IA de alto riesgo deben diseñarse para garantizar que su funcionamiento sea suficientemente transparente.
+
+| Capacidad del SDK | Cómo cumple con Art 13 |
+| :--- | :--- |
+| Método Caja de Cristal | Traza completa de ejecución, no solo resultados |
+| Análisis de código AST | Registra qué funciones fueron invocadas |
+| Huella digital de datos | SHA-256 de los datos de entrada en tiempo de ejecución |
+| Sonda de artefactos | Hash de los archivos de política utilizados |
+
+---
+
+### Artículo 15: Precisión, Robustez y Ciberseguridad
+
+**Requisito**: Los sistemas de IA de alto riesgo deben alcanzar un nivel adecuado de precisión, robustez y ciberseguridad.
+
+| Capacidad del SDK | Cómo cumple con Art 15 |
+| :--- | :--- |
+| `accuracy_score`, `precision_score`, `recall_score`, `f1_score` | Métricas de rendimiento |
+| `demographic_parity_diff`, `equal_opportunity_diff` | Métricas de equidad sobre predicciones del modelo |
+| Patrón de política de modelo | Archivo separado `model_policy.oscal.yaml` para verificaciones posteriores al entrenamiento |
+| Sonda de hardware | Monitoreo de CPU, RAM, GPU como evidencia de robustez |
+| Sonda de carbono | Seguimiento del consumo energético |
+
+**Métricas clave para Art 15**:
+
+| Métrica | Cláusula Art 15 | Propósito |
+| :--- | :--- | :--- |
+| `accuracy_score` | 15.1 (precisión) | El modelo alcanza la precisión mínima |
+| `demographic_parity_diff` | 15.3 (no discriminación) | Las tasas de predicción son equitativas |
+| `equalized_odds_ratio` | 15.3 (no discriminación) | Las tasas de error son equitativas |
+| `counterfactual_fairness` | 15.3 (no discriminación) | Análisis de equidad causal |
+
+---
+
+## Mapeo ISO/IEC 42001
+
+ISO 42001 define un marco de **Sistema de Gestión de IA (AIMS)**. Venturalitica se mapea a las siguientes áreas de control:
+
+### Controles del Anexo A
+
+| Control ISO 42001 | Descripción | Mapeo del SDK |
+| :--- | :--- | :--- |
+| **A.2** Política de IA | Política de IA a nivel organizacional | Los archivos de política OSCAL definen políticas legibles por máquina |
+| **A.4** Evaluación de Riesgos de IA | Identificar y evaluar riesgos de IA | `enforce()` evalúa controles; Dashboard Fase 2 visualiza riesgos |
+| **A.5** Tratamiento de Riesgos de IA | Implementar controles para mitigar riesgos | Los controles OSCAL con umbrales implementan el tratamiento de riesgos |
+| **A.6** Evaluación de Impacto del Sistema de IA | Evaluar el impacto sobre individuos/grupos | Métricas de equidad (`disparate_impact`, `demographic_parity_diff`) |
+| **A.7** Datos para Sistemas de IA | Gestión de la calidad de datos | Patrón de política de datos + métricas de calidad de datos |
+| **A.8** Documentación del Sistema de IA | Documentar el ciclo de vida del sistema de IA | Trazas de `monitor()` + Dashboard Fase 4 (generación Anexo IV) |
+| **A.9** Rendimiento del Sistema de IA | Monitorear el rendimiento del sistema | Métricas de rendimiento + recopilación de evidencia de `monitor()` |
+| **A.10** Relaciones con Terceros y Clientes | Transparencia de la cadena de suministro | La sonda BOM captura todas las dependencias |
+
+### Cláusula 6: Planificación
+
+| Cláusula ISO 42001 | Descripción | Mapeo del SDK |
+| :--- | :--- | :--- |
+| 6.1 Evaluación de riesgos | Determinar riesgos y oportunidades | La política OSCAL define umbrales de riesgo medibles |
+| 6.2 Objetivos de IA | Establecer objetivos medibles | Cada control OSCAL es un objetivo medible con aprobado/reprobado |
+
+### Cláusula 9: Evaluación del Desempeño
+
+| Cláusula ISO 42001 | Descripción | Mapeo del SDK |
+| :--- | :--- | :--- |
+| 9.1 Monitoreo | Monitorear el rendimiento del sistema de IA | `enforce()` + `monitor()` proporcionan evaluación continua |
+| 9.2 Auditoría interna | Auditar el AIMS | Las trazas de evidencia proporcionan pista de auditoría |
+| 9.3 Revisión por la dirección | Revisar la efectividad del AIMS | El Dashboard proporciona una interfaz visual de revisión |
+
+### Cláusula 10: Mejora
+
+| Cláusula ISO 42001 | Descripción | Mapeo del SDK |
+| :--- | :--- | :--- |
+| 10.1 No conformidad | Gestionar fallos de controles | `enforce()` señala fallos; `strict=True` lanza excepciones |
+| 10.2 Mejora continua | Mejorar el AIMS | Versionar políticas, re-ejecutar auditorías, rastrear mejoras a lo largo del tiempo |
+
+---
+
+## El Patrón de Dos Políticas y el Mapeo Regulatorio
+
+El patrón de dos políticas de Venturalitica se mapea directamente a la estructura regulatoria:
+
+```text
+Regulation          Policy File               SDK Function          Phase
+-----------         ---------------           ----------------      -----
+Art 10 (Data)   --> data_policy.oscal.yaml --> enforce(target=...)  Pre-training
+Art 15 (Model)  --> model_policy.oscal.yaml-> enforce(prediction=..) Post-training
+Art 11 (Docs)   --> (generated)            --> Dashboard Phase 4    Reporting
+Art 9 (Risk)    --> (both policies)        --> All of the above     Continuous
+```
+
+---
+
+## Cadena de Evidencia de Auditoría
+
+Una auditoría de cumplimiento completa produce la siguiente cadena de evidencia:
+
+| Evidencia | EU AI Act | ISO 42001 | Archivo |
+| :--- | :--- | :--- | :--- |
+| Definición de política | Art 9 | A.2, A.5 | `*.oscal.yaml` |
+| Resultados de calidad de datos | Art 10 | A.7 | `results.json` |
+| Resultados de equidad del modelo | Art 15 | A.6, A.9 | `results.json` |
+| Traza de ejecución | Art 13 | A.8 | `trace_*.json` |
+| BOM de software | Art 15 | A.10 | `trace_*.json` (sección BOM) |
+| Métricas de hardware/carbono | Art 15 | A.9 | `trace_*.json` (sondas) |
+| Documentación técnica | Art 11 / Anexo IV | A.8 | `Annex_IV.md` |
+
+---
+
+## Relacionado
+
+- **[Ciclo de Vida Completo](/full-lifecycle/)** -- Guía paso a paso implementando este mapeo
+- **[Creación de Políticas](/guides/policy-authoring/)** -- Escribir controles OSCAL para cada artículo
+- **[Referencia de Métricas](/reference/metrics/)** -- Todas las métricas disponibles por categoría
+- **[Referencia de Sondas](/reference/probes/)** -- Sondas de evidencia mapeadas a artículos del EU AI Act
+- **[Guía del Dashboard](/guides/dashboard/)** -- Flujo de trabajo de 4 fases alineado con requisitos regulatorios

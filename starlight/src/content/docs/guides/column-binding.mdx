@@ -1,0 +1,137 @@
+---
+title: "Column Binding"
+sidebar:
+  label: "Column Binding"
+description: "Map abstract policy names (gender, age) to actual DataFrame columns via synonym-based resolution."
+---
+
+Venturalitica uses a **synonym-based column binding** system to map abstract concepts (like "gender" or "age") to actual DataFrame column names (like "Attribute9" or "Attribute13"). This decouples your OSCAL policies from specific dataset schemas.
+
+---
+
+## How It Works
+
+When you call `vl.enforce()`, the SDK resolves column names in three steps:
+
+1. **Explicit parameters**: Check if `target` or `prediction` values exist as column names
+2. **Synonym discovery**: Look up the column name in `COLUMN_SYNONYMS`
+3. **Lowercase fallback**: Try a case-insensitive match
+
+### Example
+
+```python
+vl.enforce(
+    data=df,
+    target="class",          # Explicit: looks for 'class' column
+    gender="Attribute9",     # Attribute mapping: 'gender' -> 'Attribute9'
+    age="Attribute13",       # Attribute mapping: 'age' -> 'Attribute13'
+    policy="data_policy.oscal.yaml"
+)
+```
+
+In the OSCAL policy, controls reference abstract names like `gender` and `age` via `input:dimension`. The SDK resolves these to actual columns at runtime.
+
+---
+
+## Synonym Dictionary
+
+The built-in `COLUMN_SYNONYMS` dictionary maps semantic roles to known column name variants:
+
+| Role | Known Synonyms |
+| :--- | :--- |
+| `gender` | `sex`, `gender`, `sexo`, `Attribute9` |
+| `age` | `age`, `age_group`, `edad`, `Attribute13` |
+| `race` | `race`, `ethnicity`, `raza` |
+| `target` | `target`, `class`, `label`, `y`, `true_label`, `ground_truth`, `approved`, `default`, `outcome` |
+| `prediction` | `prediction`, `pred`, `y_pred`, `predictions`, `score`, `proba`, `output` |
+| `dimension` | `sex`, `gender`, `age`, `race`, `Attribute9`, `Attribute13` |
+
+### Auto-Discovery
+
+If you do not explicitly pass a column mapping, the SDK automatically discovers columns by scanning your DataFrame for known synonyms:
+
+```python
+# These are equivalent for the UCI German Credit dataset:
+vl.enforce(data=df, target="class", gender="Attribute9")
+vl.enforce(data=df)  # Auto-discovers 'class' as target, 'Attribute9' as gender
+```
+
+---
+
+## Resolution Functions
+
+### `discover_column(requested, context_mapping, data, synonyms)`
+
+Discovers a single column using this priority order:
+
+1. Check `context_mapping` (explicit user-provided mapping)
+2. Check if `requested` is a direct column name
+3. Search `COLUMN_SYNONYMS` for a matching group
+4. Lowercase fallback
+5. Return `"MISSING"` if not found
+
+### `resolve_col_names(val, data, synonyms)`
+
+Resolves one or more column names from a string or list:
+
+- Supports comma-separated strings: `"target, gender"`
+- Supports lists: `["target", "gender"]`
+- Returns a list of resolved column names
+
+---
+
+## The Policy-Code Handshake
+
+Column binding bridges the gap between **legal requirements** (OSCAL policies) and **technical reality** (messy DataFrames):
+
+```
+OSCAL Policy                    Python Code                  DataFrame
++--------------+    enforce()   +-----------+    binding     +------------+
+| dimension:   | ------------> | gender=   | ------------> | Attribute9 |
+|   gender     |               | "Attr..."  |               | (actual    |
+| threshold:   |               |            |               |  column)   |
+|   > 0.8      |               |            |               |            |
++--------------+               +-----------+               +------------+
+```
+
+This design means:
+
+- **Compliance Officers** write policies using abstract names (`gender`, `age`)
+- **Engineers** provide the mapping to technical column names once
+- **The same policy** works across different datasets with different schemas
+
+---
+
+## Multilingual Support
+
+The synonym dictionary includes Spanish translations:
+
+- `gender` = `sexo`
+- `age` = `edad`
+- `race` = `raza`
+
+This allows datasets with Spanish column headers to be used without explicit mapping.
+
+---
+
+## Custom Synonyms
+
+You can extend the synonym dictionary programmatically:
+
+```python
+from venturalitica.binding import COLUMN_SYNONYMS
+
+# Add a custom synonym for your dataset
+COLUMN_SYNONYMS["income"] = ["income", "salary", "wage", "earnings", "ingreso"]
+```
+
+Or pass a custom synonym dictionary to the resolution functions:
+
+```python
+from venturalitica.binding import resolve_col_names
+
+custom_synonyms = {
+    "risk_score": ["risk", "risk_score", "risk_level", "riesgo"],
+}
+resolved = resolve_col_names("risk_score", df, synonyms=custom_synonyms)
+```

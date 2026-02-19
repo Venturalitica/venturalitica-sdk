@@ -1,0 +1,236 @@
+---
+title: "Multiclass Fairness Metrics"
+sidebar:
+  label: "Multiclass Fairness"
+description: "7 multiclass fairness metrics for AI systems with 3+ output classes, including intersectional analysis."
+---
+
+Venturalitica includes 7 multiclass fairness metrics for evaluating AI systems with more than 2 output classes (e.g., credit risk grades A/B/C/D, multi-label classification, sentiment categories). These extend traditional binary fairness concepts to multi-class settings.
+
+## When to Use Multiclass Metrics
+
+Use these metrics when your model produces **3+ classes**. Binary metrics like `disparate_impact` or `demographic_parity_diff` only work with 2-class outputs. Multiclass metrics aggregate fairness across all class labels.
+
+Common scenarios:
+
+- Credit risk grading (A, B, C, D, E)
+- Job recommendation categories
+- Medical diagnosis classification
+- Content moderation labels
+
+---
+
+## Metric Reference
+
+### 1. `multiclass_demographic_parity`
+
+**What it measures**: Maximum disparity in prediction rates across protected groups, aggregated over all classes using one-vs-rest decomposition.
+
+**Formula**: For each class `c`, compute `P(Y_hat=c | A=a)` for each group `a`. The disparity for class `c` is `max(rates) - min(rates)`. Return the maximum disparity across all classes.
+
+**Ideal value**: 0.0 (all groups receive each class at equal rates).
+
+**Registry key**: `multiclass_demographic_parity`
+
+**Required inputs**: `target`, `prediction`, `dimension`
+
+```yaml
+- control-id: mc-demographic-parity
+  description: "Multi-class demographic parity < 0.15"
+  props:
+    - name: metric_key
+      value: multiclass_demographic_parity
+    - name: threshold
+      value: "0.15"
+    - name: operator
+      value: lt
+    - name: "input:target"
+      value: target
+    - name: "input:prediction"
+      value: prediction
+    - name: "input:dimension"
+      value: gender
+```
+
+---
+
+### 2. `multiclass_equal_opportunity`
+
+**What it measures**: Maximum disparity in true positive rates (TPR) across protected groups, using one-vs-rest decomposition. Ensures each group has equal chance of being correctly classified for each class.
+
+**Formula**: For each class `c`, compute TPR per group: `P(Y_hat=c | Y=c, A=a)`. Disparity = `max(TPRs) - min(TPRs)`. Return maximum disparity across classes.
+
+**Ideal value**: 0.0 (equal recall for all groups in every class).
+
+**Registry key**: `multiclass_equal_opportunity`
+
+**Required inputs**: `target`, `prediction`, `dimension`
+
+---
+
+### 3. `multiclass_confusion_metrics`
+
+**What it measures**: Per-class precision/recall and per-group accuracy. Returns a dictionary (not a scalar), useful for detailed diagnostics rather than policy thresholds.
+
+**Return type**: `Dict` with keys `per_class_metrics` (precision/recall per class) and `per_group_performance` (accuracy per group).
+
+**Registry key**: `multiclass_confusion_metrics`
+
+**Required inputs**: `target`, `prediction`, `dimension`
+
+:::note
+This metric returns a dictionary, not a float. It is primarily for diagnostic reporting and may not work directly with threshold-based OSCAL controls. Use `calc_multiclass_fairness_report()` in Python for combined analysis.
+:::
+
+---
+
+### 4. `weighted_demographic_parity_multiclass`
+
+**What it measures**: Demographic parity with configurable aggregation strategy across classes.
+
+**Strategies** (set via `strategy` parameter):
+
+| Strategy | Description |
+| :--- | :--- |
+| `macro` (default) | Maximum disparity across all classes |
+| `micro` | Maximum disparity using normalized prediction distributions |
+| `one-vs-rest` | Same as macro but explicit one-vs-rest decomposition |
+| `weighted` | Disparities weighted by class prevalence |
+
+**Formula (macro)**: Same as `multiclass_demographic_parity`, but with strategy control.
+
+**Ideal value**: 0.0
+
+**Registry key**: `weighted_demographic_parity_multiclass`
+
+**Required inputs**: `target` (unused but validated), `prediction`, `dimension`
+
+**Minimum samples**: 30
+
+---
+
+### 5. `macro_equal_opportunity_multiclass`
+
+**What it measures**: Macro-averaged equal opportunity. Computes TPR disparity for each class (one-vs-rest), then returns the maximum.
+
+**Formula**: For each class `c`, binarize as `y_true_c = (y == c)`. Compute TPR per group. Disparity = `max(TPRs) - min(TPRs)`. Return `max(disparities)`.
+
+**Ideal value**: 0.0
+
+**Registry key**: `macro_equal_opportunity_multiclass`
+
+**Required inputs**: `target`, `prediction`, `dimension`
+
+**Minimum samples**: 30
+
+---
+
+### 6. `micro_equalized_odds_multiclass`
+
+**What it measures**: Combined TPR + FPR disparity across groups. Measures whether the model's overall accuracy and error rate are equitable across protected groups.
+
+**Formula**: For each group, compute overall accuracy and error rate. Return `(max_accuracy - min_accuracy) + (max_error_rate - min_error_rate)`.
+
+**Ideal value**: 0.0 (no accuracy/error disparity between groups).
+
+**Registry key**: `micro_equalized_odds_multiclass`
+
+**Required inputs**: `target`, `prediction`, `dimension`
+
+**Minimum samples**: 30
+
+---
+
+### 7. `predictive_parity_multiclass`
+
+**What it measures**: Precision disparity across protected groups for each class. Ensures that when the model predicts a class, it is equally accurate for all groups.
+
+**Strategies**: `macro` (default), `weighted`
+
+**Formula (macro)**: For each class `c`, compute precision per group: `P(Y=c | Y_hat=c, A=a)`. Disparity = `max(precisions) - min(precisions)`. Return max across classes.
+
+**Ideal value**: 0.0
+
+**Registry key**: `predictive_parity_multiclass`
+
+**Required inputs**: `target`, `prediction`, `dimension`
+
+:::note
+This metric returns a tuple `(value, metadata)` where metadata contains `total_samples`, `min_class_support`, and `min_prediction_support`.
+:::
+
+---
+
+## Summary Table
+
+| Registry Key | What It Checks | Ideal | Strategies |
+| :--- | :--- | :--- | :--- |
+| `multiclass_demographic_parity` | Prediction rate parity (OVR) | 0.0 | `max`, `macro` aggregation |
+| `multiclass_equal_opportunity` | TPR parity (OVR) | 0.0 | -- |
+| `multiclass_confusion_metrics` | Per-class/group diagnostics | Dict | -- |
+| `weighted_demographic_parity_multiclass` | Prediction rate parity | 0.0 | `macro`, `micro`, `one-vs-rest`, `weighted` |
+| `macro_equal_opportunity_multiclass` | TPR parity (macro) | 0.0 | -- |
+| `micro_equalized_odds_multiclass` | Accuracy + error parity | 0.0 | -- |
+| `predictive_parity_multiclass` | Precision parity | 0.0 | `macro`, `weighted` |
+
+---
+
+## Comprehensive Report
+
+For a combined view, use the `calc_multiclass_fairness_report()` function in Python:
+
+```python
+from venturalitica.metrics import calc_multiclass_fairness_report
+
+report = calc_multiclass_fairness_report(
+    y_true=df["target"],
+    y_pred=df["prediction"],
+    protected_attr=df["gender"]
+)
+
+# Returns dict with:
+# - weighted_demographic_parity_macro
+# - macro_equal_opportunity
+# - micro_equalized_odds
+# - predictive_parity_macro
+```
+
+### Intersectional Analysis
+
+For intersectional fairness (e.g., gender x age), pass multiple attributes:
+
+```python
+from venturalitica.assurance.fairness.multiclass_reporting import calc_intersectional_metrics
+
+results = calc_intersectional_metrics(
+    y_true=df["target"],
+    y_pred=df["prediction"],
+    protected_attrs={
+        "gender": df["gender"],
+        "age_group": df["age_group"]
+    }
+)
+
+# Returns:
+# - intersectional_disparity: max - min accuracy across slices
+# - worst_slice: e.g., "female x elderly"
+# - best_slice: e.g., "male x young"
+# - slice_details: accuracy per intersection
+```
+
+---
+
+## Constraints
+
+- **Minimum samples**: Most multiclass metrics require >= 30 samples and raise `ValueError` otherwise.
+- **Minimum groups**: At least 2 protected groups required.
+- **Minimum classes**: At least 2 classes required (though for 2-class problems, prefer the simpler binary metrics).
+- **Optional dependency**: Some metrics use Fairlearn internally. Install with `pip install fairlearn` if needed.
+
+---
+
+## Related
+
+- **[Metrics Reference](/reference/metrics/)** -- All 35+ metrics including binary fairness, privacy, and performance
+- **[Policy Authoring](/guides/policy-authoring/)** -- How to use metric keys in OSCAL controls
+- **[Column Binding](/guides/column-binding/)** -- How `dimension`, `target`, `prediction` map to columns

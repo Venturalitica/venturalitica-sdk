@@ -1,0 +1,231 @@
+---
+title: "Dashboard Caja de Cristal"
+sidebar:
+  label: "Dashboard"
+description: "Espacio de trabajo de AI Assurance en 4 fases para la Ley de IA de la UE: Identidad, Política, Verificación, Reporte."
+---
+
+El **Dashboard de Venturalítica** es tu espacio de trabajo local de AI Assurance. Te guía a través de 4 fases del ciclo de vida de recopilación de evidencia de la Ley de IA de la UE sin salir de tu terminal.
+
+:::caution
+Esta herramienta **asiste con la recopilación de evidencia** y no constituye asesoramiento legal ni garantiza el cumplimiento normativo.
+:::
+
+## Lanzamiento
+
+```bash
+venturalitica ui
+```
+
+O con uv:
+
+```bash
+uv run venturalitica ui
+```
+
+El Dashboard se abre en `http://localhost:8501` en tu navegador predeterminado.
+
+---
+
+## Arquitectura del Dashboard
+
+El Dashboard sigue un **Assurance Journey en 4 fases** mapeado a los requisitos de la Ley de IA de la UE:
+
+```
+Home (AI Assurance — Recopilación de Evidencia)
+  |
+  +-- Fase 1: Identidad del Sistema   (Anexo IV.1)
+  |
+  +-- Fase 2: Política de Riesgos     (Artículos 9-10)
+  |
+  +-- Fase 3: Verificar y Evaluar     (Artículos 11-15)
+  |       |
+  |       +-- Feed de Transparencia
+  |       +-- Integridad Técnica
+  |       +-- Aplicación de Políticas
+  |
+  +-- Fase 4: Reporte Técnico         (Anexo IV)
+```
+
+Se aplica **gating por fases**: la Fase 2 requiere la evidencia de la Fase 1, la Fase 3 requiere la Fase 2 y la Fase 4 requiere la Fase 3.
+
+---
+
+## Home: AI Assurance — Recopilación de Evidencia
+
+La pantalla de inicio presenta 4 pasos como un panel de progreso. Cada paso muestra el estado de su evidencia:
+
+| Paso | Verificación de Estado | Descripción |
+| :--- | :--- | :--- |
+| 1. Definir Sistema | Existe `system_description.yaml` | Identidad del sistema y descripción de hardware |
+| 2. Definir Políticas | Existe `model_policy.oscal.yaml` | Políticas OSCAL de riesgo y gobernanza de datos |
+| 3. Revisar Evidencia | Existe `results.json` o `trace_*.json` | Telemetría, trazas y validación de métricas |
+| 4. Generar Reporte | Existe `venturalitica_technical_doc.json` | Archivo técnico del Anexo IV generado |
+
+Haz clic en cualquier tarjeta de paso para navegar directamente a esa fase.
+
+![Dashboard Home — AI Assurance Recopilación de Evidencia](/images/dashboard_overview.png)
+
+---
+
+## Fase 1: Identidad del Sistema
+
+**Ley de IA de la UE:** Anexo IV.1 (Descripción General del Sistema de IA)
+
+Define la "fuente de verdad" de tu sistema de IA usando el **Editor de Identidad del Sistema**. Esto crea `system_description.yaml` con:
+
+- **Nombre y versión del sistema**
+- **Propósito previsto** (ej., "Calificación crediticia para solicitudes de préstamos")
+- **Información del proveedor**
+- **Descripción de hardware** (recursos de cómputo utilizados)
+- **Descripción de interacción** (cómo interactúan los usuarios con el sistema)
+
+El editor proporciona un formulario estructurado. Todos los campos se mapean directamente a los requisitos del Anexo IV.1.
+
+![Fase 1 — Editor de Identidad del Sistema](/images/phase1_system_identity.png)
+
+---
+
+## Fase 2: Política de Riesgos
+
+**Ley de IA de la UE:** Artículos 9 (Gestión de Riesgos) y 10 (Gobernanza de Datos)
+
+El **Editor de Políticas** permite crear y editar archivos de políticas OSCAL de forma visual — este es el paso de **Compliance-as-Code**. Genera YAML OSCAL en formato `assessment-plan` con:
+
+- **Política del Modelo** (`model_policy.oscal.yaml`): Controles de equidad y rendimiento para el comportamiento del modelo
+- **Política de Datos** (`data_policy.oscal.yaml`): Controles de calidad de datos y privacidad para los datos de entrenamiento
+
+### Funcionalidades del Editor de Políticas
+
+- Agregar controles con selección de métricas desde el registro completo
+- Establecer umbrales y operadores de comparación
+- Mapear atributos protegidos (dimension binding)
+- Previsualizar el YAML OSCAL generado
+- Guardar directamente en el directorio de tu proyecto
+
+:::tip
+El Editor de Políticas genera formato `assessment-plan`, que es el formato OSCAL canónico utilizado en todo el SDK. Consulta la [Guía de Redacción de Políticas](/guides/policy-authoring/) para el formato YAML manual.
+:::
+
+![Fase 2 — Editor de Políticas de Riesgo](/images/phase2_risk_policy.png)
+
+---
+
+## Fase 3: Verificar y Evaluar
+
+**Ley de IA de la UE:** Artículos 11-15 (Documentación Técnica, Mantenimiento de Registros, Transparencia, Supervisión Humana, Precisión)
+
+Esta fase requiere evidencia obtenida al ejecutar `vl.enforce()` y `vl.monitor()`. Selecciona una sesión de evidencia desde la barra lateral para inspeccionarla.
+
+![Fase 3 — Verificar y Evaluar](/images/phase3_verify_evaluate.png)
+
+### Selector de Sesión
+
+La barra lateral muestra todas las sesiones de evidencia disponibles:
+
+- **Global / Historial**: Resultados agregados de `.venturalitica/results.json`
+- **Sesiones con nombre**: Ejecuciones individuales de `vl.monitor("session_name")` con sus propios archivos de trazas
+
+### Pestaña: Feed de Transparencia
+
+Se mapea al **Artículo 13** (Transparencia). Muestra:
+
+- Lista de Materiales de Software (SBOM) — todas las dependencias de Python con sus versiones
+- Contexto de código — análisis AST del script que generó la evidencia
+- Metadatos de ejecución — marcas de tiempo, duración, estado de éxito/fallo
+
+### Pestaña: Integridad Técnica
+
+Se mapea al **Artículo 15** (Precisión, Robustez, Ciberseguridad). Muestra:
+
+- Huella digital del entorno (hash SHA-256)
+- Detección de deriva de integridad (¿cambió el entorno durante la ejecución?)
+- Telemetría de hardware (pico de RAM, número de CPUs)
+- Emisiones de carbono (si CodeCarbon está instalado)
+
+### Pestaña: Aplicación de Políticas
+
+Se mapea al **Artículo 9** (Gestión de Riesgos). Muestra:
+
+- Resultados de Assurance por control con estado de aprobado/fallido
+- Valores reales de métricas vs. umbrales de la política
+- Desglose visual de qué controles pasaron y cuáles fallaron
+- Resumen de puntuación de Assurance
+
+---
+
+## Fase 4: Reporte Técnico
+
+**Ley de IA de la UE:** Artículo 11 y Anexo IV (Documentación Técnica)
+
+El **Generador de Anexo IV** produce la documentación técnica exhaustiva requerida para sistemas de IA de Alto Riesgo. Combina:
+
+![Fase 4 — Generador de Anexo IV](/images/annex_iv_generator.png)
+
+- **Datos de la Fase 1**: Identidad del sistema desde `system_description.yaml`
+- **Datos de la Fase 2**: Políticas de riesgo desde los archivos OSCAL
+- **Datos de la Fase 3**: Evidencia de los resultados de enforcement y trazas
+
+### Selección de Proveedor LLM
+
+| Proveedor | Privacidad | Soberanía | Velocidad | Caso de Uso |
+| :--- | :--- | :--- | :--- | :--- |
+| Cloud (Mistral API) | Transporte cifrado | Alojado en la UE | Rápido | Acabado final |
+| Local (Ollama) | 100% sin conexión | Genérico | Más lento | Pruebas iterativas |
+| Soberano (ALIA) | Bloqueado por hardware | Nativo en español | Lento | Solo investigación |
+
+:::caution
+**Requisitos de ALIA**: ALIA es un modelo de 40B parámetros que requiere ~41GB de RAM/VRAM. Es experimental.
+:::
+
+### Proceso de Generación
+
+1. **Scanner**: Lee archivos de trazas y evidencia
+2. **Planner**: Determina qué secciones del Anexo IV aplican
+3. **Writer**: Redacta cada sección citando valores de métricas específicos
+4. **Critic**: Revisa el borrador contra ISO 42001
+
+### Salida
+
+El generador produce:
+
+- `venturalitica_technical_doc.json` — datos estructurados
+- `Annex_IV.md` — documento markdown legible
+
+Convertir a PDF:
+
+```bash
+# Simple
+pip install mdpdf && mdpdf Annex_IV.md
+
+# Avanzado
+pandoc Annex_IV.md -o Annex_IV.pdf --toc --pdf-engine=xelatex
+```
+
+---
+
+## Contexto de Proyecto
+
+El Dashboard opera sobre tu **directorio de trabajo actual**. Lee los siguientes archivos:
+
+| Archivo | Propósito |
+| :--- | :--- |
+| `system_description.yaml` | Identidad del sistema (Fase 1) |
+| `model_policy.oscal.yaml` | Política del modelo (Fase 2) |
+| `data_policy.oscal.yaml` | Política de datos (Fase 2) |
+| `.venturalitica/results.json` | Resultados de enforcement (Fase 3) |
+| `.venturalitica/trace_*.json` | Trazas de ejecución (Fase 3) |
+| `.venturalitica/bom.json` | Lista de materiales de software (Fase 3) |
+| `venturalitica_technical_doc.json` | Documentación generada (Fase 4) |
+
+Ejecuta tus llamadas a `vl.enforce()` y `vl.monitor()` desde el mismo directorio donde lanzas `venturalitica ui`.
+
+---
+
+## Atajos de Teclado
+
+El Dashboard utiliza Streamlit. Los atajos estándar de Streamlit aplican:
+
+- `R` — Volver a ejecutar la aplicación
+- `C` — Limpiar cache
+- Menú de configuración (hamburguesa en la esquina superior derecha) para cambiar el tema

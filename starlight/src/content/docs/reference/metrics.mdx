@@ -1,0 +1,315 @@
+---
+title: "Metrics Reference"
+sidebar:
+  label: "Metrics"
+description: "All 35+ metrics across 7 categories: performance, fairness, data quality, privacy, and causal fairness."
+---
+
+Venturalitica ships with 35+ metrics organized into 7 categories. Each metric is registered in `METRIC_REGISTRY` and can be referenced by its key in OSCAL policy files.
+
+---
+
+## Metric Categories at a Glance
+
+| Category | Metrics | Description |
+| :--- | :--- | :--- |
+| **Performance** | 4 | Standard ML accuracy, precision, recall, F1 |
+| **Fairness (Traditional)** | 2 | Demographic parity, equal opportunity |
+| **Fairness (Alternative)** | 2 | Equalized odds, predictive parity |
+| **Multiclass Fairness** | 7 | Fairness metrics for multi-class classification |
+| **Data Quality** | 4 | Disparate impact, class imbalance, completeness |
+| **Privacy** | 4 | k-anonymity, l-diversity, t-closeness, data minimization |
+| **Causal Fairness** | 4 | Counterfactual, path decomposition, awareness |
+
+---
+
+## Performance Metrics
+
+| Registry Key | Function | Description |
+| :--- | :--- | :--- |
+| `accuracy_score` | `calc_accuracy` | Overall classification accuracy |
+| `precision_score` | `calc_precision` | Positive predictive value |
+| `recall_score` | `calc_recall` | Sensitivity / true positive rate |
+| `f1_score` | `calc_f1` | Harmonic mean of precision and recall |
+
+**Usage in policy:**
+
+```yaml
+- control-id: model-accuracy
+  props:
+    - name: metric_key
+      value: accuracy_score
+    - name: threshold
+      value: "0.80"
+    - name: operator
+      value: ">="
+```
+
+---
+
+## Fairness Metrics (Traditional)
+
+These are the most commonly used fairness measures for binary classification.
+
+### `demographic_parity_diff`
+
+Measures the difference in positive prediction rates between protected groups.
+
+- **Formula:** |P(Y=1|A=a) - P(Y=1|A=b)|
+- **Ideal value:** 0.0
+- **Typical threshold:** < 0.10
+- **Requires:** `dimension` (protected attribute column)
+
+### `equal_opportunity_diff`
+
+Measures the difference in true positive rates (TPR) between groups.
+
+- **Formula:** |TPR_a - TPR_b|
+- **Ideal value:** 0.0
+- **Typical threshold:** < 0.10
+- **Requires:** `dimension`, `target`, `prediction`
+
+---
+
+## Fairness Metrics (Alternative)
+
+### `equalized_odds_ratio`
+
+Ensures both TPR and FPR are equal across groups. Stricter than equal opportunity.
+
+- **Formula:** |TPR_a - TPR_b| + |FPR_a - FPR_b|
+- **Ideal value:** 0.0
+- **Typical threshold:** < 0.20
+- **Requires:** `dimension`, `target`, `prediction`
+- **Reference:** [Hardt et al. 2016](https://arxiv.org/abs/1610.02413)
+
+### `predictive_parity`
+
+Measures precision equality across groups. When a positive prediction is made, it should be equally reliable regardless of group membership.
+
+- **Formula:** |Precision_a - Precision_b|
+- **Ideal value:** 0.0
+- **Typical threshold:** < 0.10
+- **Requires:** `dimension`, `target`, `prediction`
+- **Reference:** [Corbett-Davies et al. 2017](https://arxiv.org/abs/1708.09055)
+
+---
+
+## Multiclass Fairness Metrics
+
+For multi-class classification tasks. See [Multiclass Fairness](/reference/multiclass-fairness/) for detailed usage.
+
+| Registry Key | Description |
+| :--- | :--- |
+| `multiclass_demographic_parity` | Demographic parity extended to multi-class |
+| `multiclass_equal_opportunity` | Equal opportunity per class |
+| `multiclass_confusion_metrics` | Per-group confusion matrix analysis |
+| `weighted_demographic_parity_multiclass` | Class-weighted demographic parity |
+| `macro_equal_opportunity_multiclass` | Macro-averaged equal opportunity |
+| `micro_equalized_odds_multiclass` | Micro-averaged equalized odds |
+| `predictive_parity_multiclass` | Predictive parity per class |
+
+---
+
+## Data Quality Metrics
+
+| Registry Key | Description | Typical Threshold |
+| :--- | :--- | :--- |
+| `disparate_impact` | Four-Fifths Rule ratio between groups | > 0.80 |
+| `class_imbalance` | Minority class proportion | > 0.20 |
+| `group_min_positive_rate` | Minimum positive rate across groups | > 0.10 |
+| `data_completeness` | Proportion of non-null values | > 0.95 |
+
+**Usage example (loan scenario):**
+
+```yaml
+- control-id: credit-data-bias
+  description: "Disparate impact ratio must satisfy the Four-Fifths Rule"
+  props:
+    - name: metric_key
+      value: disparate_impact
+    - name: "input:dimension"
+      value: gender
+    - name: operator
+      value: ">"
+    - name: threshold
+      value: "0.8"
+```
+
+---
+
+## Privacy Metrics
+
+GDPR-aligned privacy measures from `venturalitica.assurance.privacy`.
+
+### `k_anonymity`
+
+Minimum group size when quasi-identifiers are known. Prevents re-identification.
+
+- **Formula:** min(|group|) where groups are defined by quasi-identifiers
+- **Ideal value:** >= 5 (GDPR recommendation)
+- **Requires:** quasi-identifier columns
+
+```python
+from venturalitica.metrics.privacy import calc_k_anonymity
+
+k = calc_k_anonymity(df, quasi_identifiers=["age", "gender", "zipcode"])
+assert k >= 5, "GDPR recommends k >= 5"
+```
+
+### `l_diversity`
+
+Minimum distinct values of a sensitive attribute per quasi-identifier group.
+
+- **Formula:** min(distinct values in sensitive_attribute per QI group)
+- **Ideal value:** >= 2
+
+### `t_closeness`
+
+Maximum distribution difference between groups using Earth Mover Distance.
+
+- **Formula:** max(EMD between group distributions)
+- **Ideal value:** < 0.15
+- **Reference:** [Li et al. 2007](https://en.wikipedia.org/wiki/T-closeness)
+
+### `data_minimization`
+
+GDPR Article 5 compliance -- proportion of non-sensitive columns.
+
+- **Formula:** (total_columns - sensitive_columns) / total_columns
+- **Ideal value:** >= 0.70
+
+```python
+from venturalitica.metrics.privacy import calc_data_minimization_score
+
+score = calc_data_minimization_score(
+    df,
+    sensitive_columns=["age", "income", "health_status"]
+)
+```
+
+---
+
+## Causal Fairness Metrics
+
+Advanced metrics from `venturalitica.assurance.causal`.
+
+| Registry Key | Description |
+| :--- | :--- |
+| `path_decomposition` | Decomposes causal paths to identify direct vs indirect discrimination |
+| `counterfactual_fairness` | Tests whether changing a protected attribute would change the outcome |
+| `fairness_through_awareness` | Ensures similar individuals receive similar predictions |
+| `causal_fairness_diagnostic` | Comprehensive diagnostic combining multiple causal tests |
+
+---
+
+## LLM & Benchmark Aliases
+
+These are convenience aliases that use `calc_mean` internally:
+
+| Registry Key | Use Case |
+| :--- | :--- |
+| `bias_score` | General bias scoring for LLM outputs |
+| `stereotype_preference_rate` | Stereotype detection in generated text |
+| `category_bias_score` | Per-category bias in benchmark evaluations |
+
+---
+
+## ESG / Financial QA Metrics
+
+Specialized metrics for ESG report analysis:
+
+| Registry Key | Description |
+| :--- | :--- |
+| `classification_distribution` | Distribution of ESG classifications |
+| `report_coverage` | Coverage of reporting requirements |
+| `provenance_completeness` | Completeness of data provenance chain |
+| `chunk_diversity` | Diversity of text chunks in RAG pipelines |
+| `subtitle_diversity` | Diversity of section headings in reports |
+
+---
+
+## Fairness Metric Hierarchy
+
+Different metrics capture different fairness concepts, ordered by strictness:
+
+```
+Demographic Parity (least strict)
+    |  Same approval rates across groups
+    v
+Equal Opportunity (medium)
+    |  Same TPR across groups
+    v
+Equalized Odds (most strict)
+    |  Same TPR AND FPR across groups
+    v
+Predictive Parity (orthogonal)
+       Same precision across groups
+```
+
+In practice, a system can pass demographic parity while failing equalized odds. Choose metrics aligned with your risk context:
+
+- **Lending / Hiring:** Equalized odds + predictive parity
+- **Healthcare:** Equalized odds + privacy metrics (k-anonymity >= 5)
+- **Comprehensive audit:** All metrics together
+
+---
+
+## Using Metrics in OSCAL Policies
+
+Every metric can be referenced in an OSCAL policy via the `metric_key` property:
+
+```yaml
+assessment-plan:
+  metadata:
+    title: "Custom Fairness Policy"
+  control-implementations:
+    - description: "Fairness Controls"
+      implemented-requirements:
+        - control-id: my-check
+          props:
+            - name: metric_key
+              value: equalized_odds_ratio    # <-- Registry key
+            - name: threshold
+              value: "0.20"
+            - name: operator
+              value: "<"
+            - name: "input:dimension"
+              value: gender                  # <-- Protected attribute
+```
+
+See [Policy Authoring Guide](/guides/policy-authoring/) for the complete OSCAL format reference.
+
+---
+
+## Adding Custom Metrics
+
+To register a new metric:
+
+1. Create the function in the appropriate module under `venturalitica/assurance/`:
+
+    ```python
+    def calc_my_metric(df, **kwargs) -> float:
+        # Validate inputs
+        if "dimension" not in kwargs:
+            raise ValueError("Missing 'dimension' parameter")
+        # Calculate and return
+        return value
+    ```
+
+2. Register it in `venturalitica/metrics/__init__.py`:
+
+    ```python
+    METRIC_REGISTRY["my_metric"] = calc_my_metric
+    ```
+
+3. Use it in your OSCAL policy via `metric_key: my_metric`.
+
+---
+
+## References
+
+- [Fairlearn](https://fairlearn.org/) -- Microsoft fairness library
+- [AI Fairness 360](https://aif360.readthedocs.io/) -- IBM fairness metrics
+- [GDPR Article 5](https://gdpr-info.eu/art-5-gdpr/) -- Data minimization principle
+- [OSCAL](https://pages.nist.gov/OSCAL/) -- Open Security Controls Assessment Language

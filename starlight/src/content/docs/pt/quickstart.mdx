@@ -1,0 +1,169 @@
+---
+title: "Início Rápido em 60 Segundos"
+sidebar:
+  label: "Início Rápido"
+description: "A sua primeira auditoria de enviesamento em menos de 60 segundos."
+---
+
+**Objetivo**: Realizar a sua primeira auditoria de enviesamento em menos de 60 segundos.
+
+---
+
+## Os Fundamentos: Do Risco ao Código
+
+Desenvolver uma IA de Alto Risco exige uma mudança fundamental na forma como abordamos os testes. Já não basta verificar a precisão técnica (ex: F1 Score); agora é imperativo demonstrar matematicamente que o sistema respeita os direitos fundamentais, como a não discriminação ou a qualidade dos dados, tal como exigido pelo **IA Act da UE**.
+
+A Venturalítica automatiza este processo tratando a **AI Assurance** como uma dependência. Em vez de requisitos legais vagos, você define políticas estritas (OSCAL) que o seu modelo deve validar antes de ser implementado. Isto transforma a conformidade num problema de engenharia determinista.
+
+:::note
+**O meu sistema é de Alto Risco?**
+
+De acordo com o [**Artigo 6**](https://artificialintelligenceact.eu/es/article/6/) do IA Act da UE, um sistema é de Alto Risco se estiver coberto pelo [**Anexo I**](https://artificialintelligenceact.eu/es/annex/1/) (Componentes de Segurança como maquinaria/dispositivos médicos) ou listado no [**Anexo III**](https://artificialintelligenceact.eu/es/annex/3/) (Biometria, Infraestruturas Críticas, Educação, Emprego, Serviços Essenciais, Aplicação da Lei, Migração, Justiça/Democracia).
+:::
+
+**A Camada de Tradução:**
+
+1.  **Risco Fundamental**: "O modelo não deve discriminar grupos protegidos" (Art 9).
+2.  **Controlo de Política**: "O Rácio de Impacto Dispar deve ser > 0.8".
+3.  **Asserção de Código**: `assert metric_calculada > 0.8`.
+
+Ao executar `quickstart()`, está tecnicamente a executar um **Teste Unitário de Ética**.
+
+---
+
+## Passo 1: Instalação
+
+```bash
+pip install venturalitica
+```
+
+---
+
+## Passo 2: Execute a Sua Primeira Auditoria
+
+```python
+import venturalitica as vl
+
+# Executa uma auditoria completa de AI Assurance
+results = vl.quickstart('loan')
+```
+
+**Saída na consola:**
+
+```text
+[Venturalitica v0.5.0] Cenário: Equidade na Avaliação de Crédito
+[Venturalitica v0.5.0] Carregado: UCI Dataset #144 (1000 amostras)
+
+  CONTROLO               DESCRIÇÃO                              ACTUAL     LIMITE     RESULTADO
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  credit-data-imbalance  Qualidade de Dados                     0.429      > 0.2      PASS
+  credit-data-bias       Impacto Dispar                         0.818      > 0.8      PASS
+  credit-age-disparate   Disparidade por Idade                  0.286      > 0.5      FAIL
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  Resumo da Auditoria: VIOLAÇÃO | 2/3 controlos aprovados
+```
+
+:::note
+A auditoria detetou um enviesamento baseado na idade no conjunto de dados UCI German Credit.
+:::
+
+## Passo 3: O que acontece nos bastidores
+
+A função `quickstart()` é um wrapper que realiza o ciclo de vida completo de conformidade:
+
+1.  **Descarrega Dados**: Obtém o dataset UCI German Credit.
+2.  **Carrega Política**: Lê `risks.oscal.yaml` que define as regras de equidade.
+3.  **Aplica Controlos**: Executa a auditoria técnica (`vl.enforce`).
+4.  **Regista Evidências**: Captura os traços (`trace.json`) para o painel de controlo.
+
+Código equivalente "manual":
+
+```python
+from ucimlrepo import fetch_ucirepo
+import venturalitica as vl
+
+# 1. Carregamento de Dados (Fonte de Risco)
+dataset = fetch_ucirepo(id=144)
+df = dataset.data.features
+df['class'] = dataset.data.targets
+
+# 2. Definição de Política (A "Lei")
+# Utiliza-se o padrão NIST OSCAL para definir controlos
+
+# 3. Execução da Auditoria (O "Teste")
+# Gera automaticamente o Evidence Bill of Materials (BOM)
+with vl.monitor("auditoria_manual"):
+    vl.enforce(
+        data=df,
+        target="class",          # Resultado (True/False)
+        gender="Attribute9",     # Grupo Protegido A
+        age="Attribute13",       # Grupo Protegido B
+        policy="risks.oscal.yaml"
+    )
+```
+
+### Lógica de Política (Compliance-as-Code)
+
+O arquivo `risks.oscal.yaml` atua como uma ponte, permitindo desacoplar a **Assurance** (política) da **Engenharia** (código).
+
+```yaml
+# ... excerto do ficheiro OSCAL ...
+- control-id: credit-data-bias
+  description: "O rácio de impacto dispar deve ser > 0.8 (regra dos 80%)"
+  props:
+    - name: metric_key
+      value: disparate_impact   # <--- Função técnica a invocar
+    - name: threshold
+      value: "0.8"              # <--- Limite legal a aplicar
+    - name: operator
+      value: ">"                # <--- Lógica de comparação
+    - name: "input:dimension"
+      value: gender             # <--- Mapeamento para coluna do DataFrame
+```
+
+---
+
+## Por Que é Crucial
+
+Sem este mecanismo, o seu modelo de IA é uma "Caixa Negra" legalmente indefensável:
+
+*   **Responsabilidade**: Não pode provar que auditou o enviesamento *antes* da implementação (Art 9).
+*   **Fragilidade**: A conformidade depende de checklists manuais propensas ao esquecimento.
+*   **Opacidade**: Os auditores não conseguem traçar a ligação entre o código e a regulamentação.
+
+Com `quickstart()`, gerou um **Artefacto de Conformidade** imutável e auditável.
+
+## Passo 4: Dashboard de AI Assurance
+
+Inspecione as evidências no painel de controlo da Venturalítica:
+
+```bash
+venturalitica ui
+```
+
+Explore o **Mapa de Conformidade**:
+
+*   **Artigo 9 (Risco)**: Visualize o controlo falhado `credit-age-disparate`.
+*   **Artigo 10 (Dados)**: Reveja a qualidade e distribuição dos dados.
+*   **Artigo 13 (Transparência)**: Aceda ao **Transparency Feed** e ao BOM de dependências.
+
+---
+
+## Passo 5: Geração de Documentação (Anexo IV)
+
+O último passo é converter estas evidências técnicas num documento legal.
+
+1.  No Dashboard, aceda ao separador **"Geração"**.
+2.  Selecione o idioma (**Português**).
+3.  Clique em **"Gerar Anexo IV"**.
+
+A Venturalítica redigirá automaticamente o rascunho técnico referenciando as suas evidências reais.
+
+---
+
+## O que se segue?
+
+- **[Referência da API](/pt/reference/api/)** -- Documentação completa de funções
+- **[Autoria de Políticas](/pt/guides/policy-authoring/)** -- Crie as suas próprias regras em OSCAL
+- **[Referência de Métricas](/pt/reference/metrics/)** -- Lista das 35+ métricas disponíveis
+- **[Academia Venturalítica](/pt/academy/index/)** -- Percurso de aprendizagem para especialistas em governação

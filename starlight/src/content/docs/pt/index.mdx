@@ -1,0 +1,91 @@
+---
+title: "SDK da Venturalítica AI Assurance"
+sidebar:
+  label: "Introdução"
+description: "Compliance-as-Code para IA de Alto Risco. Transforme código Python em Evidência Legal."
+---
+
+**AI Assurance através de Compliance-as-Code.**
+
+A Venturalítica transforma o seu código Python em **Evidência Legal**. Mapeia automaticamente as suas métricas técnicas, auditorias de dados e registos de execução para o **IA Act da UE (Artigos 9-15)** sem sair do seu ambiente local.
+
+---
+
+## Início rápido em 60 segundos
+
+```bash
+pip install venturalitica
+```
+
+Detete enviesamentos nos seus conjuntos de dados ou modelos com uma única linha de código:
+
+```python
+import venturalitica as vl
+
+# Execute uma auditoria completa de AI Assurance no cenário de empréstimo integrado
+results = vl.quickstart('loan')
+```
+
+Em seguida, inicie o **Dashboard de AI Assurance** para explorar os resultados:
+
+```bash
+venturalitica ui
+```
+
+---
+
+## Principais Funcionalidades
+
+| Funcionalidade | Descrição |
+| :--- | :--- |
+| **`enforce()`** | Audite conjuntos de dados e modelos contra políticas OSCAL com mais de 35 métricas integradas. |
+| **`monitor()`** | Envolva as execuções de treino com recolha automática de evidências (BOM, hardware, carbono). |
+| **Dashboard de AI Assurance** | Fluxo de trabalho regulatório de 4 fases: Identidade, Política, Verificar, Relatar. |
+| **Handshake Criptográfico** | Verificação de integridade entre a política definida e a evidência técnica gerada. |
+| **Política como Código** | Defina regras de garantia no formato `assessment-plan` do OSCAL. |
+| **Column Binding** | Desvincule as políticas dos esquemas através de resolução de colunas baseada em sinónimos. |
+| **Soberania Local** | Zero dependência da nuvem. Toda a execução é feita localmente. |
+| **Anexo IV** | Rascunho automático de documentação técnica a partir de traços locais. |
+
+---
+
+## Documentação
+
+| Guia | Descrição |
+| :--- | :--- |
+| **[Início Rápido](/pt/quickstart/)** | Realize uma análise de conformidade completa em 2 minutos. |
+| **[Referência da API](/pt/reference/api/)** | `enforce()`, `monitor()`, `wrap()`, `quickstart()`, `PolicyManager`. |
+| **[Referência de Métricas](/pt/reference/metrics/)** | Mais de 35 métricas em 7 categorias. |
+| **[Autoria de Políticas](/pt/guides/policy-authoring/)** | Escreva políticas OSCAL do zero. |
+| **[Guia do Dashboard](/pt/guides/dashboard/)** | O fluxo de trabalho de 4 fases da Caixa de Cristal. |
+| **[Column Binding](/pt/guides/column-binding/)** | Mapeie nomes abstratos para colunas de DataFrame. |
+| **[Referência de Probes](/pt/reference/probes/)** | 7 sondas de evidência para conformidade com o IA Act da UE. |
+
+### Academia (Aprendizagem passo a passo)
+
+| Nível | Função | Foco |
+| :--- | :--- | :--- |
+| **[Nível 1](/pt/academy/level1-policy/)** | Autor de Políticas | Escreva a sua primeira política OSCAL para o cenário de empréstimos. |
+| **[Nível 2](/pt/academy/level2-integrator/)** | Integrador | Adicione `enforce()` ao seu pipeline de ML. |
+| **[Nível 3](/pt/academy/level3-auditor/)** | Auditor | Reveja a evidência e interprete os resultados. |
+| **[Nível 4](/pt/academy/level4-annex-iv/)** | Líder de Conformidade | Gere documentação técnica do Anexo IV. |
+
+---
+
+## Instalação
+
+```bash
+pip install venturalitica
+```
+
+Requer Python 3.9+. Para o Dashboard, o extra opcional `dashboard` está incluído por defeito.
+
+---
+
+## Links
+
+[Guia de Início Rápido](/pt/quickstart/) | [Referência da API](/pt/reference/api/) | [GitHub](https://github.com/venturalitica/venturalitica-sdk)
+
+*   **Encontrou um erro ou quer propor uma funcionalidade?** Abra um **[GitHub Issue](https://github.com/venturalitica/venturalitica-sdk/issues/new)**.
+
+(c) 2026 Venturalítica | Construído para uma IA Responsable

@@ -1,0 +1,349 @@
+---
+title: "Ciclo de Vida Completo: De Cero al Anexo IV"
+sidebar:
+  label: "Ciclo de Vida Completo"
+description: "Guía paso a paso del ciclo completo de cumplimiento con Venturalitica usando el escenario de Loan Credit Scoring."
+---
+
+Guía paso a paso del ciclo completo de cumplimiento con Venturalitica, usando el escenario de **Loan Credit Scoring**. Cada paso está listo para copiar y ejecutar.
+
+**Tiempo**: ~15 minutos. **Requisitos previos**: Python 3.9+, `pip install venturalitica`.
+
+---
+
+## Resumen
+
+```text
+Step 1         Step 2           Step 3          Step 4           Step 5
+Install   -->  Write Policy --> Audit Data  --> Audit Model  --> Generate Report
+pip install    OSCAL YAML       enforce()       enforce()        Dashboard Annex IV
+```
+
+Correspondencia con el Reglamento Europeo de IA:
+
+| Paso | Artículo | Propósito |
+| :--- | :--- | :--- |
+| Escribir Política | Art 9 (Gestión de Riesgos) | Definir controles para los riesgos identificados |
+| Auditar Datos | Art 10 (Gobernanza de Datos) | Verificar calidad y equidad de los datos de entrenamiento |
+| Auditar Modelo | Art 15 (Precisión y Robustez) | Verificar el comportamiento del modelo post-entrenamiento |
+| Generar Informe | Art 11 / Anexo IV (Documentación Técnica) | Producir documentación regulatoria |
+
+---
+
+## Paso 1: Instalar y Verificar
+
+```bash
+pip install venturalitica
+```
+
+Prueba rápida de verificación:
+
+```python
+import venturalitica as vl
+results = vl.quickstart("loan")
+# Expected: 2 PASS, 1 FAIL (age disparity)
+```
+
+---
+
+## Paso 2: Escribir los Archivos de Política
+
+Crea dos archivos de política OSCAL en el directorio de tu proyecto.
+
+### `data_policy.oscal.yaml` -- Controles Pre-Entrenamiento
+
+```yaml
+assessment-plan:
+  metadata:
+    title: Credit Risk Assessment Policy (German Credit)
+    version: "1.1"
+  control-implementations:
+    - description: Credit Scoring Fairness Controls
+      implemented-requirements:
+
+        - control-id: credit-data-imbalance
+          description: "Minority class >= 20% of dataset"
+          props:
+            - name: metric_key
+              value: class_imbalance
+            - name: threshold
+              value: "0.2"
+            - name: operator
+              value: gt
+            - name: "input:target"
+              value: target
+
+        - control-id: credit-data-bias
+          description: "Gender disparate impact follows Four-Fifths Rule"
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: threshold
+              value: "0.8"
+            - name: operator
+              value: gt
+            - name: "input:target"
+              value: target
+            - name: "input:dimension"
+              value: gender
+
+        - control-id: credit-age-disparate
+          description: "Age disparate impact ratio > 0.5"
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: threshold
+              value: "0.50"
+            - name: operator
+              value: gt
+            - name: "input:target"
+              value: target
+            - name: "input:dimension"
+              value: age
+```
+
+### `model_policy.oscal.yaml` -- Controles Post-Entrenamiento
+
+```yaml
+assessment-plan:
+  metadata:
+    title: "Article 15: Model Accuracy and Fairness"
+    version: "1.0"
+  control-implementations:
+    - description: Model Assurance Controls
+      implemented-requirements:
+
+        - control-id: model-accuracy
+          description: "Model accuracy >= 70%"
+          props:
+            - name: metric_key
+              value: accuracy_score
+            - name: threshold
+              value: "0.70"
+            - name: operator
+              value: gte
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+
+        - control-id: model-gender-fairness
+          description: "Demographic parity difference < 0.10"
+          props:
+            - name: metric_key
+              value: demographic_parity_diff
+            - name: threshold
+              value: "0.10"
+            - name: operator
+              value: lt
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+            - name: "input:dimension"
+              value: gender
+```
+
+Consulta la [Guía de Redacción de Políticas](/guides/policy-authoring/) para la referencia completa del formato.
+
+---
+
+## Paso 3: Auditar los Datos de Entrenamiento (Artículo 10)
+
+```python
+import venturalitica as vl
+from venturalitica.quickstart import load_sample
+
+# Load the German Credit dataset
+df = load_sample("loan")
+
+# Audit data quality and fairness BEFORE training
+data_results = vl.enforce(
+    data=df,
+    target="class",
+    gender="Attribute9",       # "Personal status and sex"
+    age="Attribute13",         # "Age in years"
+    policy="data_policy.oscal.yaml"
+)
+
+for r in data_results:
+    status = "PASS" if r.passed else "FAIL"
+    print(f"  {r.control_id:<25} {r.actual_value:.3f}  {r.operator} {r.threshold}  {status}")
+```
+
+Salida esperada:
+
+```text
+  credit-data-imbalance     0.429  gt 0.2   PASS
+  credit-data-bias          0.818  gt 0.8   PASS
+  credit-age-disparate      0.286  gt 0.5   FAIL
+```
+
+La disparidad por edad falla. En un proyecto real debería corregirse antes de entrenar. En esta guía continuamos para demostrar el flujo completo.
+
+---
+
+## Paso 4: Entrenar y Auditar el Modelo (Artículo 15)
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+
+# Prepare features (numeric only for simplicity)
+X = df.select_dtypes(include=["number"]).drop(columns=["class"])
+y = df["class"]
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+# Predict on test set
+predictions = model.predict(X_test)
+test_df = X_test.copy()
+test_df["class"] = y_test
+test_df["prediction"] = predictions
+test_df["Attribute9"] = df.loc[X_test.index, "Attribute9"].values  # Restaurar atributo protegido
+
+# Audit model behavior
+model_results = vl.enforce(
+    data=test_df,
+    target="class",
+    prediction="prediction",
+    gender="Attribute9",
+    policy="model_policy.oscal.yaml"
+)
+
+for r in model_results:
+    status = "PASS" if r.passed else "FAIL"
+    print(f"  {r.control_id:<25} {r.actual_value:.3f}  {r.operator} {r.threshold}  {status}")
+```
+
+---
+
+## Paso 5: Envolver con Recolección de Evidencia
+
+En producción, envuelve todo el Pipeline con `vl.monitor()` para capturar evidencia automáticamente:
+
+```python
+import venturalitica as vl
+from venturalitica.quickstart import load_sample
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+
+df = load_sample("loan")
+
+with vl.monitor("loan_full_audit"):
+    # --- Article 10: Data Audit ---
+    data_results = vl.enforce(
+        data=df,
+        target="class",
+        gender="Attribute9",
+        age="Attribute13",
+        policy="data_policy.oscal.yaml"
+    )
+
+    # --- Train ---
+    X = df.select_dtypes(include=["number"]).drop(columns=["class"])
+    y = df["class"]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X_train, y_train)
+
+    # --- Article 15: Model Audit ---
+    test_df = X_test.copy()
+    test_df["class"] = y_test
+    test_df["prediction"] = model.predict(X_test)
+    test_df["Attribute9"] = df.loc[X_test.index, "Attribute9"].values
+
+    model_results = vl.enforce(
+        data=test_df,
+        target="class",
+        prediction="prediction",
+        gender="Attribute9",
+        policy="model_policy.oscal.yaml"
+    )
+
+# Evidence is now saved in .venturalitica/
+# - trace_loan_full_audit.json  (execution trace)
+# - results.json                (compliance results)
+```
+
+El context manager `monitor()` captura automáticamente:
+
+- **Hardware probe**: información de CPU, RAM y GPU
+- **Carbon probe**: estimación del consumo energético
+- **BOM probe**: lista de materiales de software (paquetes instalados)
+- **Artifact probe**: hashes SHA-256 de archivos de datos y políticas
+- **Trace probe**: análisis AST del código ejecutado
+
+Consulta la [Referencia de Probes](/reference/probes/) para detalles sobre cada probe.
+
+---
+
+## Paso 6: Visualizar y Generar el Anexo IV
+
+### Lanzar el Dashboard
+
+```bash
+venturalitica ui
+```
+
+El Dashboard presenta los resultados en 4 fases:
+
+| Fase | Contenido |
+| :--- | :--- |
+| **1. Identidad del Sistema** | Nombre del proyecto, versión, clasificación del sistema de IA |
+| **2. Política de Riesgos** | Tus controles OSCAL con estado aprobado/fallido |
+| **3. Verificar y Evaluar** | Valores de métricas, gráficos, hashes de evidencia |
+| **4. Informe Técnico** | Generador del documento Anexo IV |
+
+### Generar el Anexo IV
+
+1. Navega a la Fase 4 en el Dashboard
+2. Selecciona tu proveedor de LLM (Mistral API, Ollama o ALIA)
+3. Haz clic en **Generate Annex IV**
+4. El sistema lee tus archivos de traza y redacta un documento regulatorio
+
+Resultado: `Annex_IV.md` -- un documento estructurado que cita tus valores reales de métricas como prueba de cumplimiento.
+
+Convertir a PDF:
+
+```bash
+pip install mdpdf
+mdpdf Annex_IV.md
+```
+
+---
+
+## Archivos Producidos
+
+Tras ejecutar el ciclo de vida completo, tu proyecto contiene:
+
+```text
+my-project/
+  data_policy.oscal.yaml            # Paso 2: Controles de gobernanza de datos
+  model_policy.oscal.yaml           # Paso 2: Controles de aseguramiento del modelo
+  .venturalitica/
+    results.json                    # Paso 3-4: Resultados de cumplimiento (últimos)
+    runs/
+      latest -> loan_full_audit_…   # Symlink a la ejecución más reciente
+      loan_full_audit_<timestamp>/
+        trace_loan_full_audit.json  # Paso 5: Traza completa de ejecución
+        results.json                # Resultados por ejecución
+        bom.json                    # Lista de materiales de software
+  Annex_IV.md                      # Paso 6: Documentación generada
+```
+
+---
+
+## Siguientes Pasos
+
+- **[Referencia de Métricas](/reference/metrics/)** -- Las 35+ métricas disponibles
+- **[Academy Nivel 1](/academy/level1-policy/)** -- Profundización en la redacción de políticas
+- **[Column Binding](/guides/column-binding/)** -- Cómo los nombres abstractos se mapean a columnas
+- **[Guía del Dashboard](/guides/dashboard/)** -- Recorrido detallado del Dashboard

@@ -1,0 +1,265 @@
+---
+title: "Referencia de Probes"
+sidebar:
+  label: "Probes"
+description: "Los 7 probes de evidencia multimodal que alimentan vl.monitor() para cumplimiento con la Ley de IA de la UE."
+---
+
+El sistema de probes impulsa `vl.monitor()`. Cuando envuelves tu código en un context manager de monitor, 7 probes se activan automáticamente para capturar evidencia multimodal sobre tu entorno de ejecución, linaje de datos y estado de cumplimiento normativo.
+
+```python
+with vl.monitor("training_run"):
+    # Las 7 probes estan activas aqui
+    model.fit(X, y)
+    vl.enforce(data=df, policy="policy.oscal.yaml")
+```
+
+---
+
+## Arquitectura de Probes
+
+Todas las probes extienden `BaseProbe` e implementan:
+
+- **`start()`** -- Se invoca cuando el context manager del monitor se abre
+- **`stop()`** -- Se invoca cuando el context manager del monitor se cierra; devuelve un diccionario de resultados
+- **`get_summary()`** -- Devuelve un resumen legible de una línea
+
+Las probes están diseñadas para ser no invasivas: si una probe falla (por ejemplo, por una dependencia opcional ausente), se degrada silenciosamente sin interrumpir tu código.
+
+---
+
+## Referencia de Probes
+
+### IntegrityProbe
+
+**Propósito:** Genera una huella digital SHA-256 del entorno de ejecución y detecta desviaciones.
+
+**EU AI Act:** Artículo 15 (Precisión, Robustez y Ciberseguridad)
+
+**Qué captura:**
+
+| Campo | Descripción |
+| :--- | :--- |
+| `fingerprint` | Hash SHA-256 de `{OS}-{Python version}-{CWD}` (primeros 12 caracteres) |
+| `metadata.os` | Sistema operativo y versión |
+| `metadata.python` | Versión de Python |
+| `metadata.arch` | Arquitectura de CPU |
+| `metadata.node` | Nombre de host de la máquina |
+| `metadata.cwd` | Directorio de trabajo actual |
+| `drift_detected` | `true` si la huella cambió entre start y stop |
+
+**Ejemplo de salida:**
+```
+  [Security] Fingerprint: 89fbf3a21c04 | Integrity: Stable
+```
+
+**Por qué importa:** Demuestra que el entorno no cambió durante la ejecución. Si alguien sustituye el dataset o cambia el directorio de trabajo a mitad de ejecución, la desviación se detecta.
+
+---
+
+### HardwareProbe
+
+**Propósito:** Registra el uso pico de RAM y el número de CPUs.
+
+**EU AI Act:** Artículo 15 (Precisión, Robustez y Ciberseguridad)
+
+**Qué captura:**
+
+| Campo | Descripción |
+| :--- | :--- |
+| `peak_memory_mb` | Memoria pico RSS en megabytes |
+| `cpu_count` | Número de núcleos de CPU disponibles |
+
+**Dependencia opcional:** `psutil` (se degrada correctamente si no está instalado)
+
+**Ejemplo de salida:**
+```
+  [Hardware] Peak Memory: 256.42 MB | CPUs: 8
+```
+
+---
+
+### CarbonProbe
+
+**Propósito:** Rastrea las emisiones de CO2 durante el entrenamiento usando CodeCarbon.
+
+**EU AI Act:** Artículo 15 (Robustez -- reporte de impacto ambiental)
+
+**Qué captura:**
+
+| Campo | Descripción |
+| :--- | :--- |
+| `emissions_kg` | Emisiones de carbono estimadas en kilogramos de CO2 |
+
+**Dependencia opcional:** `codecarbon` (muestra una advertencia si no está instalado)
+
+**Ejemplo de salida:**
+```
+  [Green AI] Carbon emissions: 0.000042 kgCO2
+```
+
+**Por qué importa:** Algunos marcos regulatorios e informes ESG requieren la divulgación del impacto de carbono para entrenamientos de IA intensivos en cómputo.
+
+---
+
+### BOMProbe
+
+**Propósito:** Captura un SBOM (Software Bill of Materials) en tiempo de ejecución.
+
+**EU AI Act:** Artículo 13 (Transparencia e Información)
+
+**Qué captura:**
+
+| Campo | Descripción |
+| :--- | :--- |
+| `component_count` | Número de paquetes Python en el entorno |
+| `bom` | SBOM completo en formato JSON (compatible con CycloneDX) |
+| `bom_path` | Ruta del archivo donde se guardó el SBOM |
+
+**Donde se guarda:** `{session_dir}/bom.json` o `.venturalitica/bom.json`
+
+**Ejemplo de salida:**
+```
+  [Supply Chain] BOM Captured: 142 components linked.
+```
+
+**Por qué importa:** Se corresponde con los requisitos de transparencia del Artículo 13. El SBOM demuestra exactamente qué versiones de librerías se utilizaron, habilitando la auditoría de vulnerabilidades en la cadena de suministro (escaneo de CVE).
+
+---
+
+### ArtifactProbe
+
+**Propósito:** Rastrea artefactos de entrada y salida para el linaje de datos.
+
+**EU AI Act:** Artículo 10 (Datos y Gobernanza de Datos)
+
+**Parámetros del constructor:**
+
+| Parámetro | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `inputs` | `List[str]` o `None` | Rutas a archivos de entrada (datasets, configuraciones) |
+| `outputs` | `List[str]` o `None` | Rutas a archivos de salida (modelos, gráficos) |
+
+**Qué captura:**
+
+| Campo | Descripción |
+| :--- | :--- |
+| `inputs` | Instantánea de los artefactos de entrada al inicio (nombre, hash, metadatos) |
+| `outputs` | Instantánea de los artefactos de salida al finalizar |
+
+**Uso:**
+
+```python
+with vl.monitor("training",
+                inputs=["data/train.csv"],
+                outputs=["models/credit_model.pkl"]):
+    model.fit(X, y)
+```
+
+**Ejemplo de salida:**
+```
+  [Artifacts] Inputs: 1 | Outputs: 1 (Deep Integration)
+```
+
+---
+
+### HandshakeProbe
+
+**Propósito:** Verifica si `vl.enforce()` fue invocado dentro de la sesión del monitor.
+
+**EU AI Act:** Artículo 9 (Sistema de Gestión de Riesgos)
+
+**Qué captura:**
+
+| Campo | Descripción |
+| :--- | :--- |
+| `is_compliant` | `true` si `enforce()` fue invocado en algún momento |
+| `newly_enforced` | `true` si `enforce()` fue invocado durante esta sesión (no antes) |
+
+**Ejemplo de salida (sin enforcement detectado):**
+```
+  [Handshake] Nudge: No policy enforcement detected yet. Run `vl.enforce()` to ensure compliance.
+```
+
+**Ejemplo de salida (enforcement detectado):**
+```
+  [Handshake] Policy enforced verifyable audit trail present.
+```
+
+**Por qué importa:** Promueve el flujo de trabajo de cumplimiento. Si un desarrollador usa `monitor()` para entrenamiento pero olvida invocar `enforce()`, la probe Handshake le recuerda que debe aplicar la política de cumplimiento.
+
+---
+
+### TraceProbe
+
+**Propósito:** Captura evidencia lógica de ejecución, incluyendo análisis de código AST, marcas de tiempo y contexto de invocación.
+
+**EU AI Act:** Artículos 10 y 11 (Gobernanza de Datos y Documentación Técnica)
+
+**Parámetros del constructor:**
+
+| Parámetro | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `run_name` | `str` | Nombre para este trace (usado en el nombre del archivo) |
+| `label` | `str` o `None` | Etiqueta opcional de categorización |
+
+**Qué captura:**
+
+| Campo | Descripción |
+| :--- | :--- |
+| `name` | Nombre de la ejecución |
+| `label` | Etiqueta opcional |
+| `timestamp` | Marca de tiempo ISO-8601 al finalizar la sesión |
+| `duration_seconds` | Tiempo de ejecución en reloj de pared |
+| `success` | `true` si no se lanzó ninguna excepción |
+| `code_context.file` | Nombre del script del usuario que invocó `monitor()` |
+| `code_context.analysis` | Análisis AST del script (llamadas a funciones, imports, estructura) |
+
+**Donde se guarda:** `{session_dir}/trace_{run_name}.json` o `.venturalitica/trace_{run_name}.json`
+
+**Ejemplo de salida:**
+```
+  [Trace] Context: train_model.py | Evidence saved to .venturalitica/trace_credit_model_v1.json
+```
+
+**Por qué importa:** El archivo de trace es el artefacto de evidencia principal. Demuestra no solo los resultados, sino CÓMO se calcularon -- qué script se ejecutó, cuánto tiempo tomó y si finalizó exitosamente.
+
+---
+
+## Estructura del Directorio de Evidencia
+
+Después de una sesión de `monitor()`, la evidencia se guarda en:
+
+```
+.venturalitica/
+  results.json              # resultados de enforce() (acumulativos)
+  trace_{run_name}.json     # salida de TraceProbe
+  bom.json                  # salida de BOMProbe
+  sessions/
+    {session_id}/
+      results.json          # resultados de enforce() especificos de la sesion
+      trace_{run_name}.json # trace especifico de la sesion
+      bom.json              # SBOM especifico de la sesion
+```
+
+El Dashboard lee estos archivos para poblar la Fase 3 (Verificar y Evaluar).
+
+---
+
+## Dependencias de las Probes
+
+| Probe | Requerida | Dependencia opcional |
+| :--- | :--- | :--- |
+| IntegrityProbe | Incluida | -- |
+| HardwareProbe | Incluida | `psutil` (para datos de memoria/CPU) |
+| CarbonProbe | Incluida | `codecarbon` (para rastreo de emisiones) |
+| BOMProbe | Incluida | -- |
+| ArtifactProbe | Incluida | -- |
+| HandshakeProbe | Incluida | -- |
+| TraceProbe | Incluida | -- |
+
+Instalar dependencias opcionales:
+
+```bash
+pip install psutil codecarbon
+```

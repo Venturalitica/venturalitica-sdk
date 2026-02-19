@@ -1,0 +1,236 @@
+---
+title: "Métricas de Equidad Multiclase"
+sidebar:
+  label: "Equidad Multiclase"
+description: "7 métricas de equidad multiclase para sistemas de IA con 3+ clases de salida, incluyendo análisis interseccional."
+---
+
+Venturalitica incluye 7 métricas de equidad multiclase para evaluar sistemas de IA con más de 2 clases de salida (por ejemplo, grados de riesgo crediticio A/B/C/D, clasificación multi-etiqueta, categorías de sentimiento). Estas extienden los conceptos tradicionales de equidad binaria a escenarios multiclase.
+
+## Cuándo Usar Métricas Multiclase
+
+Utilice estas métricas cuando su modelo produce **3+ clases**. Las métricas binarias como `disparate_impact` o `demographic_parity_diff` solo funcionan con salidas de 2 clases. Las métricas multiclase agregan la equidad a través de todas las etiquetas de clase.
+
+Escenarios comunes:
+
+- Calificación de riesgo crediticio (A, B, C, D, E)
+- Categorías de recomendación de empleo
+- Clasificación de diagnóstico médico
+- Etiquetas de moderación de contenido
+
+---
+
+## Referencia de Métricas
+
+### 1. `multiclass_demographic_parity`
+
+**Qué mide**: Disparidad máxima en las tasas de predicción entre grupos protegidos, agregada sobre todas las clases usando descomposición one-vs-rest.
+
+**Fórmula**: Para cada clase `c`, se calcula `P(Y_hat=c | A=a)` para cada grupo `a`. La disparidad para la clase `c` es `max(rates) - min(rates)`. Se devuelve la disparidad máxima entre todas las clases.
+
+**Valor ideal**: 0.0 (todos los grupos reciben cada clase en tasas iguales).
+
+**Registry key**: `multiclass_demographic_parity`
+
+**Entradas requeridas**: `target`, `prediction`, `dimension`
+
+```yaml
+- control-id: mc-demographic-parity
+  description: "Multi-class demographic parity < 0.15"
+  props:
+    - name: metric_key
+      value: multiclass_demographic_parity
+    - name: threshold
+      value: "0.15"
+    - name: operator
+      value: lt
+    - name: "input:target"
+      value: target
+    - name: "input:prediction"
+      value: prediction
+    - name: "input:dimension"
+      value: gender
+```
+
+---
+
+### 2. `multiclass_equal_opportunity`
+
+**Qué mide**: Disparidad máxima en las tasas de verdaderos positivos (TPR) entre grupos protegidos, usando descomposición one-vs-rest. Garantiza que cada grupo tenga la misma probabilidad de ser clasificado correctamente para cada clase.
+
+**Fórmula**: Para cada clase `c`, se calcula el TPR por grupo: `P(Y_hat=c | Y=c, A=a)`. Disparidad = `max(TPRs) - min(TPRs)`. Se devuelve la disparidad máxima entre clases.
+
+**Valor ideal**: 0.0 (recall igual para todos los grupos en cada clase).
+
+**Registry key**: `multiclass_equal_opportunity`
+
+**Entradas requeridas**: `target`, `prediction`, `dimension`
+
+---
+
+### 3. `multiclass_confusion_metrics`
+
+**Qué mide**: Precisión/recall por clase y exactitud por grupo. Devuelve un diccionario (no un escalar), útil para diagnósticos detallados en lugar de umbrales de política.
+
+**Tipo de retorno**: `Dict` con las claves `per_class_metrics` (precisión/recall por clase) y `per_group_performance` (exactitud por grupo).
+
+**Registry key**: `multiclass_confusion_metrics`
+
+**Entradas requeridas**: `target`, `prediction`, `dimension`
+
+:::note
+Esta métrica devuelve un diccionario, no un float. Está diseñada principalmente para reportes de diagnóstico y puede no funcionar directamente con controles OSCAL basados en umbrales. Use `calc_multiclass_fairness_report()` en Python para un análisis combinado.
+:::
+
+---
+
+### 4. `weighted_demographic_parity_multiclass`
+
+**Qué mide**: Paridad demográfica con estrategia de agregación configurable entre clases.
+
+**Estrategias** (configuradas via el parámetro `strategy`):
+
+| Estrategia | Descripción |
+| :--- | :--- |
+| `macro` (por defecto) | Disparidad máxima entre todas las clases |
+| `micro` | Disparidad máxima usando distribuciones de predicción normalizadas |
+| `one-vs-rest` | Igual que macro pero con descomposición one-vs-rest explícita |
+| `weighted` | Disparidades ponderadas por prevalencia de clase |
+
+**Fórmula (macro)**: Igual que `multiclass_demographic_parity`, pero con control de estrategia.
+
+**Valor ideal**: 0.0
+
+**Registry key**: `weighted_demographic_parity_multiclass`
+
+**Entradas requeridas**: `target` (no utilizado pero validado), `prediction`, `dimension`
+
+**Muestras mínimas**: 30
+
+---
+
+### 5. `macro_equal_opportunity_multiclass`
+
+**Qué mide**: Igualdad de oportunidad promediada por macro. Calcula la disparidad de TPR para cada clase (one-vs-rest) y luego devuelve el máximo.
+
+**Fórmula**: Para cada clase `c`, se binariza como `y_true_c = (y == c)`. Se calcula el TPR por grupo. Disparidad = `max(TPRs) - min(TPRs)`. Se devuelve `max(disparities)`.
+
+**Valor ideal**: 0.0
+
+**Registry key**: `macro_equal_opportunity_multiclass`
+
+**Entradas requeridas**: `target`, `prediction`, `dimension`
+
+**Muestras mínimas**: 30
+
+---
+
+### 6. `micro_equalized_odds_multiclass`
+
+**Qué mide**: Disparidad combinada de TPR + FPR entre grupos. Mide si la exactitud general y la tasa de error del modelo son equitativas entre grupos protegidos.
+
+**Fórmula**: Para cada grupo, se calcula la exactitud general y la tasa de error. Se devuelve `(max_accuracy - min_accuracy) + (max_error_rate - min_error_rate)`.
+
+**Valor ideal**: 0.0 (sin disparidad de exactitud/error entre grupos).
+
+**Registry key**: `micro_equalized_odds_multiclass`
+
+**Entradas requeridas**: `target`, `prediction`, `dimension`
+
+**Muestras mínimas**: 30
+
+---
+
+### 7. `predictive_parity_multiclass`
+
+**Qué mide**: Disparidad de precisión entre grupos protegidos para cada clase. Garantiza que cuando el modelo predice una clase, sea igualmente preciso para todos los grupos.
+
+**Estrategias**: `macro` (por defecto), `weighted`
+
+**Fórmula (macro)**: Para cada clase `c`, se calcula la precisión por grupo: `P(Y=c | Y_hat=c, A=a)`. Disparidad = `max(precisions) - min(precisions)`. Se devuelve el máximo entre clases.
+
+**Valor ideal**: 0.0
+
+**Registry key**: `predictive_parity_multiclass`
+
+**Entradas requeridas**: `target`, `prediction`, `dimension`
+
+:::note
+Esta métrica devuelve una tupla `(value, metadata)` donde metadata contiene `total_samples`, `min_class_support` y `min_prediction_support`.
+:::
+
+---
+
+## Tabla Resumen
+
+| Registry Key | Qué Verifica | Ideal | Estrategias |
+| :--- | :--- | :--- | :--- |
+| `multiclass_demographic_parity` | Paridad en tasa de predicción (OVR) | 0.0 | Agregación `max`, `macro` |
+| `multiclass_equal_opportunity` | Paridad de TPR (OVR) | 0.0 | -- |
+| `multiclass_confusion_metrics` | Diagnósticos por clase/grupo | Dict | -- |
+| `weighted_demographic_parity_multiclass` | Paridad en tasa de predicción | 0.0 | `macro`, `micro`, `one-vs-rest`, `weighted` |
+| `macro_equal_opportunity_multiclass` | Paridad de TPR (macro) | 0.0 | -- |
+| `micro_equalized_odds_multiclass` | Paridad de exactitud + error | 0.0 | -- |
+| `predictive_parity_multiclass` | Paridad de precisión | 0.0 | `macro`, `weighted` |
+
+---
+
+## Reporte Integral
+
+Para una vista combinada, utilice la función `calc_multiclass_fairness_report()` en Python:
+
+```python
+from venturalitica.metrics import calc_multiclass_fairness_report
+
+report = calc_multiclass_fairness_report(
+    y_true=df["target"],
+    y_pred=df["prediction"],
+    protected_attr=df["gender"]
+)
+
+# Returns dict with:
+# - weighted_demographic_parity_macro
+# - macro_equal_opportunity
+# - micro_equalized_odds
+# - predictive_parity_macro
+```
+
+### Análisis Interseccional
+
+Para equidad interseccional (por ejemplo, género x edad), pase múltiples atributos:
+
+```python
+from venturalitica.assurance.fairness.multiclass_reporting import calc_intersectional_metrics
+
+results = calc_intersectional_metrics(
+    y_true=df["target"],
+    y_pred=df["prediction"],
+    protected_attrs={
+        "gender": df["gender"],
+        "age_group": df["age_group"]
+    }
+)
+
+# Returns:
+# - intersectional_disparity: max - min accuracy across slices
+# - worst_slice: e.g., "female x elderly"
+# - best_slice: e.g., "male x young"
+# - slice_details: accuracy per intersection
+```
+
+---
+
+## Restricciones
+
+- **Muestras mínimas**: La mayoría de las métricas multiclase requieren >= 30 muestras y lanzan un `ValueError` en caso contrario.
+- **Grupos mínimos**: Se requieren al menos 2 grupos protegidos.
+- **Clases mínimas**: Se requieren al menos 2 clases (aunque para problemas de 2 clases, se prefieren las métricas binarias más simples).
+- **Dependencia opcional**: Algunas métricas usan Fairlearn internamente. Instale con `pip install fairlearn` si es necesario.
+
+---
+
+## Relacionado
+
+- **[Referencia de Métricas](/reference/metrics/)** -- Las 35+ métricas incluyendo equidad binaria, privacidad y rendimiento
+- **[Redacción de Políticas](/guides/policy-authoring/)** -- Cómo usar registry keys en controles OSCAL
+- **[Vinculación de Columnas](/guides/column-binding/)** -- Cómo `dimension`, `target`, `prediction` se mapean a columnas

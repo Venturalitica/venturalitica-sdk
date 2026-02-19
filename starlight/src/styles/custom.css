@@ -1,0 +1,226 @@
+/* ============================================================
+   Venturalítica Docs — Custom Starlight Theme
+   Brand palette: Navy (#0b3260) + Gold (#ebb024)
+   Matches landing (venturalitica.com) and SaaS app design system
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   Fonts — Roboto family for consistency with SaaS app
+   ---------------------------------------------------------- */
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/700.css';
+@import '@fontsource/roboto-condensed/400.css';
+@import '@fontsource/roboto-condensed/700.css';
+@import '@fontsource/roboto-mono/400.css';
+@import '@fontsource/roboto-mono/500.css';
+
+/* ----------------------------------------------------------
+   Dark Mode (Starlight default = :root)
+   Deep navy background, gold accent, light text
+   ---------------------------------------------------------- */
+:root {
+  /* Accent scale — gold tones */
+  --sl-color-accent-low: #2a2210;       /* dark warm brown for low-contrast gold bg */
+  --sl-color-accent: #ebb024;            /* brand gold */
+  --sl-color-accent-high: #f5d98a;       /* light gold for text on dark bg */
+
+  /* Gray scale — navy-tinted */
+  --sl-color-white: #f5f6fa;
+  --sl-color-gray-1: #cdd5e5;
+  --sl-color-gray-2: #9aa5bd;
+  --sl-color-gray-3: #6b7a97;
+  --sl-color-gray-4: #3f506e;
+  --sl-color-gray-5: #1a2d4d;
+  --sl-color-gray-6: #0e2244;
+  --sl-color-black: #071a37;
+
+  /* Semantic overrides */
+  --sl-color-bg: #071a37;
+  --sl-color-bg-nav: #0b2040;
+  --sl-color-bg-sidebar: #0b2040;
+  --sl-color-text: #cdd5e5;
+
+  /* Fonts */
+  --sl-font: 'Roboto', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --sl-font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+/* ----------------------------------------------------------
+   Light Mode
+   Near-white background, navy accent, dark text
+   ---------------------------------------------------------- */
+:root[data-theme='light'],
+[data-theme='light'] ::backdrop {
+  /* Accent scale — navy tones */
+  --sl-color-accent-low: #e0ecfa;        /* very light navy wash */
+  --sl-color-accent: #0b3260;            /* brand navy */
+  --sl-color-accent-high: #082c5b;       /* deep navy for high-contrast text */
+
+  /* Gray scale — neutral with slight navy tint */
+  --sl-color-white: #082c5b;             /* "white" = darkest text in light mode */
+  --sl-color-gray-1: #0e3366;
+  --sl-color-gray-2: #2c4a6e;
+  --sl-color-gray-3: #4e6584;
+  --sl-color-gray-4: #8494ac;
+  --sl-color-gray-5: #c8ceda;
+  --sl-color-gray-6: #eef1f6;
+  --sl-color-gray-7: #f7f8fb;
+  --sl-color-black: #fefefd;             /* brand near-white background */
+
+  /* Semantic overrides */
+  --sl-color-bg: #fefefd;
+  --sl-color-bg-nav: #f7f8fb;
+  --sl-color-bg-sidebar: #fefefd;
+  --sl-color-text: #2c4a6e;
+  --sl-color-bg-inline-code: #eef1f6;
+}
+
+/* ----------------------------------------------------------
+   Global refinements
+   ---------------------------------------------------------- */
+
+/* Slightly wider content for readability */
+:root {
+  --sl-content-width: 48rem;
+}
+
+/* Nav bar — add subtle bottom border and brand treatment */
+header.header {
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+/* Site title — Roboto Condensed, tracking-wide to match logo style */
+.site-title {
+  font-family: 'Roboto Condensed', var(--sl-font);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ----------------------------------------------------------
+   Sidebar refinements
+   ---------------------------------------------------------- */
+
+/* Active sidebar link — gold accent bar in dark mode, navy in light */
+nav.sidebar-content a[aria-current='page'] {
+  border-inline-start: 3px solid var(--sl-color-accent);
+  padding-inline-start: 0.75rem;
+  font-weight: 500;
+}
+
+/* Sidebar group labels — condensed font */
+.sidebar-content .top-level > li > details > summary span,
+.sidebar-content .top-level > li > a span {
+  font-family: 'Roboto Condensed', var(--sl-font);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: var(--sl-text-xs);
+}
+
+/* ----------------------------------------------------------
+   Content area polish
+   ---------------------------------------------------------- */
+
+/* Headings — Roboto Condensed for visual hierarchy */
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4 {
+  font-family: 'Roboto Condensed', var(--sl-font);
+  font-weight: 700;
+}
+
+/* Links — gold underline on hover in dark mode, navy in light */
+.sl-markdown-content a {
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.15em;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.sl-markdown-content a:hover {
+  text-decoration-color: var(--sl-color-accent);
+}
+
+/* Inline code — subtle brand tint */
+.sl-markdown-content :not(pre) > code {
+  border-radius: 0.25rem;
+  padding: 0.15em 0.35em;
+  font-size: 0.9em;
+}
+
+/* ----------------------------------------------------------
+   Code blocks — navy-tinted dark background
+   ---------------------------------------------------------- */
+.sl-markdown-content pre {
+  border-radius: 0.5rem;
+  border: 1px solid var(--sl-color-hairline-light);
+  box-shadow: 0 2px 8px rgba(7, 26, 55, 0.12);
+}
+
+/* ----------------------------------------------------------
+   Admonitions / Asides — subtle brand styling
+   ---------------------------------------------------------- */
+.starlight-aside {
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-left-width: 3px;
+}
+
+/* ----------------------------------------------------------
+   Cards & link cards
+   ---------------------------------------------------------- */
+.sl-link-card {
+  border-radius: 0.625rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sl-link-card:hover {
+  border-color: var(--sl-color-accent);
+  box-shadow: 0 4px 16px rgba(7, 26, 55, 0.1);
+}
+
+/* ----------------------------------------------------------
+   Hero section (landing page if used)
+   ---------------------------------------------------------- */
+.hero {
+  padding-block: 3rem;
+}
+
+/* ----------------------------------------------------------
+   Footer & pagination — add breathing room
+   ---------------------------------------------------------- */
+.pagination-links {
+  margin-block-start: 2rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid var(--sl-color-hairline-light);
+}
+
+/* ----------------------------------------------------------
+   Search modal — brand-consistent
+   ---------------------------------------------------------- */
+dialog::backdrop {
+  background: rgba(7, 26, 55, 0.6);
+}
+
+/* ----------------------------------------------------------
+   Scrollbar styling (subtle navy/gold)
+   ---------------------------------------------------------- */
+:root {
+  scrollbar-color: var(--sl-color-gray-4) transparent;
+  scrollbar-width: thin;
+}
+
+/* ----------------------------------------------------------
+   Selection — gold highlight
+   ---------------------------------------------------------- */
+::selection {
+  background: rgba(235, 176, 36, 0.25);
+  color: inherit;
+}
+
+:root[data-theme='light'] ::selection {
+  background: rgba(11, 50, 96, 0.15);
+  color: inherit;
+}

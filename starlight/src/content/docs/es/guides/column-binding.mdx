@@ -1,0 +1,137 @@
+---
+title: "Vinculación de Columnas"
+sidebar:
+  label: "Column Binding"
+description: "Cómo Venturalitica mapea conceptos abstractos a nombres reales de columna mediante sinónimos."
+---
+
+Venturalitica utiliza un sistema de **vinculación de columnas basado en sinónimos** para mapear conceptos abstractos (como "gender" o "age") a nombres reales de columnas en un DataFrame (como "Attribute9" o "Attribute13"). Esto desacopla las políticas OSCAL de los esquemas específicos de cada conjunto de datos.
+
+---
+
+## Cómo Funciona
+
+Cuando se invoca `vl.enforce()`, el SDK resuelve los nombres de columna en tres pasos:
+
+1. **Parámetros explícitos**: Verifica si los valores de `target` o `prediction` existen como nombres de columna
+2. **Descubrimiento por sinónimos**: Busca el nombre de la columna en `COLUMN_SYNONYMS`
+3. **Fallback en minúsculas**: Intenta una coincidencia sin distinguir mayúsculas de minúsculas
+
+### Ejemplo
+
+```python
+vl.enforce(
+    data=df,
+    target="class",          # Explicito: busca la columna 'class'
+    gender="Attribute9",     # Mapeo de atributo: 'gender' -> 'Attribute9'
+    age="Attribute13",       # Mapeo de atributo: 'age' -> 'Attribute13'
+    policy="data_policy.oscal.yaml"
+)
+```
+
+En la política OSCAL, los controles referencian nombres abstractos como `gender` y `age` mediante `input:dimension`. El SDK los resuelve a las columnas reales en tiempo de ejecución.
+
+---
+
+## Diccionario de Sinónimos
+
+El diccionario integrado `COLUMN_SYNONYMS` mapea roles semánticos a variantes conocidas de nombres de columna:
+
+| Rol | Sinónimos Conocidos |
+| :--- | :--- |
+| `gender` | `sex`, `gender`, `sexo`, `Attribute9` |
+| `age` | `age`, `age_group`, `edad`, `Attribute13` |
+| `race` | `race`, `ethnicity`, `raza` |
+| `target` | `target`, `class`, `label`, `y`, `true_label`, `ground_truth`, `approved`, `default`, `outcome` |
+| `prediction` | `prediction`, `pred`, `y_pred`, `predictions`, `score`, `proba`, `output` |
+| `dimension` | `sex`, `gender`, `age`, `race`, `Attribute9`, `Attribute13` |
+
+### Descubrimiento Automático
+
+Si no se proporciona un mapeo de columnas de forma explícita, el SDK descubre automáticamente las columnas escaneando el DataFrame en busca de sinónimos conocidos:
+
+```python
+# Estas dos llamadas son equivalentes para el dataset UCI German Credit:
+vl.enforce(data=df, target="class", gender="Attribute9")
+vl.enforce(data=df)  # Descubre automaticamente 'class' como target y 'Attribute9' como gender
+```
+
+---
+
+## Funciones de Resolución
+
+### `discover_column(requested, context_mapping, data, synonyms)`
+
+Descubre una columna individual usando el siguiente orden de prioridad:
+
+1. Verificar `context_mapping` (mapeo proporcionado explícitamente por el usuario)
+2. Verificar si `requested` es un nombre de columna directo
+3. Buscar en `COLUMN_SYNONYMS` un grupo coincidente
+4. Fallback en minúsculas
+5. Devolver `"MISSING"` si no se encuentra
+
+### `resolve_col_names(val, data, synonyms)`
+
+Resuelve uno o más nombres de columna a partir de una cadena o lista:
+
+- Soporta cadenas separadas por comas: `"target, gender"`
+- Soporta listas: `["target", "gender"]`
+- Devuelve una lista de nombres de columna resueltos
+
+---
+
+## El Handshake entre Política y Código
+
+La vinculación de columnas conecta los **requisitos legales** (políticas OSCAL) con la **realidad técnica** (DataFrames desordenados):
+
+```
+Política OSCAL                  Código Python                DataFrame
++--------------+    enforce()   +-----------+    binding     +------------+
+| dimension:   | ------------> | gender=   | ------------> | Attribute9 |
+|   gender     |               | "Attr..."  |               | (columna   |
+| threshold:   |               |            |               |  real)     |
+|   > 0.8      |               |            |               |            |
++--------------+               +-----------+               +------------+
+```
+
+Este diseño implica que:
+
+- **Los Oficiales de Cumplimiento** redactan políticas usando nombres abstractos (`gender`, `age`)
+- **Los Ingenieros** proporcionan el mapeo a los nombres técnicos de columna una sola vez
+- **La misma política** funciona en distintos conjuntos de datos con esquemas diferentes
+
+---
+
+## Soporte Multilingüe
+
+El diccionario de sinónimos incluye traducciones al español:
+
+- `gender` = `sexo`
+- `age` = `edad`
+- `race` = `raza`
+
+Esto permite utilizar conjuntos de datos con encabezados de columna en español sin necesidad de un mapeo explícito.
+
+---
+
+## Sinónimos Personalizados
+
+Es posible extender el diccionario de sinónimos de forma programática:
+
+```python
+from venturalitica.binding import COLUMN_SYNONYMS
+
+# Agregar un sinonimo personalizado para su conjunto de datos
+COLUMN_SYNONYMS["income"] = ["income", "salary", "wage", "earnings", "ingreso"]
+```
+
+O pasar un diccionario de sinónimos personalizado a las funciones de resolución:
+
+```python
+from venturalitica.binding import resolve_col_names
+
+custom_synonyms = {
+    "risk_score": ["risk", "risk_score", "risk_level", "riesgo"],
+}
+resolved = resolve_col_names("risk_score", df, synonyms=custom_synonyms)
+```

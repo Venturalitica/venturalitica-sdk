@@ -1,0 +1,116 @@
+---
+title: "Nivel 3: El Auditor"
+sidebar:
+  label: "Nivel 3: Auditoría"
+description: "Verificar tu política visual y criptográficamente usando el método de Caja de Cristal."
+---
+
+**Objetivo**: Verificar tu política visual y criptográficamente usando el método de **Caja de Cristal**.
+
+**Prerrequisito**: [Nivel 2 (El Integrador)](/academy/level2-integrator/)
+
+---
+
+## 1. El Problema: "Pasó, pero podemos confiar en el proceso?"
+
+En el Nivel 2, registraste el puntaje de cumplimiento. Pero para la **IA de Alto Riesgo** (como el Scoring de Crédito), las métricas no son suficientes.
+Un Auditor pregunta: *"Probaste en el dataset real, o filtraste los préstamos rechazados?"* y *"Puedes probar que este código fue realmente ejecutado?"*
+
+## 2. La Solución: La Traza de "Caja de Cristal"
+
+Según nuestros **Documentos de Auditoría Estratégica**, la auditoría profesional requiere más que resultados--requiere **Proveniencia**.
+
+Venturalitica usa un context manager `monitor()` para registrar todo:
+
+-   **El Código**: Análisis AST de tu script.
+-   **Los Datos**: Conteo de filas y esquema de columnas.
+-   **El Hardware**: Memoria, CPU y estadísticas de Carbono (Artículo 15).
+-   **El Sello**: Un hash criptográfico SHA-256 de toda la sesión.
+
+### El Upgrade
+
+Continuamos trabajando en el mismo proyecto. No se requiere configuración nueva.
+
+### Ejecutar con el Monitor Nativo
+
+Envuelve tu ejecución en `vl.monitor()`. Este context manager captura el "Handshake" entre tu código y la política cosechando metadatos físicos y lógicos.
+
+### Profundización: Caja de Cristal vs Caja Negra
+
+| Característica | Caja Negra (Estándar) | **Caja de Cristal (Venturalitica)** |
+| :--- | :--- | :--- |
+| **Lógica** | "Confía en mi, ejecuté el código." | **Análisis AST**: Registramos *qué* función mapeó código a política. |
+| **Datos** | "Aquí está el CSV." | **Huella Digital**: Registramos el SHA-256 del dataset en tiempo de ejecución. |
+| **Alcance** | Código | Código + Entorno + Estadísticas de Hardware |
+
+> Código completo: Consulta el ciclo de vida profesional de auditoría en el notebook [01_assurance_audit.ipynb](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/01_assurance_audit.ipynb).
+
+```python
+import venturalitica as vl
+from venturalitica.quickstart import load_sample
+
+# 1. Iniciar el Monitor Multimodal (La Caja de Cristal)
+with vl.monitor("loan_audit_v1"):
+    # Este bloque ahora está siendo vigilado por el Auditor
+    df = load_sample("loan")
+
+    # Descarga data_policy.oscal.yaml desde:
+    # https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml
+    results = vl.enforce(
+        data=df,
+        target="class",
+        gender="Attribute9",  # Mapeando género
+        age="Attribute13",    # Mapeando edad
+        policy="data_policy.oscal.yaml"
+    )
+    # El archivo de traza de sesión (.venturalitica/trace_loan_audit_v1.json)
+    # probará NO solo el resultado, sino CÓMO fue computado.
+
+# Después de que el context manager termine, revisa el directorio de evidencia:
+# .venturalitica/
+#   trace_loan_audit_v1.json   <- Traza completa de ejecución
+#   results.json               <- Resultados de cumplimiento
+```
+
+## 3. La Verificación del "Sello Digital"
+
+Después de ejecutar la auditoría, lanza la UI:
+
+```bash
+venturalitica ui
+```
+
+Navega a **"Artículo 13: Transparencia"**.
+
+### Encontrando el Hash de Evidencia
+
+Busca el **Evidence Hash** en el Dashboard.
+`Evidence Hash: 89fbf...`
+
+Este hash es tu **"Sello Digital"**. Si cambias *un pixel* en el dataset o *una línea* en la política, este hash cambia. Ahora puedes probar a un regulador exactamente qué pasó durante la auditoría.
+
+## 4. El Mapa de Cumplimiento
+
+El Dashboard traduce la evidencia JSON al lenguaje de la **EU AI Act**.
+
+| Ley | Pestaña del Dashboard | Qué Responde |
+| :--- | :--- | :--- |
+| **Art 9** | Gestión de Riesgos | "Verificamos sesgo < 0.1?" (Tu Política) |
+| **Art 10** | Assurance de Datos | "Son los datos de entrenamiento representativos?" |
+| **Art 13** | Transparencia | "Qué librerías (BOM) estamos usando?" |
+
+## 5. Mensajes para Llevar a Casa
+
+1.  **No Confíes, Verifica**: El **Archivo de Traza** (capturado automáticamente vía `monitor()`) es la fuente de verdad para todo el contexto de ejecución.
+2.  **Auditoría de Caja de Cristal**: El cumplimiento no es un booleano "pasa/falla"; es una historia verificable de ejecución.
+3.  **Prueba Inmutable**: El Evidence Hash te permite probar la integridad del proceso de auditoría.
+
+---
+
+### Referencias
+
+- **[Referencia de Probes](/reference/probes/)** -- Detalles sobre los 7 probes de evidencia
+- **[Guía del Dashboard](/guides/dashboard/)** -- Recorrido completo de las fases del Dashboard
+- **[Ciclo de Vida Completo](/full-lifecycle/)** -- Guía de extremo a extremo en una sola página
+
+**[Ir al Nivel 4: El Arquitecto](/academy/level4-annex-iv/)**

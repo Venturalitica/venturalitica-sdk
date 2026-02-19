@@ -1,0 +1,148 @@
+---
+title: "Nivel 4: El Arquitecto"
+sidebar:
+  label: "Nivel 4: Anexo IV"
+description: "Automatizar la creación de documentos regulatorios de 50+ páginas con IA generativa."
+---
+
+**Objetivo**: Automatizar la creación de documentos regulatorios de 50+ páginas.
+
+**Prerrequisito**: [Nivel 3 (El Auditor)](/academy/level3-auditor/)
+
+---
+
+## 1. El Cuello de Botella: "Documentación Técnica"
+
+De acuerdo con el **Artículo 11** y **Anexo IV** de la EU AI Act, los sistemas de Alto Riesgo (como **Scoring de Crédito**) requieren Documentación Técnica exhaustiva.
+Escribir esto manualmente toma **semanas**.
+
+## 2. La Solución: Cumplimiento Generativo
+
+Usamos tus **Políticas (Nivel 1 & 2)** y **Evidencia (Nivel 2/3)** para invocar a un LLM que redacte el documento por ti.
+
+Venturalitica soporta:
+
+- **Nube**: Mistral (via API).
+- **Local**: Ollama (Propósito general).
+- **Soberana (NUEVO)**: **ALIA** (Nativo Español GGUF vía Llama.cpp) - *Experimental*.
+
+### El Upgrade
+
+Continuamos trabajando en el proyecto de "Scoring de Crédito".
+
+> Código Completo: Puedes encontrar el script de automatización para la generación del Anexo IV aquí: [generate_annex_iv.py](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/generate_annex_iv.py)
+
+### Ejecutar la Auditoría de Alto Riesgo
+
+Asegúrate de haber corrido los pasos de recolección:
+
+```python
+import venturalitica as vl
+from venturalitica.quickstart import load_sample
+from sklearn.model_selection import train_test_split
+
+# 1. Cargar Datos
+df = load_sample("loan")
+train_df = df.sample(frac=0.8, random_state=42)
+val_df = df.drop(train_df.index)
+
+# 2. Ejecutar la Auditoría de Assurance de Artículo 10 (Datos) y Artículo 15 (Modelo)
+with vl.monitor("loan_annex_audit"):
+    # 2.1 Verificar Datos de Entrenamiento (Art 10)
+    # Descarga data_policy.oscal.yaml desde:
+    # https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml
+    vl.enforce(
+        data=train_df,
+        target="class",
+        gender="Attribute9",
+        age="Attribute13",
+        policy="data_policy.oscal.yaml"
+    )
+
+    # 2.2 Verificar Rendimiento del Modelo (Art 15)
+    # Descarga model_policy.oscal.yaml desde:
+    # https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/model_policy.oscal.yaml
+    vl.enforce(
+        data=val_df.assign(prediction=val_df["class"]),  # Modelo simulado
+        target="class",
+        prediction="prediction",
+        gender="Attribute9",
+        policy="model_policy.oscal.yaml"
+    )
+```
+
+## 3. Generar el Documento
+
+1.  Abre el Dashboard: `venturalitica ui`.
+2.  Ve a la pestaña **"Generador Anexo IV"**.
+3.  Selecciona Proveedor: **Nube (Mistral)**, **Local (Ollama)**, o **Soberana (ALIA - Experimental)**.
+4.  Haz click en **"Generar Anexo IV"**.
+
+    ![Generador Anexo IV](/images/annex_iv_generator.png)
+
+### El Proceso de Generación
+
+Observa los logs. El Sistema actúa como un **Equipo de Agentes**:
+
+1.  **Scanner**: Lee tu `trace.json` (La Evidencia).
+2.  **Planner**: Decide qué secciones del Anexo IV aplican a tu tipo de modelo específico.
+3.  **Writer**: Redacta "Sección 2.c: Arquitectura" usando el `summary()` de tu código Python real.
+4.  **Critic**: Revisa el borrador contra el estándar ISO 42001.
+
+**Resultado**: Un archivo markdown (`Annex_IV.md`) que cita tus puntajes de precisión específicos (ej. `Demographic Parity: 0.92`) como prueba de seguridad.
+
+## 4. Seleccionando tu LLM
+
+| Característica | Nube (Mistral API) | Local (Ollama) | Soberana (ALIA - Experimental) |
+| :--- | :--- | :--- | :--- |
+| **Privacidad** | Transporte Encriptado | 100% Offline | Bloqueado por Hardware |
+| **Soberanía** | Alojado en UE | Genérico | **Nativo Español** |
+| **Velocidad** | Rápido (Modelo Grande) | Más lento | **Lento (Experimental)** |
+| **Caso de Uso** | Pulido Final de Alta Calidad | Testing Iterativo | **Solo Investigación** |
+
+Actualmente ofrecemos **ALIA** como una feature experimental para organizaciones pilotando IA soberana nativa en español.
+
+:::caution[Feature Experimental y Requisitos de Hardware]
+ALIA es un modelo de 40B parámetros. Está marcado como **EXPERIMENTAL** y requiere recursos de hardware significativos:
+
+*   **RAM/VRAM**: ~41GB requeridos (cuantización Q8).
+*   **GPU**: Se recomienda una GPU de gama alta (ej. RTX 3090/4090 con 24GB+) para velocidades usables.
+*   **Rendimiento**: En hardware de consumo o GPUs más pequeñas (como RTX 2000), la inferencia correrá efectivamente en CPU y será muy lenta.
+:::
+
+## 5. Exportar a PDF
+
+Por defecto, generamos `Annex_IV.md` (Markdown) para control de versiones. Para convertir esto a un PDF de grado regulatorio:
+
+**Usando mdpdf (Python)**
+
+```bash
+uv pip install mdpdf
+uv run mdpdf Annex_IV.md
+```
+
+**Usando Pandoc (Avanzado)**
+
+```bash
+pandoc Annex_IV.md -o Annex_IV.pdf --toc --pdf-engine=xelatex
+```
+
+## 6. Mensajes para Llevar a Casa
+
+1.  **La Documentación es una Función**: `f(Evidencia) -> Documento`. Nunca escribas lo que puedes generar.
+2.  **LiveTrace**: Si tu precisión cae mañana, regenera el documento. Reflejará el estado *actual*, previniendo la "Deriva de Documentación".
+3.  **El Bucle Completo**: Has ido de Código -> Política (N1) -> Ops (N2) -> Evidencia (N3) -> Documento Legal (N4).
+
+---
+
+### Felicidades
+
+Has completado la **Academia Venturalitica**.
+Ahora estás listo para integrar esto en tu propio Pipeline CI/CD.
+
+### Referencias
+
+- **[Ciclo de Vida Completo](/full-lifecycle/)** -- El flujo completo en una sola página para copiar y pegar
+- **[Guía del Dashboard](/guides/dashboard/)** -- Tutorial detallado del Dashboard y la Fase 4
+- **[Referencia de Métricas](/reference/metrics/)** -- Todas las 35+ métricas disponibles para políticas
+- **[Creación de Políticas](/guides/policy-authoring/)** -- Escribe políticas OSCAL personalizadas

@@ -1,0 +1,113 @@
+---
+title: "Zero to Pro: The 5-Minute Journey"
+sidebar:
+  label: "Academy"
+description: "Transform from Python Developer to AI Assurance Engineer in 3 steps."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+**Goal**: Transform from "Python Developer" to "AI Assurance Engineer" in 3 steps.
+
+---
+
+## The Philosophy: Compliance as Code
+
+You are used to `pytest` for checking if your function adds 2+2 correctly.
+But how do you test if your AI model respects **Human Rights**?
+
+Venturalitica treats "Assurance" as a dependency. Instead of vague legal advice, you define stricter **Policies (OSCAL)**. Your CI/CD pipeline enforces them just like linter rules.
+
+### The Curriculum
+
+| Level | Role | Goal |
+| :--- | :--- | :--- |
+| **[Start Here](#step-1-install)** | **Developer** | Run your first audit in < 60s. |
+| **[Level 1](/academy/level1-policy/)** | **Engineer** | **Implement Controls** for identified Risks. |
+| **[Level 2](/academy/level2-integrator/)** | **Integrator** | **Viz & MLOps**: "Compliance as Metadata". |
+| **[Level 3](/academy/level3-auditor/)** | **Auditor** | Proof: "Trust the Glass Box". |
+| **[Level 4](/academy/level4-annex-iv/)** | **Architect** | GenAI Docs: "Annex IV". |
+
+---
+
+## Step 1: Install
+
+We recommend **uv** for blazing speed, or standard `pip`.
+
+<Tabs syncKey="pkg-manager">
+  <TabItem label="uv">
+    ```bash
+    uv pip install venturalitica
+    ```
+  </TabItem>
+  <TabItem label="pip">
+    ```bash
+    pip install venturalitica
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+**Telemetry Note**: Venturalitica collects **anonymous** usage statistics (commands executed, technical errors) to improve the developer experience. We do NOT collect data from your models or datasets. You can opt-out by setting `VENTURALITICA_NO_ANALYTICS=1`. [Read full policy](https://venturalitica.ai/telemetry).
+:::
+
+## Step 2: Get the Code
+
+To follow the **Academy**, clone the samples repository. This will be your working directory for all levels.
+
+```bash
+git clone https://github.com/venturalitica/venturalitica-sdk-samples.git
+cd venturalitica-sdk-samples/scenarios/loan-credit-scoring
+```
+
+## Step 3: Run Your First Audit
+
+Run this single line of code. It downloads a dataset, loads a policy, and audits a model.
+
+```python
+import venturalitica as vl
+
+# Run the 'loan' scenario
+vl.quickstart('loan')
+```
+
+**Output:**
+
+```text
+  CONTROL                DESCRIPTION                            ACTUAL     LIMIT      RESULT
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  credit-data-imbalance  Data Quality                           0.429      > 0.2      PASS
+  credit-data-bias       Disparate impact                       0.818      > 0.8      PASS
+  credit-age-disparate   Age disparity                          0.286      > 0.5      FAIL
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+  Audit Summary: VIOLATION | 2/3 controls passed
+```
+
+### Take Home Message
+
+:::note
+**"Compliance transforms vague Principles into verifiable Engineering constraints."**
+
+*   **The Policy**: `ratio > 0.5` (The Law).
+*   **The Reality**: `0.286` (Your Code).
+*   **The Verdict**: `FAIL` (The Compliance Gap).
+
+You didn't need a lawyer. You just needed a visible test failure.
+:::
+
+## Step 4: Choose Your Path
+
+Now that you've seen the failure, learn how to fix it and verify it.
+
+- **[Level 1: The Engineer](/academy/level1-policy/)** -- Learn how to implement **Controls** that mitigate identified Risks. **Detect & Block** non-compliant models.
+- **[Level 2: The Integrator](/academy/level2-integrator/)** -- Log outcomes to MLOps tools and verify results visually in the **Dashboard**.
+- **[Level 3: The Auditor](/academy/level3-auditor/)** -- Learn how to perform a "Glass Box" audit on the loan model and generate cryptographic proofs.
+- **[Level 4: The Architect](/academy/level4-annex-iv/)** -- The Boss Level. Train a high-risk financial model and generate the massive Technical Documentation required by the EU AI Act.
+
+---
+
+## External References
+
+- **EU AI Act**: [Full Legal Text (EUR-Lex)](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52021PC0206)
+- **ISO 42001**: [Artificial Intelligence Management System (AIMS)](https://www.iso.org/standard/81230.html)
+- **NIST AI RMF**: [Risk Management Framework 1.0](https://www.nist.gov/itl/ai-risk-management-framework)

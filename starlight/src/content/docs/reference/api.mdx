@@ -1,0 +1,217 @@
+---
+title: "API Reference"
+sidebar:
+  label: "API"
+description: "Complete API reference for enforce(), monitor(), wrap(), quickstart(), and PolicyManager."
+---
+
+Venturalitica exposes five public symbols. This page documents their exact signatures and behavior as of v0.5.0.
+
+---
+
+## Core Functions
+
+### `quickstart(scenario, verbose=True)`
+
+Run a pre-configured bias audit demo on a standard dataset. This is the fastest way to see the SDK in action.
+
+```python
+import venturalitica as vl
+
+results = vl.quickstart("loan")
+```
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `scenario` | `str` | *(required)* | Predefined scenario name: `"loan"`, `"hiring"`, `"health"`. |
+| `verbose` | `bool` | `True` | Print the structured compliance table to the console. |
+
+**Returns:** `List[ComplianceResult]`
+
+:::note
+`quickstart()` is a convenience wrapper. Internally it loads a dataset, resolves a built-in OSCAL policy, and calls `enforce()`. It is useful for demos and first-contact experiences.
+:::
+
+---
+
+### `enforce()`
+
+The main entry point for auditing datasets and models against OSCAL policies.
+
+```python
+def enforce(
+    data=None,
+    metrics=None,
+    policy="risks.oscal.yaml",
+    target="target",
+    prediction="prediction",
+    strict=False,
+    **attributes,
+) -> List[ComplianceResult]
+```
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `data` | `DataFrame` or `None` | `None` | Pandas DataFrame containing features, targets, and optionally predictions. |
+| `metrics` | `Dict[str, float]` or `None` | `None` | Pre-computed metrics dict. Use this when you have already calculated your metrics externally. |
+| `policy` | `str`, `Path`, or `List` | `"risks.oscal.yaml"` | Path to one or more OSCAL policy files. Pass a list to enforce multiple policies in a single call. |
+| `target` | `str` | `"target"` | Name of the column containing ground truth labels. |
+| `prediction` | `str` | `"prediction"` | Name of the column containing model predictions. |
+| `strict` | `bool` | `False` | If `True`, missing metrics, unbound variables, and calculation errors raise exceptions instead of being skipped. Auto-enabled when `CI=true` or `VENTURALITICA_STRICT=true`. |
+| `**attributes` | keyword args | | Mappings for protected variables and dimensions. For example: `gender="Attribute9"`, `age="Attribute13"`. |
+
+**Returns:** `List[ComplianceResult]`
+
+#### Two Modes of Operation
+
+**Mode 1: DataFrame-based** (most common). Pass a DataFrame and let the SDK compute metrics automatically:
+
+```python
+results = vl.enforce(
+    data=df,
+    target="class",
+    prediction="prediction",
+    gender="Attribute9",     # maps abstract 'gender' -> column 'Attribute9'
+    age="Attribute13",       # maps abstract 'age' -> column 'Attribute13'
+    policy="data_policy.oscal.yaml",
+)
+```
+
+**Mode 2: Pre-computed metrics**. Pass a dict of already-calculated values:
+
+```python
+results = vl.enforce(
+    metrics={"accuracy_score": 0.92, "demographic_parity_diff": 0.07},
+    policy="model_policy.oscal.yaml",
+)
+```
+
+#### Column Binding
+
+When using DataFrame mode, the SDK resolves column names through a synonym system (see [Column Binding](/guides/column-binding/)):
+
+- `target` and `prediction` are resolved first via explicit parameters, then via synonym discovery.
+- `**attributes` (e.g., `gender="Attribute9"`) are passed directly to metric functions as the `dimension` parameter.
+- If a column is not found, the SDK falls back to lowercase matching.
+
+#### Results Caching
+
+`enforce()` automatically caches results to `.venturalitica/results.json` and, if inside a `monitor()` session, to the session-specific evidence directory. Run `venturalitica ui` to visualize cached results.
+
+#### Multiple Policies
+
+Pass a list to enforce several policies in one call:
+
+```python
+results = vl.enforce(
+    data=df,
+    target="class",
+    policy=["data_policy.oscal.yaml", "model_policy.oscal.yaml"],
+    gender="Attribute9",
+)
+```
+
+---
+
+### `monitor(name, label=None, inputs=None, outputs=None)`
+
+A context manager that records multimodal telemetry during training or evaluation. Captures hardware, carbon, security, and audit evidence automatically.
+
+```python
+@contextmanager
+def monitor(
+    name="Training Task",
+    label=None,
+    inputs=None,
+    outputs=None,
+)
+```
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `name` | `str` | `"Training Task"` | Human-readable name for this monitoring session. Used in trace filenames. |
+| `label` | `str` or `None` | `None` | Optional label for categorization (e.g., `"pre-training"`, `"validation"`). |
+| `inputs` | `List[str]` or `None` | `None` | Paths to input artifacts (datasets, configs) for data lineage tracking. |
+| `outputs` | `List[str]` or `None` | `None` | Paths to output artifacts (models, plots) for lineage tracking. |
+
+#### Usage
+
+```python
+with vl.monitor("credit_model_v1"):
+    model.fit(X_train, y_train)
+    vl.enforce(data=df, policy="policy.oscal.yaml", target="class")
+```
+
+#### Probes Collected
+
+`monitor()` initializes 7 probes automatically. See [Probes Reference](/reference/probes/) for details.
+
+| Probe | What It Captures | EU AI Act Article |
+| :--- | :--- | :--- |
+| `IntegrityProbe` | SHA-256 environment fingerprint, drift detection | Art. 15 |
+| `HardwareProbe` | Peak RAM, CPU count | Art. 15 |
+| `CarbonProbe` | CO2 emissions via CodeCarbon | Art. 15 |
+| `BOMProbe` | Software Bill of Materials (SBOM) | Art. 13 |
+| `ArtifactProbe` | Input/output data lineage | Art. 10 |
+| `HandshakeProbe` | Whether `enforce()` was called inside the session | Art. 9 |
+| `TraceProbe` | AST code analysis, timestamps, call context | Art. 11 |
+
+Evidence is saved to `.venturalitica/` or a session-specific directory.
+
+---
+
+### `wrap(model, policy)` -- Experimental
+
+:::caution
+**PREVIEW**: This function is experimental and its API may change.
+:::
+
+Transparently audit your model during Scikit-Learn standard workflows by hooking into `.fit()` and `.predict()`.
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `model` | `object` | Any Scikit-learn compatible classifier or regressor. |
+| `policy` | `str` | Path to the OSCAL policy for evaluation. |
+
+**Returns:** `AssuranceWrapper` (preserves the original model API: `.fit()`, `.predict()`, etc.)
+
+```python
+wrapped = vl.wrap(LogisticRegression(), policy="model_policy.oscal.yaml")
+wrapped.fit(X_train, y_train)
+preds = wrapped.predict(X_test)  # Audit runs automatically
+```
+
+---
+
+## Utility Class
+
+### `PolicyManager`
+
+Programmatic access to OSCAL policy loading and manipulation.
+
+```python
+from venturalitica import PolicyManager
+```
+
+---
+
+## Data Types
+
+### `ComplianceResult`
+
+Every call to `enforce()` returns a list of `ComplianceResult` dataclass instances:
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `control_id` | `str` | The control identifier from the policy (e.g., `"credit-data-bias"`). |
+| `description` | `str` | Human-readable description of the control. |
+| `metric_key` | `str` | The metric function used (e.g., `"disparate_impact"`). |
+| `actual` | `float` | The computed metric value. |
+| `threshold` | `float` | The policy-defined threshold. |
+| `operator` | `str` | Comparison operator (`">"`, `"<"`, `">="`, `"<="`, `"=="`, `"gt"`, `"lt"`). |
+| `passed` | `bool` | Whether the control passed. |
+
+```python
+for r in results:
+    print(f"{r.control_id}: {r.actual:.3f} {'PASS' if r.passed else 'FAIL'}")
+```

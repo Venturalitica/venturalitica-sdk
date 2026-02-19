@@ -1,0 +1,217 @@
+---
+title: "Referencia de API"
+sidebar:
+  label: "API"
+description: "Documentación completa de las funciones públicas y tipos de datos del SDK Venturalitica v0.5.0."
+---
+
+Venturalitica expone cinco símbolos públicos. Esta página documenta sus firmas exactas y comportamiento a partir de la v0.5.0.
+
+---
+
+## Funciones Principales
+
+### `quickstart(scenario, verbose=True)`
+
+Ejecuta una demostración preconfigurada de auditoría de sesgo sobre un conjunto de datos estándar. Es la forma más rápida de ver el SDK en acción.
+
+```python
+import venturalitica as vl
+
+results = vl.quickstart("loan")
+```
+
+| Parámetro | Tipo | Por defecto | Descripción |
+| :--- | :--- | :--- | :--- |
+| `scenario` | `str` | *(requerido)* | Nombre del escenario predefinido: `"loan"`, `"hiring"`, `"health"`. |
+| `verbose` | `bool` | `True` | Imprime la tabla estructurada de cumplimiento en la consola. |
+
+**Retorna:** `List[ComplianceResult]`
+
+:::note
+`quickstart()` es un envoltorio de conveniencia. Internamente carga un conjunto de datos, resuelve una política OSCAL incorporada y llama a `enforce()`. Es útil para demos y experiencias de primer contacto.
+:::
+
+---
+
+### `enforce()`
+
+El punto de entrada principal para auditar conjuntos de datos y modelos contra políticas OSCAL.
+
+```python
+def enforce(
+    data=None,
+    metrics=None,
+    policy="risks.oscal.yaml",
+    target="target",
+    prediction="prediction",
+    strict=False,
+    **attributes,
+) -> List[ComplianceResult]
+```
+
+| Parámetro | Tipo | Por defecto | Descripción |
+| :--- | :--- | :--- | :--- |
+| `data` | `DataFrame` o `None` | `None` | DataFrame de Pandas que contiene características, objetivos y, opcionalmente, predicciones. |
+| `metrics` | `Dict[str, float]` o `None` | `None` | Diccionario de métricas precalculadas. Úsalo cuando ya hayas calculado tus métricas de forma externa. |
+| `policy` | `str`, `Path` o `List` | `"risks.oscal.yaml"` | Ruta a uno o más archivos de política OSCAL. Pasa una lista para aplicar múltiples políticas en una sola llamada. |
+| `target` | `str` | `"target"` | Nombre de la columna que contiene las etiquetas de verdad fundamental. |
+| `prediction` | `str` | `"prediction"` | Nombre de la columna que contiene las predicciones del modelo. |
+| `strict` | `bool` | `False` | Si es `True`, las métricas faltantes, variables no vinculadas y errores de cálculo generan excepciones en lugar de omitirse. Se activa automáticamente cuando `CI=true` o `VENTURALITICA_STRICT=true`. |
+| `**attributes` | keyword args | | Mapeos para variables protegidas y dimensiones. Por ejemplo: `gender="Attribute9"`, `age="Attribute13"`. |
+
+**Retorna:** `List[ComplianceResult]`
+
+#### Dos Modos de Operación
+
+**Modo 1: Basado en DataFrame** (el más común). Pasa un DataFrame y deja que el SDK calcule las métricas automáticamente:
+
+```python
+results = vl.enforce(
+    data=df,
+    target="class",
+    prediction="prediction",
+    gender="Attribute9",     # mapea 'gender' abstracto -> columna 'Attribute9'
+    age="Attribute13",       # mapea 'age' abstracto -> columna 'Attribute13'
+    policy="data_policy.oscal.yaml",
+)
+```
+
+**Modo 2: Métricas precalculadas**. Pasa un diccionario de valores ya calculados:
+
+```python
+results = vl.enforce(
+    metrics={"accuracy_score": 0.92, "demographic_parity_diff": 0.07},
+    policy="model_policy.oscal.yaml",
+)
+```
+
+#### Vinculación de Columnas
+
+Al usar el modo DataFrame, el SDK resuelve los nombres de columna mediante un sistema de sinónimos (ver [Vinculación de Columnas](/guides/column-binding/)):
+
+- `target` y `prediction` se resuelven primero a través de los parámetros explícitos, y luego mediante descubrimiento de sinónimos.
+- `**attributes` (p.ej., `gender="Attribute9"`) se pasan directamente a las funciones de métricas como el parámetro `dimension`.
+- Si no se encuentra una columna, el SDK recurre a coincidencia en minúsculas.
+
+#### Cache de Resultados
+
+`enforce()` almacena automáticamente los resultados en cache en `.venturalitica/results.json` y, si se ejecuta dentro de una sesión `monitor()`, en el directorio de evidencia específico de la sesión. Ejecuta `venturalitica ui` para visualizar los resultados almacenados.
+
+#### Múltiples Políticas
+
+Pasa una lista para aplicar varias políticas en una sola llamada:
+
+```python
+results = vl.enforce(
+    data=df,
+    target="class",
+    policy=["data_policy.oscal.yaml", "model_policy.oscal.yaml"],
+    gender="Attribute9",
+)
+```
+
+---
+
+### `monitor(name, label=None, inputs=None, outputs=None)`
+
+Un gestor de contexto que registra telemetría multimodal durante el entrenamiento o la evaluación. Captura automáticamente evidencia de hardware, carbono, seguridad y auditoría.
+
+```python
+@contextmanager
+def monitor(
+    name="Training Task",
+    label=None,
+    inputs=None,
+    outputs=None,
+)
+```
+
+| Parámetro | Tipo | Por defecto | Descripción |
+| :--- | :--- | :--- | :--- |
+| `name` | `str` | `"Training Task"` | Nombre legible para esta sesión de monitoreo. Se usa en los nombres de archivos de traza. |
+| `label` | `str` o `None` | `None` | Etiqueta opcional para categorización (p.ej., `"pre-training"`, `"validation"`). |
+| `inputs` | `List[str]` o `None` | `None` | Rutas a artefactos de entrada (conjuntos de datos, configuraciones) para el rastreo de linaje de datos. |
+| `outputs` | `List[str]` o `None` | `None` | Rutas a artefactos de salida (modelos, gráficos) para el rastreo de linaje. |
+
+#### Uso
+
+```python
+with vl.monitor("credit_model_v1"):
+    model.fit(X_train, y_train)
+    vl.enforce(data=df, policy="policy.oscal.yaml", target="class")
+```
+
+#### Sondas Recopiladas
+
+`monitor()` inicializa 7 sondas automáticamente. Consulta la [Referencia de Sondas](/reference/probes/) para más detalles.
+
+| Sonda | Qué Captura | Artículo de la Ley de IA de la UE |
+| :--- | :--- | :--- |
+| `IntegrityProbe` | Huella digital SHA-256 del entorno, detección de deriva | Art. 15 |
+| `HardwareProbe` | Pico de RAM, número de CPUs | Art. 15 |
+| `CarbonProbe` | Emisiones de CO2 via CodeCarbon | Art. 15 |
+| `BOMProbe` | Lista de Materiales de Software (SBOM) | Art. 13 |
+| `ArtifactProbe` | Linaje de datos de entrada/salida | Art. 10 |
+| `HandshakeProbe` | Si `enforce()` fue llamado dentro de la sesión | Art. 9 |
+| `TraceProbe` | Análisis AST del código, marcas de tiempo, contexto de llamada | Art. 11 |
+
+La evidencia se guarda en `.venturalitica/` o en un directorio específico de la sesión.
+
+---
+
+### `wrap(model, policy)` -- Experimental
+
+:::caution
+**VISTA PREVIA** -- Esta función es experimental y su API podría cambiar.
+:::
+
+Audita transparentemente tu modelo durante flujos de trabajo estándar de Scikit-Learn, interceptando `.fit()` y `.predict()`.
+
+| Parámetro | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `model` | `object` | Cualquier clasificador o regresor compatible con Scikit-learn. |
+| `policy` | `str` | Ruta a la política OSCAL para evaluación. |
+
+**Retorna:** `AssuranceWrapper` (preserva la API original del modelo: `.fit()`, `.predict()`, etc.)
+
+```python
+wrapped = vl.wrap(LogisticRegression(), policy="model_policy.oscal.yaml")
+wrapped.fit(X_train, y_train)
+preds = wrapped.predict(X_test)  # La auditoria se ejecuta automaticamente
+```
+
+---
+
+## Clase de Utilidad
+
+### `PolicyManager`
+
+Acceso programático a la carga y manipulación de políticas OSCAL.
+
+```python
+from venturalitica import PolicyManager
+```
+
+---
+
+## Tipos de Datos
+
+### `ComplianceResult`
+
+Cada llamada a `enforce()` retorna una lista de instancias del dataclass `ComplianceResult`:
+
+| Campo | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `control_id` | `str` | El identificador del control en la política (p.ej., `"credit-data-bias"`). |
+| `description` | `str` | Descripción legible del control. |
+| `metric_key` | `str` | La función de métrica utilizada (p.ej., `"disparate_impact"`). |
+| `actual` | `float` | El valor calculado de la métrica. |
+| `threshold` | `float` | El umbral definido en la política. |
+| `operator` | `str` | Operador de comparación (`">"`, `"<"`, `">="`, `"<="`, `"=="`, `"gt"`, `"lt"`). |
+| `passed` | `bool` | Si el control fue aprobado. |
+
+```python
+for r in results:
+    print(f"{r.control_id}: {r.actual:.3f} {'PASS' if r.passed else 'FAIL'}")
+```

@@ -1,0 +1,299 @@
+---
+title: "Guía de Redacción de Políticas"
+sidebar:
+  label: "Redacción de Políticas"
+description: "Cómo escribir archivos de política OSCAL para Venturalitica con formato assessment-plan."
+---
+
+Esta guía explica cómo escribir archivos de política OSCAL para Venturalitica. Las políticas definen los controles de equidad, rendimiento, privacidad y calidad de datos que tu sistema de IA debe superar.
+
+---
+
+## El formato canónico: `assessment-plan`
+
+Venturalitica utiliza el formato **OSCAL `assessment-plan`** como formato canónico de políticas. Aunque el cargador del SDK soporta múltiples tipos de documentos OSCAL (`catalog`, `system-security-plan`, `component-definition`, `profile`), las nuevas políticas deben escribirse en formato `assessment-plan`.
+
+:::note
+**¿Por qué assessment-plan?**
+
+El formato `assessment-plan` se corresponde directamente con el modelo de aplicación del SDK: se definen controles con métricas, umbrales y operadores, y luego se evalúan contra los datos. El Dashboard Policy Editor también genera exclusivamente el formato `assessment-plan`.
+:::
+
+---
+
+## Política mínima
+
+La política válida más simple tiene un único control:
+
+```yaml
+assessment-plan:
+  metadata:
+    title: "My First Policy"
+  control-implementations:
+    - description: "Fairness Controls"
+      implemented-requirements:
+        - control-id: bias-check
+          description: "Disparate impact must satisfy the Four-Fifths Rule"
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: threshold
+              value: "0.8"
+            - name: operator
+              value: ">"
+            - name: "input:dimension"
+              value: gender
+```
+
+Para aplicarla:
+
+```python
+import venturalitica as vl
+
+results = vl.enforce(
+    data=df,
+    target="class",
+    gender="Attribute9",
+    policy="my_policy.oscal.yaml"
+)
+```
+
+---
+
+## Anatomía de un control
+
+Cada control (un `implemented-requirement`) tiene las siguientes propiedades:
+
+| Propiedad | Obligatoria | Descripción |
+| :--- | :--- | :--- |
+| `control-id` | Sí | Identificador único del control |
+| `description` | No | Descripción legible por humanos |
+| `props` | Sí | Lista de propiedades clave-valor (ver más abajo) |
+
+### Referencia de Props
+
+| Nombre del Prop | Obligatorio | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| `metric_key` | Sí | Clave de registro de la métrica a calcular | `disparate_impact` |
+| `threshold` | Sí | Valor numérico del umbral (como cadena de texto) | `"0.8"` |
+| `operator` | Sí | Operador de comparación | `">"`, `"<"`, `">="`, `"<="`, `"=="`, `"gt"`, `"lt"` |
+| `input:dimension` | Depende | Atributo protegido para métricas de equidad | `gender`, `age` |
+| `input:target` | No | Sobreescribir la columna objetivo para este control | `class` |
+| `input:prediction` | No | Sobreescribir la columna de predicción | `y_pred` |
+
+:::tip
+El prefijo `input:*` mapea valores a los argumentos con nombre de la función de métrica. `input:dimension` se convierte en `dimension="gender"` cuando se invoca la métrica.
+:::
+
+---
+
+## El patrón de dos políticas
+
+El cumplimiento profesional separa las auditorías de datos y de modelo en dos políticas:
+
+### Política de datos (Artículo 10)
+
+Verifica los datos de entrenamiento **antes** del entrenamiento del modelo:
+
+```yaml
+assessment-plan:
+  metadata:
+    title: "Article 10: Data Assurance"
+  control-implementations:
+    - description: "Data Quality & Fairness"
+      implemented-requirements:
+        - control-id: data-imbalance
+          description: "Minority class must be > 20%"
+          props:
+            - name: metric_key
+              value: class_imbalance
+            - name: threshold
+              value: "0.2"
+            - name: operator
+              value: ">"
+
+        - control-id: data-gender-bias
+          description: "Gender disparate impact > 0.8 (Four-Fifths Rule)"
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: "input:dimension"
+              value: gender
+            - name: threshold
+              value: "0.8"
+            - name: operator
+              value: ">"
+
+        - control-id: data-age-bias
+          description: "Age disparity > 0.5"
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: "input:dimension"
+              value: age
+            - name: threshold
+              value: "0.5"
+            - name: operator
+              value: ">"
+```
+
+### Política de modelo (Artículo 15)
+
+Verifica las predicciones del modelo **después** del entrenamiento:
+
+```yaml
+assessment-plan:
+  metadata:
+    title: "Article 15: Model Assurance"
+  control-implementations:
+    - description: "Model Performance & Fairness"
+      implemented-requirements:
+        - control-id: model-accuracy
+          description: "Model accuracy >= 80%"
+          props:
+            - name: metric_key
+              value: accuracy_score
+            - name: threshold
+              value: "0.80"
+            - name: operator
+              value: ">="
+
+        - control-id: model-fairness
+          description: "Demographic parity difference < 0.10"
+          props:
+            - name: metric_key
+              value: demographic_parity_diff
+            - name: "input:dimension"
+              value: gender
+            - name: threshold
+              value: "0.10"
+            - name: operator
+              value: "<"
+```
+
+### Aplicar ambas políticas
+
+```python
+# Pre-entrenamiento: auditar los datos
+vl.enforce(data=train_df, target="class", gender="Attribute9",
+           policy="data_policy.oscal.yaml")
+
+# Post-entrenamiento: auditar el modelo
+vl.enforce(data=test_df, target="class", prediction="y_pred",
+           gender="Attribute9", policy="model_policy.oscal.yaml")
+```
+
+O en una sola llamada:
+
+```python
+vl.enforce(
+    data=df,
+    target="class",
+    gender="Attribute9",
+    policy=["data_policy.oscal.yaml", "model_policy.oscal.yaml"]
+)
+```
+
+---
+
+## Métricas disponibles
+
+Cualquier métrica registrada en `METRIC_REGISTRY` puede usarse como `metric_key`. Consulta la [Referencia de Métricas](/reference/metrics/) para la lista completa. Las más comunes:
+
+| Categoría | Clave de métrica | Operador típico | Umbral típico |
+| :--- | :--- | :--- | :--- |
+| **Calidad de datos** | `disparate_impact` | `>` | `0.8` |
+| **Calidad de datos** | `class_imbalance` | `>` | `0.2` |
+| **Rendimiento** | `accuracy_score` | `>=` | `0.80` |
+| **Rendimiento** | `f1_score` | `>=` | `0.75` |
+| **Equidad** | `demographic_parity_diff` | `<` | `0.10` |
+| **Equidad** | `equalized_odds_ratio` | `<` | `0.20` |
+| **Privacidad** | `k_anonymity` | `>=` | `5` |
+
+---
+
+## Mapeo de dimensiones
+
+El prop `input:dimension` indica al SDK qué atributo protegido analizar. El valor es un nombre abstracto que se resuelve mediante [Vinculación de Columnas](/guides/column-binding/):
+
+```yaml
+# En tu politica:
+- name: "input:dimension"
+  value: gender          # Nombre abstracto
+
+# En tu codigo Python:
+vl.enforce(data=df, gender="Attribute9")  # Mapea 'gender' -> 'Attribute9'
+```
+
+---
+
+## Múltiples implementaciones de controles
+
+Puedes agrupar controles de forma lógica:
+
+```yaml
+assessment-plan:
+  metadata:
+    title: "Comprehensive AI Assurance Policy"
+  control-implementations:
+    - description: "Data Quality Controls (Article 10)"
+      implemented-requirements:
+        - control-id: dq-001
+          # ...
+        - control-id: dq-002
+          # ...
+
+    - description: "Fairness Controls (Article 9)"
+      implemented-requirements:
+        - control-id: fair-001
+          # ...
+
+    - description: "Privacy Controls (GDPR)"
+      implemented-requirements:
+        - control-id: priv-001
+          # ...
+```
+
+---
+
+## Edición visual
+
+El Dashboard Policy Editor ofrece una interfaz visual para crear políticas:
+
+1. Ejecuta `venturalitica ui`
+2. Navega a **Phase 2: Risk Policy**
+3. Usa el formulario para agregar controles, seleccionar métricas y establecer umbrales
+4. El editor genera OSCAL YAML en formato `assessment-plan` y lo guarda en tu proyecto
+
+Consulta la [Guía del Dashboard](/guides/dashboard/) para más detalles.
+
+---
+
+## Convención de nombres de archivo
+
+| Archivo | Propósito |
+| :--- | :--- |
+| `data_policy.oscal.yaml` | Controles de auditoría de datos previos al entrenamiento |
+| `model_policy.oscal.yaml` | Controles de auditoría del modelo posteriores al entrenamiento |
+| `risks.oscal.yaml` | Política combinada de inicio rápido (usada por `vl.quickstart()`) |
+
+La extensión `.oscal.yaml` es una convención, no un requisito. El SDK carga cualquier archivo `.yaml`.
+
+---
+
+## Formatos OSCAL soportados
+
+Aunque `assessment-plan` es el formato canónico, el cargador también acepta:
+
+| Formato | Nivel de soporte | Notas |
+| :--- | :--- | :--- |
+| `assessment-plan` | Primario | Formato canónico, generado por el Dashboard |
+| `catalog` | Soportado | Utilizado en algunas muestras avanzadas |
+| `system-security-plan` | Soportado | Utilizado por el comando `pull` del SaaS |
+| `component-definition` | Soportado | Formato estándar de componentes OSCAL |
+| `profile` | Soportado | Formato de perfil OSCAL |
+| Lista YAML plana | Alternativa | Formato de emergencia para listas simples |
+
+:::caution
+**Inconsistencia en el formato SSP**: El comando `pull` del CLI actualmente descarga políticas en formato `system-security-plan`. Estas se cargan correctamente, pero difieren del formato `assessment-plan` generado por el Dashboard. Una versión futura unificará ambos formatos.
+:::

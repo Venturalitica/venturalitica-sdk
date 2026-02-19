@@ -1,0 +1,201 @@
+---
+title: "Nivel 1: El Ingeniero"
+sidebar:
+  label: "Nivel 1: Política"
+description: "Aprende a implementar Controles que mitiguen Riesgos usando políticas OSCAL."
+---
+
+**Objetivo**: Aprender a implementar **Controles** que mitiguen **Riesgos**.
+
+**Prerrequisito**: [De Cero a Pro (Índice)](/academy/)
+
+---
+
+## 1. El Escenario: Del Riesgo al Control
+
+En un Sistema de Gestión formal (**ISO 42001**), la Assurance sigue un flujo top-down:
+
+1.  **Evaluación de Riesgo**: El Oficial de Cumplimiento (CO) identifica un riesgo de negocio (ej. *"Nuestra IA de préstamos podría discriminar a solicitantes de edad avanzada, causando daño legal y reputacional"*).
+2.  **Definición del Control**: Para mitigar este riesgo, el CO establece un **Control** (ej. *"El Ratio de Disparidad por Edad debe ser siempre > 0.5"*).
+3.  **Implementación Técnica**: Ese es tu trabajo. Tomas el requisito del CO y lo conviertes en la "Ley" técnica (**Artículo 10: Assurance de Datos**).
+
+En el inicio rápido [De Cero a Pro](/academy/), `vl.quickstart('loan')` FALLÓ:
+
+```text
+credit-age-disparate   Age disparity          0.286      > 0.5      FAIL
+```
+
+### Qué pasó?
+
+El **Control** detectó exitosamente una **Brecha de Cumplimiento**. La "Realidad" de los datos (`0.286`) violó el requisito establecido para mitigar el riesgo de "Sesgo de Edad".
+
+> **Regla #1: El Handshake de Responsabilidad**.
+> El Oficial de Cumplimiento identifica **Riesgos** y establece **Controles**.
+> El Ingeniero implementa y **Verifica** esos controles usando Evidencia.
+
+Si bajas el umbral a 0.3 solo para que el test "pase", no estás arreglando el código -- estás **evadiendo un control de seguridad** y exponiendo a la empresa al riesgo original.
+
+## 2. Anatomía de un Control (OSCAL)
+
+Tu trabajo es traducir el requisito del CO a Código.
+Crea un archivo llamado `data_policy.oscal.yaml` (o [descárgalo desde GitHub](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml)).
+
+El formato canónico es `assessment-plan`. Aquí tienes la política completa con **3 controles** -- copia y pega esto en tu proyecto:
+
+```yaml
+assessment-plan:
+  metadata:
+    title: Credit Risk Assessment Policy (German Credit)
+    version: "1.1"
+  control-implementations:
+    - description: Credit Scoring Fairness Controls
+      implemented-requirements:
+
+        # Control 1: Class Imbalance
+        # "Rejected loans must be >= 20% of the dataset"
+        - control-id: credit-data-imbalance
+          description: >
+            Data Quality: Minority class (rejected loans) should represent
+            at least 20% of the dataset to avoid biased training.
+          props:
+            - name: metric_key
+              value: class_imbalance
+            - name: threshold
+              value: "0.2"
+            - name: operator
+              value: gt
+            - name: "input:target"
+              value: target
+
+        # Control 2: Gender Fairness (Four-Fifths Rule)
+        # "Loan approvals must not favor one gender > 80%"
+        - control-id: credit-data-bias
+          description: >
+            Pre-training Fairness: Disparate impact ratio should follow
+            the standard '80% Rule' (Four-Fifths Rule).
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: threshold
+              value: "0.8"
+            - name: operator
+              value: gt
+            - name: "input:target"
+              value: target
+            - name: "input:dimension"
+              value: gender
+
+        # Control 3: Age Fairness
+        # "Loan approvals must not discriminate by age > 50%"
+        - control-id: credit-age-disparate
+          description: "Disparate impact ratio for raw age"
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: threshold
+              value: "0.50"
+            - name: operator
+              value: gt
+            - name: "input:target"
+              value: target
+            - name: "input:dimension"
+              value: age
+```
+
+### Qué hace cada propiedad
+
+| Propiedad | Propósito | Ejemplo |
+| :--- | :--- | :--- |
+| `metric_key` | Qué métrica calcular (ver [Referencia de Métricas](/reference/metrics/)) | `disparate_impact`, `class_imbalance`, `accuracy_score` |
+| `threshold` | El límite numérico | `"0.8"` |
+| `operator` | Operador de comparación: `gt`, `gte`, `lt`, `lte`, `eq` | `gt` = mayor que |
+| `input:target` | Columna que contiene las etiquetas de verdad | `target` (resuelto via column binding) |
+| `input:dimension` | Atributo protegido por el cual segmentar | `gender`, `age` (resuelto via [Column Binding](/guides/column-binding/)) |
+| `input:prediction` | Columna que contiene las predicciones del modelo (auditorías de modelo) | `prediction` |
+
+## 3. Ejecuta Tu Política Personalizada
+
+Ahora, ejecutemos la auditoría con *tu* archivo de política. Copia y pega este bloque de código:
+
+```python
+import venturalitica as vl
+from venturalitica.quickstart import load_sample
+
+# 1. Cargar el Dataset German Credit (ejemplo integrado)
+data = load_sample("loan")
+print(f"Dataset: {data.shape[0]} rows, {data.shape[1]} columns")
+
+# 2. Ejecutar Auditoría contra tu política
+results = vl.enforce(
+    data=data,
+    target="class",            # Ground truth column
+    gender="Attribute9",       # "Personal status and sex" -> gender
+    age="Attribute13",         # "Age in years" -> age
+    policy="data_policy.oscal.yaml"
+)
+
+# 3. Imprimir resultados
+for r in results:
+    status = "PASS" if r.passed else "FAIL"
+    print(f"  {r.control_id:<25} {r.actual_value:.3f}  {r.operator} {r.threshold}  {status}")
+```
+
+### Salida esperada
+
+```text
+Dataset: 1000 rows, 21 columns
+  credit-data-imbalance     0.429  gt 0.2   PASS
+  credit-data-bias          0.818  gt 0.8   PASS
+  credit-age-disparate      0.286  gt 0.5   FAIL
+```
+
+Dos controles pasan, uno falla. El ratio de disparidad por edad (0.286) está por debajo del umbral de 0.5.
+
+### El Handshake de "Traducción"
+
+Observa lo que acaba de pasar:
+
+-   **Legal**: "Sé justo (> 0.5)." -- Definido en tu política YAML por el Oficial de Cumplimiento.
+-   **Dev**: "La columna `Attribute13` significa `age`." -- Definido en tu llamada Python por el Ingeniero.
+
+Este mapeo es el **Handshake**. Tú construyes el puente entre DataFrames desordenados y requisitos legales rígidos. Así es como implementas **ISO 42001** sin perder la cabeza en hojas de cálculo.
+
+```text
+OSCAL Policy              Python Code                DataFrame
++-----------+       +------------------+       +---------------+
+| age       | ----> | age="Attribute13"| ----> | Attribute13   |
+| gender    | ----> | gender="Attr..9" | ----> | Attribute9    |
+| target    | ----> | target="class"   | ----> | class         |
++-----------+       +------------------+       +---------------+
+```
+
+Consulta [Column Binding](/guides/column-binding/) para ver el algoritmo completo de resolución.
+
+## 4. Verificación Visual
+
+La salida del terminal es evidencia, pero el cumplimiento requiere reportes profesionales.
+Lanza el Dashboard local para visualizar los resultados:
+
+```bash
+venturalitica ui
+```
+
+Navega a la pestaña de **Fase 3 (Verificar y Evaluar)**. Verás:
+
+- Marcas verdes para los dos controles que pasan
+- Una bandera roja para `credit-age-disparate` con el valor medido (0.286) vs. el umbral (0.5)
+- El archivo JSON de traza se guarda automáticamente como evidencia local
+
+Has prevenido exitosamente que una IA no conforme llegue a producción midiendo el riesgo contra un estándar verificable.
+
+## 5. Mensajes para Llevar a Casa
+
+1.  **Política como Código**: La Assurance es un archivo `.yaml`. Define los **Controles** que tu sistema debe pasar.
+2.  **El Handshake**: Tú defines el *Mapeo* (`age`=`Attribute13`). El Oficial define el *Requisito* (`> 0.5`). Ninguno puede actuar solo.
+3.  **El Tratamiento empieza con la Detección**: La falla local es la señal necesaria para iniciar un plan de tratamiento de riesgos formal ISO 42001. No bajes el umbral -- arregla los datos.
+
+---
+
+**Siguiente Paso**: La auditoría falló localmente. Cómo la integramos en un Pipeline de ML?
+
+**[Ir al Nivel 2: El Integrador (MLOps)](/academy/level2-integrator/)**
