@@ -1,0 +1,89 @@
+publiccodeYmlVersion: "0.4"
+
+name: Venturalitica SDK
+url: "https://github.com/Venturalitica/venturalitica-sdk"
+landingURL: "https://venturalitica.ai"
+softwareVersion: "0.5.0"
+releaseDate: "2026-01-01"
+
+platforms:
+  - linux
+  - windows
+  - mac
+
+categories:
+  - compliance-management
+  - data-analytics
+  - risk-management
+
+developmentStatus: beta
+
+softwareType: "library"
+
+description:
+  en:
+    shortDescription: "EU AI Act compliance-as-code for Python ML pipelines"
+    longDescription: |
+      Venturalitica transforms your Python ML code into legal evidence for
+      EU AI Act compliance. Define assurance rules in OSCAL policy files,
+      then enforce them against your datasets and models with one line of
+      code.
+
+      The SDK provides 35+ built-in metrics across fairness, data quality,
+      performance, privacy, and robustness categories. It generates
+      immutable compliance artifacts including Annex IV technical
+      documentation, Evidence Bills of Materials (BOM), and full audit
+      traces — all running locally with zero cloud dependency.
+
+      Designed for High-Risk AI systems under Articles 9-15 of the EU AI
+      Act, Venturalitica bridges the gap between legal requirements and
+      engineering practice through policy-as-code.
+    documentation: "https://venturalitica.github.io/venturalitica-sdk"
+    features:
+      - OSCAL policy enforcement with 35+ fairness and data quality metrics
+      - Glass Box compliance dashboard (Streamlit)
+      - Annex IV technical documentation auto-generation
+      - Evidence Bill of Materials (CycloneDX ML BOM)
+      - Column binding for schema-agnostic policy reuse
+      - Multiclass fairness auditing
+      - Zero-cloud local sovereignty — all data stays on your machine
+      - CI/CD strict mode for automated compliance gates
+  es:
+    shortDescription: "Compliance-as-code del EU AI Act para pipelines Python de ML"
+    longDescription: |
+      Venturalitica transforma tu código Python de ML en evidencia legal
+      para el cumplimiento del EU AI Act. Define reglas de aseguramiento
+      en ficheros de política OSCAL y aplícalas contra tus datasets y
+      modelos con una sola línea de código.
+
+      El SDK ofrece más de 35 métricas integradas en categorías de
+      equidad, calidad de datos, rendimiento, privacidad y robustez.
+      Genera artefactos de cumplimiento inmutables incluyendo
+      documentación técnica Anexo IV, Bills of Materials de evidencia
+      (BOM) y trazas completas de auditoría — todo ejecutándose
+      localmente sin dependencia de la nube.
+    documentation: "https://venturalitica.github.io/venturalitica-sdk/es/"
+    features:
+      - Aplicación de políticas OSCAL con más de 35 métricas
+      - Dashboard Glass Box de cumplimiento (Streamlit)
+      - Generación automática de documentación técnica Anexo IV
+      - Bill of Materials de evidencia (CycloneDX ML BOM)
+      - Soberanía local — todos los datos permanecen en tu máquina
+      - Modo estricto para CI/CD como puerta de cumplimiento
+
+legal:
+  license: "Apache-2.0"
+  mainCopyrightOwner: "Venturalítica"
+
+maintenance:
+  type: "internal"
+  contacts:
+    - name: "Venturalítica Team"
+      email: "info@venturalitica.ai"
+
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - en
+    - es
+    - pt
