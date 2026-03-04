@@ -2,19 +2,21 @@ import functools
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional, Union
 from pathlib import Path
+from typing import Any, Optional, Union
 
-class GovernanceWrapper:
+
+class AssuranceWrapper:
     """
     A transparency proxy for ML models that automatically triggers
     Venturalítica audits on key lifecycle methods (fit, predict).
     """
+
     def __init__(self, model: Any, policy: Optional[Union[str, Path]] = None):
         self._venturalitica_model = model
         self._venturalitica_policy = policy
         self.last_audit_results = []
-        
+
         # Intercept common ML methods
         self._wrap_method("fit")
         self._wrap_method("predict")
@@ -36,8 +38,9 @@ class GovernanceWrapper:
 
         @functools.wraps(original_method)
         def wrapped(*args, **kwargs):
-            from . import enforce
             import inspect
+
+            from . import enforce
 
             # 1. Use inspect to separate model kwargs from audit kwargs
             sig = inspect.signature(original_method)
@@ -55,16 +58,17 @@ class GovernanceWrapper:
 
             # Pre-execution: Fit usually implies a data audit
             if method_name == "fit":
-                data = audit_data if audit_data is not None else self._find_dataframe(args, model_kwargs)
+                data = (
+                    audit_data
+                    if audit_data is not None
+                    else self._find_dataframe(args, model_kwargs)
+                )
                 if data is not None:
                     # Pass all audit-relevant mappings to enforce
                     self.last_audit_results = enforce(
-                        data=data, 
-                        policy=self._venturalitica_policy,
-                        **audit_kwargs
+                        data=data, policy=self._venturalitica_policy, **audit_kwargs
                     )
-                    
-                    
+
                     # [PLG] Runtime Provenance Capture
                     try:
                         self._save_run_metadata(data, model_kwargs)
@@ -82,22 +86,26 @@ class GovernanceWrapper:
 
             # Post-execution: Predict implies a model fairness audit
             if method_name in ["predict", "predict_proba"]:
-                data = audit_data if audit_data is not None else self._find_dataframe(args, model_kwargs)
+                data = (
+                    audit_data
+                    if audit_data is not None
+                    else self._find_dataframe(args, model_kwargs)
+                )
                 if data is not None:
                     # Inject prediction for the audit
                     data_with_pred = data.copy()
-                    
-                    # We need to know where to put the prediction. 
+
+                    # We need to know where to put the prediction.
                     # Use 'prediction' key from audit_kwargs if present, else default
-                    pred_col_name = audit_kwargs.get('prediction', 'prediction')
+                    pred_col_name = audit_kwargs.get("prediction", "prediction")
                     data_with_pred[pred_col_name] = result
-                    
+
                     self.last_audit_results = enforce(
-                        data=data_with_pred, 
+                        data=data_with_pred,
                         policy=self._venturalitica_policy,
-                        **audit_kwargs
+                        **audit_kwargs,
                     )
-            
+
             return result
 
         setattr(self, method_name, wrapped)
@@ -105,6 +113,7 @@ class GovernanceWrapper:
     def _find_dataframe(self, args, kwargs) -> Optional[Any]:
         # Simple heuristic to find a pandas DataFrame in the arguments
         import pandas as pd
+
         for arg in args:
             if isinstance(arg, pd.DataFrame):
                 return arg
@@ -118,45 +127,49 @@ class GovernanceWrapper:
         Captures runtime facts (provenance) for the Compliance Graph.
         """
         import pandas as pd
-        
+
         meta = {
             "timestamp": datetime.now().isoformat(),
             "model": {
                 "class": self._venturalitica_model.__class__.__name__,
-                "module": self._venturalitica_model.__class__.__module__
+                "module": self._venturalitica_model.__class__.__module__,
             },
             "data": {
                 "rows": len(data) if hasattr(data, "__len__") else 0,
-                "columns": list(data.columns) if isinstance(data, pd.DataFrame) else []
+                "columns": list(data.columns) if isinstance(data, pd.DataFrame) else [],
             },
-            "audit_results": [r.metric_key + ": " + ("PASS" if r.passed else "FAIL") for r in self.last_audit_results]
+            "audit_results": [
+                r.metric_key + ": " + ("PASS" if r.passed else "FAIL")
+                for r in self.last_audit_results
+            ],
         }
-        
+
         # Try to get hyperparameters
         if hasattr(self._venturalitica_model, "get_params"):
-             meta["model"]["params"] = self._venturalitica_model.get_params()
-             
+            meta["model"]["params"] = self._venturalitica_model.get_params()
+
         # [NEW] Capture Code Story via AST
         try:
             import inspect
-            from .graph.parser import ASTCodeScanner
-            
+
+            from .assurance.graph.parser import ASTCodeScanner
+
             # Find the calling frame to get the script path
             frame = inspect.currentframe()
             # Go up until we find something not in venturalitica
             while frame:
-                module_name = frame.f_globals.get('__name__', '')
-                if not module_name.startswith('venturalitica'):
+                module_name = frame.f_globals.get("__name__", "")
+                if not module_name.startswith("venturalitica"):
                     break
                 frame = frame.f_back
-            
+
             if frame:
-                script_path = frame.f_globals.get('__file__')
+                script_path = frame.f_globals.get("__file__")
                 if script_path and os.path.exists(script_path):
                     scanner = ASTCodeScanner()
                     meta["code_context"] = {
                         "file": os.path.basename(script_path),
-                        "analysis": scanner.scan_file(script_path)
+                        "analysis": scanner.scan_file(script_path),
                     }
         except Exception as e:
             print(f"⚠ Trace Audit Warning: Could not capture AST: {e}")
@@ -164,6 +177,7 @@ class GovernanceWrapper:
         # [INTEGRATIONS] Capture Linkage
         try:
             import mlflow
+
             if mlflow.active_run():
                 run = mlflow.active_run()
                 meta["integrations"] = meta.get("integrations", {})
@@ -171,21 +185,24 @@ class GovernanceWrapper:
                     "active": True,
                     "run_id": run.info.run_id,
                     "experiment_id": run.info.experiment_id,
-                    "tracking_uri": mlflow.get_tracking_uri()
+                    "tracking_uri": mlflow.get_tracking_uri(),
                 }
-        except: pass
+        except Exception:
+            pass
 
         try:
             import wandb
+
             if wandb.run:
                 meta["integrations"] = meta.get("integrations", {})
                 meta["integrations"]["wandb"] = {
                     "active": True,
                     "run_url": wandb.run.url,
                     "project": wandb.run.project,
-                    "entity": wandb.run.entity
+                    "entity": wandb.run.entity,
                 }
-        except: pass
+        except Exception:
+            pass
 
         # Save to disk
         os.makedirs(".venturalitica", exist_ok=True)
@@ -208,12 +225,15 @@ class GovernanceWrapper:
         # 1. Detect MLflow
         try:
             import mlflow
+
             if mlflow.active_run():
                 for p in policies:
                     p_path = Path(p)
                     if p_path.exists():
                         # Log as 'policy_snapshot' artifact
-                        mlflow.log_artifact(str(p_path), artifact_path="policy_snapshot")
+                        mlflow.log_artifact(
+                            str(p_path), artifact_path="policy_snapshot"
+                        )
         except ImportError:
             pass
         except Exception as e:
@@ -222,8 +242,9 @@ class GovernanceWrapper:
         # 2. Detect WandB
         try:
             import wandb
+
             if wandb.run:
-                artifact = wandb.Artifact("policy_snapshot", type="governance")
+                artifact = wandb.Artifact("policy_snapshot", type="assurance")
                 for p in policies:
                     p_path = Path(p)
                     if p_path.exists():
@@ -234,15 +255,17 @@ class GovernanceWrapper:
         except Exception as e:
             print(f"  (WandB Artifact Upload Error: {e})")
 
-def wrap(model: Any, policy: Optional[Union[str, Path]] = None) -> GovernanceWrapper:
+
+def wrap(model: Any, policy: Optional[Union[str, Path]] = None) -> AssuranceWrapper:
     """
-    [EXPERIMENTAL] Transparently wraps an ML model with Venturalítica governance.
+    [EXPERIMENTAL] Transparently wraps an ML model with Venturalítica assurance.
     Note: This is an experimental feature and may change or be removed in future versions.
     """
     import warnings
+
     warnings.warn(
         "vl.wrap is an experimental feature and its API may change in future versions.",
         UserWarning,
-        stacklevel=2
+        stacklevel=2,
     )
-    return GovernanceWrapper(model, policy)
+    return AssuranceWrapper(model, policy)

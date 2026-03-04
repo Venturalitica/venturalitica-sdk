@@ -1,6 +1,14 @@
-from langgraph.graph import StateGraph, END
-from venturalitica.assurance.graph.state import ComplianceState
+try:
+    from langgraph.graph import END, StateGraph
+except ImportError:
+    raise ImportError(
+        "langgraph is required for the compliance graph. "
+        "Install with: pip install venturalitica[agentic]"
+    )
+
 from venturalitica.assurance.graph.nodes import NodeFactory
+from venturalitica.assurance.graph.state import ComplianceState
+
 
 def create_compliance_graph(model_name: str = "mistral", provider: str = "auto", api_key: str = None):
     """

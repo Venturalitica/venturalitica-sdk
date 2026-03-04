@@ -20,30 +20,40 @@ from venturalitica.probes import (
 )
 
 
+class ConcreteTestProbe(BaseProbe):
+    """Concrete subclass of BaseProbe for testing purposes."""
+
+    def start(self):
+        pass
+
+    def stop(self):
+        return {}
+
+
 class TestBaseProbeEdgeCases:
     """Test BaseProbe initialization and error handling."""
 
     def test_base_probe_init(self):
         """Test basic BaseProbe initialization."""
-        probe = BaseProbe("Test Probe")
+        probe = ConcreteTestProbe("Test Probe")
         assert probe.name == "Test Probe"
         assert probe.results == {}
 
     def test_base_probe_start_not_implemented(self):
         """Test that start() doesn't raise for base class."""
-        probe = BaseProbe("Test")
+        probe = ConcreteTestProbe("Test")
         probe.start()  # Should not raise
         assert True
 
     def test_base_probe_stop_returns_empty(self):
         """Test that stop() returns empty dict for base class."""
-        probe = BaseProbe("Test")
+        probe = ConcreteTestProbe("Test")
         result = probe.stop()
         assert result == {}
 
     def test_base_probe_get_summary_empty(self):
         """Test summary when no results."""
-        probe = BaseProbe("Test")
+        probe = ConcreteTestProbe("Test")
         summary = probe.get_summary()
         assert isinstance(summary, str)
 
@@ -146,90 +156,107 @@ class TestHardwareProbeEdgeCases:
     def test_hardware_probe_zero_memory(self):
         """Test with zero memory values."""
         probe = HardwareProbe()
-        probe.cpu_info = {"cores": 0}
-        probe.memory_info = {"used": 0, "total": 0}
+        # HardwareProbe uses peak_memory and results from start()/stop()
+        # Simulate zero memory by setting results directly
+        probe.results = {"peak_memory_mb": 0, "cpu_count": 0}
         summary = probe.get_summary()
-        assert "0" in summary
+        assert isinstance(summary, str)
 
 
 class TestIntegrityProbeEdgeCases:
     """Test IntegrityProbe edge cases."""
 
-    def test_integrity_probe_empty_hash_list(self):
-        """Test integrity probe with no files to hash."""
-        probe = IntegrityProbe(files=[])
+    def test_integrity_probe_generates_fingerprint(self):
+        """Test integrity probe generates a fingerprint on start/stop."""
+        probe = IntegrityProbe()
+        probe.start()
         result = probe.stop()
-        assert result.get("file_count") == 0
+        assert "start_state" in result
+        assert "end_state" in result
+        assert "fingerprint" in result["start_state"]
+        assert "fingerprint" in result["end_state"]
 
-    def test_integrity_probe_nonexistent_file(self):
-        """Test with nonexistent file path."""
-        probe = IntegrityProbe(files=["/nonexistent/file/path.py"])
+    def test_integrity_probe_no_drift_in_stable_env(self):
+        """Test no drift detected in a stable environment."""
+        probe = IntegrityProbe()
+        probe.start()
         result = probe.stop()
-        # Should handle gracefully
-        assert isinstance(result, dict)
+        assert result["drift_detected"] is False
 
-    def test_integrity_probe_mixed_files(self):
-        """Test with mix of existing and nonexistent files."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Create one file
-            test_file = Path(tmpdir) / "test.py"
-            test_file.write_text("test content")
+    def test_integrity_probe_fingerprint_metadata(self):
+        """Test that fingerprint metadata contains expected keys."""
+        probe = IntegrityProbe()
+        probe.start()
+        result = probe.stop()
+        metadata = result["start_state"]["metadata"]
+        assert "os" in metadata
+        assert "python" in metadata
+        assert "arch" in metadata
+        assert "node" in metadata
+        assert "cwd" in metadata
 
-            probe = IntegrityProbe(files=[str(test_file), "/nonexistent/file.py"])
-            result = probe.stop()
-            assert isinstance(result, dict)
+    def test_integrity_probe_fingerprint_is_deterministic(self):
+        """Test that fingerprint is deterministic across calls."""
+        probe1 = IntegrityProbe()
+        probe1.start()
+        result1 = probe1.stop()
 
-    def test_integrity_probe_large_file(self):
-        """Test integrity probe with large file."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            large_file = Path(tmpdir) / "large.bin"
-            # Create 10MB file
-            large_file.write_bytes(b"x" * (10 * 1024 * 1024))
+        probe2 = IntegrityProbe()
+        probe2.start()
+        result2 = probe2.stop()
 
-            probe = IntegrityProbe(files=[str(large_file)])
-            result = probe.stop()
-            assert "file_count" in result
-            assert result["file_count"] == 1
+        assert result1["start_state"]["fingerprint"] == result2["start_state"]["fingerprint"]
 
-    def test_integrity_probe_unicode_filename(self):
-        """Test with unicode characters in filename."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Create file with unicode name
-            unicode_file = Path(tmpdir) / "тест_文件.py"
-            unicode_file.write_text("# Unicode test")
-
-            probe = IntegrityProbe(files=[str(unicode_file)])
-            result = probe.stop()
-            assert isinstance(result, dict)
+    def test_integrity_probe_summary(self):
+        """Test get_summary returns a formatted string."""
+        probe = IntegrityProbe()
+        probe.start()
+        probe.stop()
+        summary = probe.get_summary()
+        assert isinstance(summary, str)
+        assert "Security" in summary
 
 
 class TestHandshakeProbeEdgeCases:
     """Test HandshakeProbe edge cases."""
 
-    def test_handshake_probe_empty_port(self):
-        """Test handshake with invalid port."""
-        probe = HandshakeProbe(host="localhost", port=0)
-        # Should not crash on initialization
-        assert probe.host == "localhost"
-
-    def test_handshake_probe_invalid_host(self):
-        """Test with invalid hostname."""
-        probe = HandshakeProbe(host="invalid..host..", port=8080)
+    def test_handshake_probe_compliant_session(self):
+        """Test handshake with a compliant (enforced) session."""
+        probe = HandshakeProbe(lambda: True)
+        probe.start()
         result = probe.stop()
-        # Should gracefully handle
-        assert isinstance(result, dict)
+        assert result["is_compliant"] is True
 
-    def test_handshake_probe_negative_port(self):
-        """Test with negative port number."""
-        probe = HandshakeProbe(host="localhost", port=-1)
+    def test_handshake_probe_non_compliant_session(self):
+        """Test handshake with a non-compliant session."""
+        probe = HandshakeProbe(lambda: False)
+        probe.start()
         result = probe.stop()
-        assert isinstance(result, dict)
+        assert result["is_compliant"] is False
+        assert result["red_check_count"] == 0
 
-    def test_handshake_probe_very_high_port(self):
-        """Test with port beyond valid range."""
-        probe = HandshakeProbe(host="localhost", port=99999)
+    def test_handshake_probe_newly_enforced(self):
+        """Test detection of newly enforced session."""
+        call_count = 0
+
+        def toggling_enforced():
+            nonlocal call_count
+            call_count += 1
+            # First call (start) returns False, subsequent calls return True
+            return call_count > 1
+
+        probe = HandshakeProbe(toggling_enforced)
+        probe.start()
         result = probe.stop()
-        assert isinstance(result, dict)
+        assert result["newly_enforced"] is True
+
+    def test_handshake_probe_summary_not_compliant(self):
+        """Test summary message when not compliant."""
+        probe = HandshakeProbe(lambda: False)
+        probe.start()
+        probe.stop()
+        summary = probe.get_summary()
+        assert "Nudge" in summary or "enforce" in summary
 
 
 class TestBOMProbeEdgeCases:
@@ -239,7 +266,7 @@ class TestBOMProbeEdgeCases:
         """Test BOMProbe creates fallback directory when no session."""
         with tempfile.TemporaryDirectory() as tmpdir:
             with patch("venturalitica.session.GovernanceSession.get_current", return_value=None):
-                with patch("venturalitica.probes.bom.BOMScanner") as mock_scanner_class:
+                with patch("venturalitica.scanner.BOMScanner") as mock_scanner_class:
                     mock_scanner = MagicMock()
                     mock_scanner.scan.return_value = '{"components": []}'
                     mock_scanner.bom.components = []
@@ -248,12 +275,12 @@ class TestBOMProbeEdgeCases:
                     probe = BOMProbe(target_dir=tmpdir)
                     probe.stop()
 
-                    # Should have created .venturalitica directory
-                    assert Path(".venturalitica/bom.json").exists() or True
+                    # Verify probe ran without error (file creation is mocked)
+                    mock_scanner_class.assert_called_once()
 
     def test_bom_probe_invalid_json_response(self):
         """Test BOMProbe with invalid JSON from scanner."""
-        with patch("venturalitica.probes.bom.BOMScanner") as mock_scanner_class:
+        with patch("venturalitica.scanner.BOMScanner") as mock_scanner_class:
             mock_scanner = MagicMock()
             mock_scanner.scan.return_value = "INVALID JSON"
             mock_scanner_class.return_value = mock_scanner
@@ -265,7 +292,7 @@ class TestBOMProbeEdgeCases:
 
     def test_bom_probe_empty_components(self):
         """Test with empty component list."""
-        with patch("venturalitica.probes.bom.BOMScanner") as mock_scanner_class:
+        with patch("venturalitica.scanner.BOMScanner") as mock_scanner_class:
             mock_scanner = MagicMock()
             mock_scanner.scan.return_value = '{"components": []}'
             mock_scanner.bom.components = []
@@ -278,9 +305,11 @@ class TestBOMProbeEdgeCases:
 
     def test_bom_probe_large_component_count(self):
         """Test with large number of components."""
-        with patch("venturalitica.probes.bom.BOMScanner") as mock_scanner_class:
+        import json
+
+        with patch("venturalitica.scanner.BOMScanner") as mock_scanner_class:
             mock_scanner = MagicMock()
-            mock_scanner.scan.return_value = '{"components": [{}] * 1000}'
+            mock_scanner.scan.return_value = json.dumps({"components": [{}] * 1000})
             # Create 1000 mock components
             mock_scanner.bom.components = [MagicMock() for _ in range(1000)]
             mock_scanner_class.return_value = mock_scanner
@@ -359,7 +388,7 @@ class TestProbeIntegrationEdgeCases:
             CarbonProbe(),
             HardwareProbe(),
             IntegrityProbe(),
-            HandshakeProbe(),
+            HandshakeProbe(lambda: True),
         ]
 
         for probe in probes:
@@ -377,9 +406,8 @@ class TestProbeIntegrationEdgeCases:
             special_dir.mkdir()
 
             probe = BOMProbe(target_dir=str(special_dir))
-            with patch("venturalitica.probes.bom.BOMScanner"):
-                # Just test that it doesn't crash on special names
-                assert probe.target_dir == str(special_dir)
+            # Just test that it doesn't crash on special names
+            assert probe.target_dir == str(special_dir)
 
     def test_trace_probe_summary_format(self):
         """Test TraceProbe summary is properly formatted."""

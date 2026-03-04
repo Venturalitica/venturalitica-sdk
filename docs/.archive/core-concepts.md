@@ -284,7 +284,7 @@ vl.enforce(
 
 ---
 
-## Multi-Attribute Governance
+## Multi-Attribute Assurance
 
 Monitor **multiple** protected attributes:
 

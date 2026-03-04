@@ -106,9 +106,9 @@ class TestCoreErrorHandling:
             validator = AssuranceValidator(path)
             df = pd.DataFrame({"wrong_col": [1, 2, 3]})
 
-            # Strict mode: should handle missing columns gracefully
-            results = validator.compute_and_evaluate(df, {}, strict=True)
-            assert isinstance(results, list)
+            # Strict mode: should raise on unresolved virtual variables
+            with pytest.raises(ValueError, match="unresolved virtual variables"):
+                validator.compute_and_evaluate(df, {}, strict=True)
         finally:
             os.unlink(path)
 
@@ -165,51 +165,52 @@ class TestTelemetryFallbacks:
 
     def test_telemetry_import_failure_handled(self):
         """Monitor should handle telemetry import failures."""
-        with patch("venturalitica.api.telemetry", side_effect=ImportError("telemetry unavailable")):
-            # Monitor should still work even if telemetry fails
-            with (
-                patch("venturalitica.probes.CarbonProbe.start"),
-                patch("venturalitica.probes.CarbonProbe.stop"),
-                patch("venturalitica.probes.HardwareProbe.start"),
-                patch("venturalitica.probes.HardwareProbe.stop"),
-                patch("venturalitica.probes.IntegrityProbe.start"),
-                patch("venturalitica.probes.IntegrityProbe.stop"),
-                patch("venturalitica.probes.BOMProbe.start"),
-                patch("venturalitica.probes.BOMProbe.stop"),
-                patch("venturalitica.probes.ArtifactProbe.start"),
-                patch("venturalitica.probes.ArtifactProbe.stop"),
-                patch("venturalitica.probes.HandshakeProbe.start"),
-                patch("venturalitica.probes.HandshakeProbe.stop"),
-                patch("venturalitica.probes.TraceProbe.start"),
-                patch("venturalitica.probes.TraceProbe.stop"),
-            ):
-                with monitor("Test"):
-                    pass
+        import sys
+
+        # Temporarily block the telemetry module so `from .telemetry import telemetry`
+        # inside monitor() raises ImportError.
+        with (
+            patch.dict(sys.modules, {"venturalitica.telemetry": None}),
+            patch("venturalitica.probes.CarbonProbe.start"),
+            patch("venturalitica.probes.CarbonProbe.stop"),
+            patch("venturalitica.probes.HardwareProbe.start"),
+            patch("venturalitica.probes.HardwareProbe.stop"),
+            patch("venturalitica.probes.IntegrityProbe.start"),
+            patch("venturalitica.probes.IntegrityProbe.stop"),
+            patch("venturalitica.probes.BOMProbe.start"),
+            patch("venturalitica.probes.BOMProbe.stop"),
+            patch("venturalitica.probes.ArtifactProbe.start"),
+            patch("venturalitica.probes.ArtifactProbe.stop"),
+            patch("venturalitica.probes.HandshakeProbe.start"),
+            patch("venturalitica.probes.HandshakeProbe.stop"),
+            patch("venturalitica.probes.TraceProbe.start"),
+            patch("venturalitica.probes.TraceProbe.stop"),
+        ):
+            with monitor("Test"):
+                pass
 
     def test_telemetry_capture_exception_handled(self):
         """Monitor should handle exceptions during telemetry capture."""
-        with patch("venturalitica.api.telemetry") as mock_telemetry:
-            mock_telemetry.capture.side_effect = Exception("Telemetry error")
-
-            with (
-                patch("venturalitica.probes.CarbonProbe.start"),
-                patch("venturalitica.probes.CarbonProbe.stop"),
-                patch("venturalitica.probes.HardwareProbe.start"),
-                patch("venturalitica.probes.HardwareProbe.stop"),
-                patch("venturalitica.probes.IntegrityProbe.start"),
-                patch("venturalitica.probes.IntegrityProbe.stop"),
-                patch("venturalitica.probes.BOMProbe.start"),
-                patch("venturalitica.probes.BOMProbe.stop"),
-                patch("venturalitica.probes.ArtifactProbe.start"),
-                patch("venturalitica.probes.ArtifactProbe.stop"),
-                patch("venturalitica.probes.HandshakeProbe.start"),
-                patch("venturalitica.probes.HandshakeProbe.stop"),
-                patch("venturalitica.probes.TraceProbe.start"),
-                patch("venturalitica.probes.TraceProbe.stop"),
-            ):
-                # Should not raise even if telemetry fails
-                with monitor("Test"):
-                    pass
+        with (
+            patch("venturalitica.telemetry.TelemetryClient.capture", side_effect=Exception("Telemetry error")),
+            patch("venturalitica.probes.CarbonProbe.start"),
+            patch("venturalitica.probes.CarbonProbe.stop"),
+            patch("venturalitica.probes.HardwareProbe.start"),
+            patch("venturalitica.probes.HardwareProbe.stop"),
+            patch("venturalitica.probes.IntegrityProbe.start"),
+            patch("venturalitica.probes.IntegrityProbe.stop"),
+            patch("venturalitica.probes.BOMProbe.start"),
+            patch("venturalitica.probes.BOMProbe.stop"),
+            patch("venturalitica.probes.ArtifactProbe.start"),
+            patch("venturalitica.probes.ArtifactProbe.stop"),
+            patch("venturalitica.probes.HandshakeProbe.start"),
+            patch("venturalitica.probes.HandshakeProbe.stop"),
+            patch("venturalitica.probes.TraceProbe.start"),
+            patch("venturalitica.probes.TraceProbe.stop"),
+        ):
+            # Should not raise even if telemetry fails
+            with monitor("Test"):
+                pass
 
 
 # ============================================================================
@@ -439,21 +440,22 @@ class TestLoaderEdgeCases:
 
     def test_loader_with_missing_policy_file(self):
         """Loader should handle missing policy files."""
-        from venturalitica.loader import load_policy
+        from venturalitica.loader import OSCALPolicyLoader
 
         with pytest.raises(FileNotFoundError):
-            load_policy("nonexistent_policy.yaml")
+            OSCALPolicyLoader("nonexistent_policy.yaml")
 
     def test_loader_with_malformed_yaml(self, tmp_path):
         """Loader should handle malformed YAML."""
-        from venturalitica.loader import load_policy
+        from venturalitica.loader import OSCALPolicyLoader
 
         bad_yaml_path = tmp_path / "bad.yaml"
         with open(bad_yaml_path, "w") as f:
             f.write("{ invalid: yaml: content: [")
 
-        with pytest.raises(Exception):  # Will raise YAML parsing error
-            load_policy(str(bad_yaml_path))
+        with pytest.raises(Exception):  # Will raise YAML parsing or OSCAL format error
+            loader = OSCALPolicyLoader(str(bad_yaml_path))
+            loader.load()
 
 
 # ============================================================================
@@ -470,9 +472,9 @@ class TestColumnDiscovery:
 
         df = pd.DataFrame({"ground_truth": [1, 0, 1], "predictions": [1, 0, 0]})
 
-        # Should discover even with non-standard names
-        result = discover_column("target", {}, df, {})
-        assert result != "MISSING"  # Should find something or return MISSING
+        # Should discover even with non-standard names via default COLUMN_SYNONYMS
+        result = discover_column("target", {}, df, None)
+        assert result != "MISSING"  # Should find "ground_truth" via synonym lookup
 
     def test_column_discovery_with_missing_columns(self):
         """Column discovery should return MISSING for non-existent columns."""

@@ -47,7 +47,7 @@ The `vl.monitor` is a **Multimodal Observability** tool using a **Probe Architec
 1. 🟢 **CarbonProbe**: Starts the `codecarbon` tracker automatically.
 2. 🟢 **HardwareProbe**: Captures Peak RAM and CPU usage.
 3. 🟢 **IntegrityProbe**: Generates a **Security Fingerprint** of the environment (OS, Python version, CWD) to ensure audit trail integrity.
-4. 🟢 **HandshakeProbe**: Nudges you if you haven't run a governance check (`vl.enforce`) yet.
+4. 🟢 **HandshakeProbe**: Nudges you if you haven't run a assurance check (`vl.enforce`) yet.
 5. 🔴 **Summarizes** all findings when the block finishes.
 
 ---

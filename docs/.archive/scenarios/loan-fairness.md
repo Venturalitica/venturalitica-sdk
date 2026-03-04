@@ -54,7 +54,7 @@ Credit scoring is classified as a **High-Risk AI System** under EU AI Act Articl
 
 **Requirements (Articles 9-15):**
 1. **Article 9**: Risk management system
-2. **Article 10**: Data governance (quality, bias detection)
+2. **Article 10**: Data assurance (quality, bias detection)
 3. **Article 11**: Technical documentation (Annex IV)
 4. **Article 12**: Record-keeping and traceability
 5. **Article 13**: Transparency and information to users
@@ -79,7 +79,7 @@ If < 0.8 → Potential discrimination
 
 ### Risk Assessment Matrix
 
-Before implementing controls, we perform a risk assessment to prioritize our governance efforts:
+Before implementing controls, we perform a risk assessment to prioritize our assurance efforts:
 
 | Risk Scenario | Probability | Impact | Mitigation Strategy | regulatory Mapping |
 | :--- | :--- | :--- | :--- | :--- |
@@ -99,7 +99,7 @@ We define **OSCAL policies** that map to regulatory requirements:
 
 #### Risk 1: Class Imbalance (Data Quality)
 **Policy**: `credit-data-imbalance`
-**Requirement**: EU AI Act Article 10 (Data Governance)
+**Requirement**: EU AI Act Article 10 (Data Assurance)
 **Check**: Minority class (rejected loans) must be ≥ 20% of dataset
 
 **Why This Matters:**
@@ -224,7 +224,7 @@ A model that rejects all applicants is "fair" (0% bias) but useless. We need **b
 
 ## Step 2: Implement the Solution
 
-### Training Script with Governance
+### Training Script with Assurance
 
 ```python
 import pandas as pd

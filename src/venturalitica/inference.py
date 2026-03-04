@@ -1,12 +1,14 @@
-import os
 import json
-import yaml
+import os
 from pathlib import Path
-from typing import Optional, Any, Dict
-from venturalitica.models import SystemDescription
+from typing import Any, Dict, Optional
+
+import yaml
+
 from venturalitica.assurance.graph.nodes import NodeFactory
-from venturalitica.scanner import BOMScanner
 from venturalitica.assurance.graph.parser import ASTCodeScanner
+from venturalitica.models import SystemDescription
+from venturalitica.scanner import BOMScanner
 
 
 class ProjectContext:

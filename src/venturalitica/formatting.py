@@ -6,9 +6,11 @@ for numpy/pandas types and console output formatting.
 """
 
 import json
-import numpy as np
 from datetime import datetime
 from typing import List
+
+import numpy as np
+
 from .core import ComplianceResult
 
 
@@ -52,7 +54,7 @@ def print_summary(results: List[ComplianceResult], is_data_only: bool):
         res_label = f"{C_G}✅ PASS{C_0}" if r.passed else f"{C_R}❌ FAIL{C_0}"
 
         # Map operator to symbol
-        op_map = {"gt": ">", "lt": "<", "ge": ">=", "le": "<=", "eq": "==", "ne": "!="}
+        op_map = {"gt": ">", "lt": "<", "ge": ">=", "gte": ">=", "le": "<=", "lte": "<=", "eq": "==", "ne": "!="}
         limit_str = f"{op_map.get(r.operator, r.operator)} {r.threshold}"
 
         # Clean description and ID

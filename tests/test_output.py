@@ -143,7 +143,7 @@ class TestNextSteps:
             joined = " ".join(all_args)
             assert "Next Steps" in joined
             assert "venturalitica ui" in joined
-            assert "docs.venturalitica.com" in joined
+            assert "venturalitica.github.io/venturalitica-sdk" in joined
             assert "policy.yaml" in joined
         finally:
             mod.RICH_AVAILABLE = original_rich

@@ -76,8 +76,9 @@ def test_registry():
 
 
 def test_missing_cols(sample_data):
-    # Performance metrics return 0.0 if missing columns
-    assert calc_accuracy(sample_data, target="MISSING") == 0.0
+    # Performance metrics raise ValueError if missing columns (Strict Validation)
+    with pytest.raises(ValueError, match="Required column"):
+        calc_accuracy(sample_data, target="MISSING")
 
     # Fairness metrics now raise ValueError on missing columns (Strict Validation)
     with pytest.raises(ValueError, match="Missing.*columns"):
@@ -119,53 +120,56 @@ class TestAccuracyEdgeCases:
     """Covers lines 7-10 of performance/metrics.py."""
 
     def test_target_missing_sentinel(self, sample_data):
-        assert (
-            calc_accuracy(sample_data, target="MISSING", prediction="prediction") == 0.0
-        )
+        with pytest.raises(ValueError, match="Required column"):
+            calc_accuracy(sample_data, target="MISSING", prediction="prediction")
 
     def test_prediction_missing_sentinel(self, sample_data):
-        assert calc_accuracy(sample_data, target="target", prediction="MISSING") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_accuracy(sample_data, target="target", prediction="MISSING")
 
     def test_both_missing_sentinels(self, sample_data):
-        assert calc_accuracy(sample_data, target="MISSING", prediction="MISSING") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_accuracy(sample_data, target="MISSING", prediction="MISSING")
 
     def test_target_none(self, sample_data):
-        assert calc_accuracy(sample_data, prediction="prediction") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_accuracy(sample_data, prediction="prediction")
 
     def test_prediction_none(self, sample_data):
-        assert calc_accuracy(sample_data, target="target") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_accuracy(sample_data, target="target")
 
     def test_target_not_in_df(self, sample_data):
-        assert (
-            calc_accuracy(sample_data, target="no_col", prediction="prediction") == 0.0
-        )
+        with pytest.raises(KeyError):
+            calc_accuracy(sample_data, target="no_col", prediction="prediction")
 
     def test_prediction_not_in_df(self, sample_data):
-        assert calc_accuracy(sample_data, target="target", prediction="no_col") == 0.0
+        with pytest.raises(KeyError):
+            calc_accuracy(sample_data, target="target", prediction="no_col")
 
 
 class TestPrecisionEdgeCases:
     """Covers lines 16-21 of performance/metrics.py."""
 
     def test_target_missing_sentinel(self, sample_data):
-        assert (
+        with pytest.raises(ValueError, match="Required column"):
             calc_precision(sample_data, target="MISSING", prediction="prediction")
-            == 0.0
-        )
 
     def test_prediction_missing_sentinel(self, sample_data):
-        assert calc_precision(sample_data, target="target", prediction="MISSING") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_precision(sample_data, target="target", prediction="MISSING")
 
     def test_target_none(self, sample_data):
-        assert calc_precision(sample_data, prediction="prediction") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_precision(sample_data, prediction="prediction")
 
     def test_target_not_in_df(self, sample_data):
-        assert (
-            calc_precision(sample_data, target="no_col", prediction="prediction") == 0.0
-        )
+        with pytest.raises(KeyError):
+            calc_precision(sample_data, target="no_col", prediction="prediction")
 
     def test_prediction_not_in_df(self, sample_data):
-        assert calc_precision(sample_data, target="target", prediction="no_col") == 0.0
+        with pytest.raises(KeyError):
+            calc_precision(sample_data, target="target", prediction="no_col")
 
     def test_macro_average(self, sample_data):
         result = calc_precision(
@@ -184,21 +188,24 @@ class TestRecallEdgeCases:
     """Covers lines 26-31 of performance/metrics.py."""
 
     def test_target_missing_sentinel(self, sample_data):
-        assert (
-            calc_recall(sample_data, target="MISSING", prediction="prediction") == 0.0
-        )
+        with pytest.raises(ValueError, match="Required column"):
+            calc_recall(sample_data, target="MISSING", prediction="prediction")
 
     def test_prediction_missing_sentinel(self, sample_data):
-        assert calc_recall(sample_data, target="target", prediction="MISSING") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_recall(sample_data, target="target", prediction="MISSING")
 
     def test_target_none(self, sample_data):
-        assert calc_recall(sample_data, prediction="prediction") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_recall(sample_data, prediction="prediction")
 
     def test_target_not_in_df(self, sample_data):
-        assert calc_recall(sample_data, target="no_col", prediction="prediction") == 0.0
+        with pytest.raises(KeyError):
+            calc_recall(sample_data, target="no_col", prediction="prediction")
 
     def test_prediction_not_in_df(self, sample_data):
-        assert calc_recall(sample_data, target="target", prediction="no_col") == 0.0
+        with pytest.raises(KeyError):
+            calc_recall(sample_data, target="target", prediction="no_col")
 
     def test_macro_average(self, sample_data):
         result = calc_recall(
@@ -211,19 +218,24 @@ class TestF1EdgeCases:
     """Covers lines 36-41 of performance/metrics.py."""
 
     def test_target_missing_sentinel(self, sample_data):
-        assert calc_f1(sample_data, target="MISSING", prediction="prediction") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_f1(sample_data, target="MISSING", prediction="prediction")
 
     def test_prediction_missing_sentinel(self, sample_data):
-        assert calc_f1(sample_data, target="target", prediction="MISSING") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_f1(sample_data, target="target", prediction="MISSING")
 
     def test_target_none(self, sample_data):
-        assert calc_f1(sample_data, prediction="prediction") == 0.0
+        with pytest.raises(ValueError, match="Required column"):
+            calc_f1(sample_data, prediction="prediction")
 
     def test_target_not_in_df(self, sample_data):
-        assert calc_f1(sample_data, target="no_col", prediction="prediction") == 0.0
+        with pytest.raises(KeyError):
+            calc_f1(sample_data, target="no_col", prediction="prediction")
 
     def test_prediction_not_in_df(self, sample_data):
-        assert calc_f1(sample_data, target="target", prediction="no_col") == 0.0
+        with pytest.raises(KeyError):
+            calc_f1(sample_data, target="target", prediction="no_col")
 
     def test_macro_average(self, sample_data):
         result = calc_f1(

@@ -1,9 +1,10 @@
+import ast
+import os
+from typing import Optional, Set
+
 from cyclonedx.model.bom import Bom
 from cyclonedx.model.component import Component, ComponentType
 from cyclonedx.output.json import JsonV1Dot5
-import os
-import ast
-from typing import Optional, Set
 
 # Known ML Model classes to detect
 KNOWN_MODELS: Set[str] = {
@@ -74,7 +75,7 @@ class BOMScanner:
             import tomllib
             with open(pyproject_path, "rb") as f:
                 data = tomllib.load(f)
-        except (ImportError, Exception) as e:
+        except (ImportError, Exception):
             # Fallback or error handling
             return
 
@@ -148,25 +149,25 @@ class BOMScanner:
             )
 
     def _add_component(
-        self, 
-        name: str, 
-        version: Optional[str], 
+        self,
+        name: str,
+        version: Optional[str],
         type: ComponentType,
         description: Optional[str] = None,
         licenses: Optional[list] = None
     ) -> None:
         """Helper to add a component to the BOM."""
-        from cyclonedx.model.license import License
-        
+        from cyclonedx.model.license import DisjunctiveLicense
+
         component = Component(
             name=name,
             version=version,
             type=type,
             description=description
         )
-        
+
         if licenses:
             for lic_name in licenses:
-                component.licenses.add(License(name=lic_name))
+                component.licenses.add(DisjunctiveLicense(name=lic_name))
                 
         self.bom.components.add(component)

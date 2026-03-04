@@ -1,9 +1,11 @@
-import pandas as pd
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
-from .models import InternalPolicy, ComplianceResult
-from .storage import BaseStorage, LocalFileSystemStorage
+from typing import Any, Dict, List, Optional, Union
+
+import pandas as pd
+
 from .binding import COLUMN_SYNONYMS, resolve_col_names
+from .models import ComplianceResult, InternalPolicy
+from .storage import BaseStorage, LocalFileSystemStorage
 
 
 class AssuranceValidator:
@@ -240,8 +242,10 @@ class AssuranceValidator:
             "gt": lambda a, b: a > b,
             "<=": lambda a, b: a <= b,
             "le": lambda a, b: a <= b,
+            "lte": lambda a, b: a <= b,
             ">=": lambda a, b: a >= b,
             "ge": lambda a, b: a >= b,
+            "gte": lambda a, b: a >= b,
             "==": lambda a, b: a == b,
             "eq": lambda a, b: a == b,
             "!=": lambda a, b: a != b,

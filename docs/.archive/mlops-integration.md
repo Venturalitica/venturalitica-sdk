@@ -1,6 +1,6 @@
 # MLOps Integrations
 
-Venturalítica SDK is designed to fit seamlessly into your existing machine learning workflow. It automatically detects and logs governance results to popular MLOps frameworks.
+Venturalítica SDK is designed to fit seamlessly into your existing machine learning workflow. It automatically detects and logs assurance results to popular MLOps frameworks.
 
 ## Automatic Framework Detection
 
@@ -33,10 +33,10 @@ mlflow.end_run()
 ```
 
 ### What gets logged to MLflow:
-- **Metrics**: `governance.{control_id}.score` (1.0 for PASS, 0.0 for FAIL)
-- **Tags**: `governance.{control_id}` (set to "PASS" or "FAIL")
-- **Tags**: `governance.overall` (set to "PASS" or "FAIL")
-- **Artifacts**: `governance_report.md` (the full markdown compliance report)
+- **Metrics**: `assurance.{control_id}.score` (1.0 for PASS, 0.0 for FAIL)
+- **Tags**: `assurance.{control_id}` (set to "PASS" or "FAIL")
+- **Tags**: `assurance.overall` (set to "PASS" or "FAIL")
+- **Artifacts**: `assurance_report.md` (the full markdown compliance report)
 
 ---
 
@@ -65,10 +65,10 @@ wandb.finish()
 ```
 
 ### What gets logged to WandB:
-- **Metrics**: `governance.{control_id}.score`
-- **Summary**: `governance.{control_id}` (PASS/FAIL status)
-- **Summary**: `governance.overall` (overall status)
-- **Artifacts**: `governance_report` (the full markdown report saved as a run artifact)
+- **Metrics**: `assurance.{control_id}.score`
+- **Summary**: `assurance.{control_id}` (PASS/FAIL status)
+- **Summary**: `assurance.overall` (overall status)
+- **Artifacts**: `assurance_report` (the full markdown report saved as a run artifact)
 
 ---
 
@@ -95,9 +95,9 @@ enforce(
 ```
 
 ### What gets logged to ClearML:
-- **Tags**: `governance.{control_id}:PASS/FAIL`
-- **Tags**: `governance.overall:PASS/FAIL`
-- **Console Logs**: The full governance report is printed to the task's console log.
+- **Tags**: `assurance.{control_id}:PASS/FAIL`
+- **Tags**: `assurance.overall:PASS/FAIL`
+- **Console Logs**: The full assurance report is printed to the task's console log.
 
 ## Selective Logging
 

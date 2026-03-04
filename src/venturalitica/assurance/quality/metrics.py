@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 try:
     import fairlearn.metrics as flm
@@ -10,10 +10,10 @@ except ImportError:
 
 # Re-export ESG-specific metrics from esg_metrics module
 from .esg_metrics import (
-    calc_classification_distribution,
-    calc_report_coverage,
-    calc_provenance_completeness,
     calc_chunk_diversity,
+    calc_classification_distribution,
+    calc_provenance_completeness,
+    calc_report_coverage,
     calc_subtitle_diversity,
 )
 

@@ -1,6 +1,6 @@
 # Zero to Pro: The 5-Minute Journey 🚀
 
-**Goal**: Transform from "Python Developer" to "AI Governance Engineer" in 3 steps.
+**Goal**: Transform from "Python Developer" to "AI Assurance Engineer" in 3 steps.
 
 ---
 
@@ -9,7 +9,7 @@
 You are used to `pytest` for checking if your function adds 2+2 correctly.
 But how do you test if your AI model respects **Human Rights**?
 
-Venturalítica treats "Governance" as a dependency. Instead of vague legal advice, you define stricter **Policies (OSCAL)**. Your CI/CD pipeline enforces them just like linter rules.
+Venturalítica treats "Assurance" as a dependency. Instead of vague legal advice, you define stricter **Policies (OSCAL)**. Your CI/CD pipeline enforces them just like linter rules.
 
 ### The Curriculum
 
@@ -23,14 +23,16 @@ Venturalítica treats "Governance" as a dependency. Instead of vague legal advic
 
 ---
 
-## Step 1: Install
+## Step 1: Install ⚡
 We recommend **uv** for blazing speed, or standard `pip`.
 
 ```bash
-uv pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
+uv pip install venturalitica
 # OR
-pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
+pip install venturalitica
 ```
+
+> **Telemetry Note**: Venturalítica collects **anonymous** usage statistics (commands executed, technical errors) to improve the developer experience. We do NOT collect data from your models or datasets. You can opt-out by setting `VENTURALITICA_NO_ANALYTICS=1`. [Read full policy](https://venturalitica.ai/telemetry).
 
 ## Step 2: Get the Code 📦
 

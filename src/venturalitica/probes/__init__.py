@@ -12,14 +12,14 @@ Each probe is a focused, independent module capturing specific runtime evidence:
 - ArtifactProbe: Data lineage & artifact tracking
 """
 
+from .artifact import ArtifactProbe
 from .base import BaseProbe
+from .bom import BOMProbe
 from .carbon import CarbonProbe
+from .handshake import HandshakeProbe
 from .hardware import HardwareProbe
 from .integrity import IntegrityProbe
-from .handshake import HandshakeProbe
 from .trace import TraceProbe
-from .bom import BOMProbe
-from .artifact import ArtifactProbe
 
 __all__ = [
     "BaseProbe",

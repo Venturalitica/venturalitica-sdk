@@ -1,5 +1,7 @@
 from typing import Optional
+
 import pandas as pd
+
 
 def calc_macro_equal_opportunity_multiclass(
     y_true: pd.Series,

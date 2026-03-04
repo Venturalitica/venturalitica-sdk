@@ -30,8 +30,7 @@ We continue working on the same project. No new setup required.
 
 Wrap your execution in `vl.monitor()`. This context manager captures the "Handshake" between your code and the policy by harvesting both physical and logical metadata.
 
-### 🔍 Deep Dive: Glass Box vs Black Box
-### 🔍 Deep Dive: Glass Box vs Black Box
+### Deep Dive: Glass Box vs Black Box
 
 | Feature | ⬛ Black Box (Standard) | 🪟 **Glass Box (Venturalítica)** |
 | :--- | :--- | :--- |
@@ -39,31 +38,33 @@ Wrap your execution in `vl.monitor()`. This context manager captures the "Handsh
 | **Data** | "Here is the CSV." | **Fingerprint**: We record the SHA-256 of the dataset at runtime. |
 | **Scope** | Code | Code + Environment + Hardware Stats |
 
-> 💡 **Full Code**: See the professional audit lifecycle in the [01_governance_audit.ipynb](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/01_governance_audit.ipynb) notebook.
+> 💡 **Full Code**: See the professional audit lifecycle in the [01_assurance_audit.ipynb](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/01_assurance_audit.ipynb) notebook.
 
 ```python
 import venturalitica as vl
-from ucimlrepo import fetch_ucirepo
-
-# 1. Load Data (The Real Deal)
-dataset = fetch_ucirepo(id=144)
-df = dataset.data.features
-df['class'] = dataset.data.targets
+from venturalitica.quickstart import load_sample
 
 # 1. Start the Multimodal Monitor (The Glass Box)
 with vl.monitor("loan_audit_v1"):
     # This block is now being watched by the Auditor
-    df = vl.load_sample("loan")
+    df = load_sample("loan")
     
-    # Download data_policy.oscal.yaml: https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml
+    # Download data_policy.oscal.yaml from:
+    # https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml
     results = vl.enforce(
         data=df,
-        target="class",       # Checking Ground Truth
-        age="Attribute13",    # Mapping Age
+        target="class",
+        gender="Attribute9",  # Mapping gender
+        age="Attribute13",    # Mapping age
         policy="data_policy.oscal.yaml"
     )
     # The session trace file (.venturalitica/trace_loan_audit_v1.json) 
     # will prove NOT just the result, but HOW it was computed.
+
+# After the context manager exits, check the evidence directory:
+# .venturalitica/
+#   trace_loan_audit_v1.json   <- Full execution trace
+#   results.json               <- Compliance results
 ```
 
 
@@ -72,7 +73,8 @@ with vl.monitor("loan_audit_v1"):
 After running the audit, launch the UI:
 
 ```bash
-uv run venturalitica ui
+pip install venturalitica[dashboard]   # Required for the UI
+venturalitica ui
 ```
 
 Navigate to **"Article 13: Transparency"**.
@@ -90,7 +92,7 @@ The Dashboard translates JSON evidence into the language of the **EU AI Act**.
 | Law | Dashboard Tab | What to Answer |
 | :--- | :--- | :--- |
 | **Art 9** | Risk Management | "Did we verify bias < 0.1?" (Your Policy) |
-| **Art 10** | Data Governance | "Is the training data representative?" |
+| **Art 10** | Data Assurance | "Is the training data representative?" |
 | **Art 13** | Transparency | "What libraries (BOM) are we using?" |
 
 ## 5. Take Home Messages 🏠
@@ -101,5 +103,12 @@ The Dashboard translates JSON evidence into the language of the **EU AI Act**.
 
 ---
 
-**Next Step**: You have the Code (Level 1), the Ops (Level 2), and the Proof (Level 3). Now generate the Legal Documents.
-👉 **[Go to Level 4: The Architect](level4_annex_iv.md)**
+---
+
+### References
+
+- **[Probes Reference](../probes.md)** -- Details on all 7 evidence probes
+- **[Dashboard Guide](../dashboard.md)** -- Full walkthrough of the Dashboard phases
+- **[Full Lifecycle](../full-lifecycle.md)** -- End-to-end guide in one page
+
+**[Go to Level 4: The Architect](level4_annex_iv.md)**

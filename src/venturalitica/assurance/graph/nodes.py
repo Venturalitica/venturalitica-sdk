@@ -1,19 +1,29 @@
-from typing import Dict, Any, Optional
-from langchain_ollama import ChatOllama
-from langchain_mistralai import ChatMistralAI
-from langchain_core.prompts import ChatPromptTemplate
-from venturalitica.assurance.graph.state import ComplianceState, SectionDraft
-from venturalitica.scanner import BOMScanner
-from venturalitica.assurance.graph.parser import ASTCodeScanner
-import os
-import json
-import re
 import hashlib
-import requests
-import yaml
+import json
+import os
+import re
 import threading
 from pathlib import Path
+from typing import Any, Dict, Optional
+
+import requests
+import yaml
 from dotenv import load_dotenv
+
+try:
+    from langchain_core.prompts import ChatPromptTemplate
+    from langchain_mistralai import ChatMistralAI
+    from langchain_ollama import ChatOllama
+except ImportError:
+    raise ImportError(
+        "langchain packages are required for the compliance graph. "
+        "Install with: pip install venturalitica[agentic]"
+    )
+
+
+from venturalitica.assurance.graph.parser import ASTCodeScanner
+from venturalitica.assurance.graph.state import ComplianceState, SectionDraft
+from venturalitica.scanner import BOMScanner
 
 # Initialize Env
 load_dotenv()

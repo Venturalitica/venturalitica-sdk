@@ -1,30 +1,59 @@
-from venturalitica.performance import calc_accuracy, calc_precision, calc_recall, calc_f1, calc_mean
-from venturalitica.fairness import (
-    calc_demographic_parity, 
-    calc_equal_opportunity,
-    calc_equalized_odds_ratio,
-    calc_predictive_parity,
-    calc_multiclass_demographic_parity,
-    calc_multiclass_equal_opportunity,
-    calc_multiclass_confusion_metrics,
-    HAS_FAIRLEARN
+from venturalitica.assurance.causal import (
+    CausalEffect as CausalEffect,
 )
-from venturalitica.quality import calc_disparate_impact, calc_class_imbalance, calc_group_min_positive_rate, calc_data_completeness
-from venturalitica.privacy import calc_k_anonymity, calc_l_diversity, calc_t_closeness, calc_data_minimization_score
-from venturalitica.fairness import (
-    calc_weighted_demographic_parity_multiclass,
-    calc_macro_equal_opportunity_multiclass,
-    calc_micro_equalized_odds_multiclass,
-    calc_predictive_parity_multiclass,
-    calc_multiclass_fairness_report,
-)
-from venturalitica.causal import (
-    calc_path_decomposition,
+from venturalitica.assurance.causal import (
+    calc_causal_fairness_diagnostic,
     calc_counterfactual_fairness,
     calc_fairness_through_awareness,
-    calc_causal_fairness_diagnostic,
-    CausalEffect,
+    calc_path_decomposition,
 )
+from venturalitica.assurance.fairness import (
+    HAS_FAIRLEARN as HAS_FAIRLEARN,
+)
+from venturalitica.assurance.fairness import (
+    calc_demographic_parity,
+    calc_equal_opportunity,
+    calc_equalized_odds_ratio,
+    calc_macro_equal_opportunity_multiclass,
+    calc_micro_equalized_odds_multiclass,
+    calc_multiclass_confusion_metrics,
+    calc_multiclass_demographic_parity,
+    calc_multiclass_equal_opportunity,
+    calc_predictive_parity,
+    calc_predictive_parity_multiclass,
+    calc_weighted_demographic_parity_multiclass,
+)
+from venturalitica.assurance.fairness import (
+    calc_multiclass_fairness_report as calc_multiclass_fairness_report,
+)
+from venturalitica.assurance.performance import (
+    calc_accuracy,
+    calc_f1,
+    calc_mean,
+    calc_precision,
+    calc_recall,
+)
+from venturalitica.assurance.privacy import (
+    calc_data_minimization_score,
+    calc_k_anonymity,
+    calc_l_diversity,
+    calc_t_closeness,
+)
+from venturalitica.assurance.quality import (
+    calc_class_imbalance,
+    calc_data_completeness,
+    calc_disparate_impact,
+    calc_group_min_positive_rate,
+)
+from venturalitica.assurance.quality.metrics import (
+    calc_chunk_diversity,
+    calc_classification_distribution,
+    calc_provenance_completeness,
+    calc_report_coverage,
+    calc_subtitle_diversity,
+)
+
+from .metadata import METRIC_METADATA as METRIC_METADATA
 
 # Registry for all metrics
 METRIC_REGISTRY = {
@@ -33,15 +62,12 @@ METRIC_REGISTRY = {
     "precision_score": calc_precision,
     "recall_score": calc_recall,
     "f1_score": calc_f1,
-    
     # Fairness metrics (Traditional)
     "demographic_parity_diff": calc_demographic_parity,
     "equal_opportunity_diff": calc_equal_opportunity,
-    
     # Fairness metrics (Alternative)
     "equalized_odds_ratio": calc_equalized_odds_ratio,
     "predictive_parity": calc_predictive_parity,
-    
     # Multi-class fairness metrics (New)
     "multiclass_demographic_parity": calc_multiclass_demographic_parity,
     "multiclass_equal_opportunity": calc_multiclass_equal_opportunity,
@@ -50,256 +76,29 @@ METRIC_REGISTRY = {
     "macro_equal_opportunity_multiclass": calc_macro_equal_opportunity_multiclass,
     "micro_equalized_odds_multiclass": calc_micro_equalized_odds_multiclass,
     "predictive_parity_multiclass": calc_predictive_parity_multiclass,
-    
     # Data quality
     "disparate_impact": calc_disparate_impact,
     "class_imbalance": calc_class_imbalance,
     "group_min_positive_rate": calc_group_min_positive_rate,
     "data_completeness": calc_data_completeness,
-    
     # Privacy metrics
     "k_anonymity": calc_k_anonymity,
     "l_diversity": calc_l_diversity,
     "t_closeness": calc_t_closeness,
     "data_minimization": calc_data_minimization_score,
-    
     # Causal fairness metrics (New)
     "path_decomposition": calc_path_decomposition,
     "counterfactual_fairness": calc_counterfactual_fairness,
     "fairness_through_awareness": calc_fairness_through_awareness,
     "causal_fairness_diagnostic": calc_causal_fairness_diagnostic,
-    
     # LLM & Benchmark specific aliases
     "bias_score": calc_mean,
     "stereotype_preference_rate": calc_mean,
     "category_bias_score": calc_mean,
+    # ESG/Financial QA specific metrics
+    "classification_distribution": calc_classification_distribution,
+    "report_coverage": calc_report_coverage,
+    "provenance_completeness": calc_provenance_completeness,
+    "chunk_diversity": calc_chunk_diversity,
+    "subtitle_diversity": calc_subtitle_diversity,
 }
-
-# Metric metadata for interpretability
-METRIC_METADATA = {
-    "demographic_parity_diff": {
-        "name": "Demographic Parity",
-        "description": "Difference in positive prediction rates between groups",
-        "category": "fairness",
-        "required_roles": ["target", "prediction", "dimension"],
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://fairlearn.org",
-    },
-    "equal_opportunity_diff": {
-        "name": "Equal Opportunity",
-        "description": "Difference in true positive rates (only positive labels)",
-        "category": "fairness",
-        "required_roles": ["target", "prediction", "dimension"],
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://arxiv.org/abs/1610.02413",
-    },
-    "equalized_odds_ratio": {
-        "name": "Equalized Odds",
-        "description": "Combined TPR and FPR parity across groups",
-        "category": "fairness",
-        "required_roles": ["target", "prediction", "dimension"],
-        "ideal_value": 0.0,
-        "scale": (0.0, 2.0),
-        "reference": "https://arxiv.org/abs/1610.02413",
-    },
-    "predictive_parity": {
-        "name": "Predictive Parity",
-        "description": "Difference in precision (positive predictive value) between groups",
-        "category": "fairness",
-        "required_roles": ["target", "prediction", "dimension"],
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://fairlearn.org",
-    },
-    "multiclass_demographic_parity": {
-        "name": "Multi-class Demographic Parity",
-        "description": "One-vs-rest demographic parity across classes. Use aggregation='max'|'macro'|'micro'",
-        "category": "fairness",
-        "required_roles": ["target", "prediction", "dimension"],
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://fairlearn.org/v0.8/user_guide/fairness_metrics/index.html",
-    },
-    "multiclass_equal_opportunity": {
-        "name": "Multi-class Equal Opportunity",
-        "description": "One-vs-rest TPR parity for each class across groups",
-        "category": "fairness",
-        "required_roles": ["target", "prediction", "dimension"],
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://arxiv.org/abs/1610.02413",
-    },
-    "multiclass_confusion_metrics": {
-        "name": "Multi-class Confusion Matrix Metrics",
-        "description": "Comprehensive per-class and per-group metrics (dict output)",
-        "category": "fairness",
-        "ideal_value": "See documentation",
-        "scale": "Variable",
-        "reference": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html",
-    },
-    "k_anonymity": {
-        "name": "k-Anonymity",
-        "description": "Minimum group size (higher = better privacy)",
-        "category": "privacy",
-        "ideal_value": float('inf'),  # Higher is better
-        "scale": (1.0, float('inf')),
-        "reference": "https://en.wikipedia.org/wiki/K-anonymity",
-    },
-    "l_diversity": {
-        "name": "l-Diversity",
-        "description": "Minimum distinct sensitive values per group",
-        "category": "privacy",
-        "ideal_value": float('inf'),
-        "scale": (1.0, float('inf')),
-        "reference": "https://en.wikipedia.org/wiki/L-diversity",
-    },
-    "t_closeness": {
-        "name": "t-Closeness",
-        "description": "Max distribution difference (lower = better)",
-        "category": "privacy",
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://en.wikipedia.org/wiki/T-closeness",
-    },
-    "data_minimization": {
-        "name": "Data Minimization (GDPR Art. 5)",
-        "description": "Proportion of non-sensitive columns",
-        "category": "privacy",
-        "ideal_value": 1.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://gdpr-info.eu/",
-    },
-    "weighted_demographic_parity_multiclass": {
-        "name": "Weighted Demographic Parity (Multi-class)",
-        "description": "Demographic parity across 3+ classes with weighted aggregation",
-        "category": "fairness",
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://fairlearn.org/v0.8/user_guide/fairness_metrics/index.html",
-    },
-    "macro_equal_opportunity_multiclass": {
-        "name": "Macro-averaged Equal Opportunity (Multi-class)",
-        "description": "Equal opportunity (TPR parity) averaged across all classes",
-        "category": "fairness",
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://arxiv.org/abs/1610.02413",
-    },
-    "micro_equalized_odds_multiclass": {
-        "name": "Micro-averaged Equalized Odds (Multi-class)",
-        "description": "TPR and FPR parity with micro-aggregation of confusion matrices",
-        "category": "fairness",
-        "ideal_value": 0.0,
-        "scale": (0.0, 2.0),
-        "reference": "https://arxiv.org/abs/1610.02413",
-    },
-    "predictive_parity_multiclass": {
-        "name": "Predictive Parity (Multi-class)",
-        "description": "Precision parity across groups for each class",
-        "category": "fairness",
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://fairlearn.org",
-    },
-    "path_decomposition": {
-        "name": "Causal Path Decomposition",
-        "description": "Decomposes protected attribute effect into direct and indirect (mediated) components",
-        "category": "causal_fairness",
-        "ideal_value": "Low direct effect, high indirect",
-        "scale": "Variable",
-        "reference": "https://en.wikipedia.org/wiki/Mediation_(statistics)",
-    },
-    "counterfactual_fairness": {
-        "name": "Counterfactual Fairness",
-        "description": "Proportion of individuals affected if protected attribute counterfactually changed",
-        "category": "causal_fairness",
-        "ideal_value": 0.0,
-        "scale": (0.0, 1.0),
-        "reference": "https://arxiv.org/abs/1705.08857",
-    },
-    "fairness_through_awareness": {
-        "name": "Fairness Through Awareness",
-        "description": "Evaluates whether legitimate features can predict outcomes without leaking protected information",
-        "category": "causal_fairness",
-        "ideal_value": "Low information leakage",
-        "scale": "Variable",
-        "reference": "https://arxiv.org/abs/1412.5644",
-    },
-    "causal_fairness_diagnostic": {
-        "name": "Comprehensive Causal Fairness Diagnostic",
-        "description": "Combined path decomposition, counterfactual fairness, and fairness-through-awareness report",
-        "category": "causal_fairness",
-        "ideal_value": "See diagnostic verdict",
-        "scale": "Variable",
-        "reference": "https://arxiv.org/abs/1705.08857",
-    },
-    "accuracy_score": {
-        "name": "Accuracy",
-        "description": "Proportion of correct predictions",
-        "category": "performance",
-        "required_roles": ["target", "prediction"],
-        "ideal_value": 1.0,
-        "scale": (0.0, 1.0),
-    },
-    "precision_score": {
-        "name": "Precision",
-        "description": "Proportion of positive identifications that were actually correct",
-        "category": "performance",
-        "required_roles": ["target", "prediction"],
-        "ideal_value": 1.0,
-        "scale": (0.0, 1.0),
-    },
-    "recall_score": {
-        "name": "Recall",
-        "description": "Proportion of actual positives that were identified correctly",
-        "category": "performance",
-        "required_roles": ["target", "prediction"],
-        "ideal_value": 1.0,
-        "scale": (0.0, 1.0),
-    },
-    "f1_score": {
-        "name": "F1 Score",
-        "description": "Harmonic mean of precision and recall",
-        "category": "performance",
-        "required_roles": ["target", "prediction"],
-        "ideal_value": 1.0,
-        "scale": (0.0, 1.0),
-    },
-    "disparate_impact": {
-        "name": "Disparate Impact",
-        "description": "Ratio of positive outcomes between groups",
-        "category": "data_quality",
-        "required_roles": ["target", "dimension"],
-        "ideal_value": 1.0,
-        "scale": (0.0, float('inf')),
-    },
-    "class_imbalance": {
-        "name": "Class Imbalance",
-        "description": "Ratio between minority and majority classes",
-        "category": "data_quality",
-        "required_roles": ["target"],
-        "ideal_value": 1.0,
-        "scale": (0.0, 1.0),
-    },
-    "group_min_positive_rate": {
-        "name": "Group Minimum Positive Rate",
-        "description": "Minimum positive class rate across groups (e.g., by gender or age buckets).",
-        "category": "data_quality",
-        "required_roles": ["target", "dimension"],
-        "ideal_value": 0.5,
-        "scale": (0.0, 1.0),
-        "reference": "internal"
-    },
-    "data_completeness": {
-        "name": "Data Completeness",
-        "description": "Average fraction of non-missing values across dataset columns.",
-        "category": "data_quality",
-        "required_roles": [],
-        "ideal_value": 1.0,
-        "scale": (0.0, 1.0),
-        "reference": "internal"
-    }
-}
-

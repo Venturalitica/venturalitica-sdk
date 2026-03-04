@@ -1,6 +1,6 @@
 # CLI Tools
 
-The Venturalítica SDK provides powerful command-line tools for project analysis, compliance scanning, and interactive governance management.
+The Venturalítica SDK provides powerful command-line tools for project analysis, compliance scanning, and interactive assurance management.
 
 ## 1. BOM Scanner: `venturalitica scan`
 
@@ -58,9 +58,9 @@ Validate technical aspects independently of organizational policy.
 - **BOM Viewer**: Explore your system's inventory.
 - **Green AI Tracking**: View carbon emissions, energy consumption, and training duration.
 
-#### Tab 2: 🏛️ Governance & Risks
-Highlight governance gaps and map technical metrics to regulatory requirements.
-- **Risk Identification**: List compliance risks (Bias, Oversight, Data Governance).
+#### Tab 2: 🏛️ Assurance & Risks
+Highlight assurance gaps and map technical metrics to regulatory requirements.
+- **Risk Identification**: List compliance risks (Bias, Oversight, Data Assurance).
 - **Mitigation Gap Analysis**: Identify missing mitigation plans in your OSCAL policies.
 
 #### Tab 3: 📄 Documentation

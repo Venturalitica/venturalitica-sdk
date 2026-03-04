@@ -5,9 +5,9 @@ This module centralizes all synonym dictionaries and column resolution logic
 that was previously duplicated across core.py and api.py.
 """
 
-from typing import Dict, List, Union, Any
-import pandas as pd
+from typing import Any, Dict, List, Union
 
+import pandas as pd
 
 # Centralized synonym dictionary for all supported data roles
 COLUMN_SYNONYMS: Dict[str, List[str]] = {
@@ -137,10 +137,12 @@ def discover_column(
     if requested in data.columns:
         return requested
 
-    # Try synonym discovery
-    for cand in synonyms.get(requested, []) + synonyms.get(requested, []):
-        if cand in data.columns:
-            return cand
+    # Try synonym discovery - find which group contains the requested name
+    for key, cand_list in synonyms.items():
+        if requested in cand_list or requested == key:
+            for cand in cand_list:
+                if cand in data.columns:
+                    return cand
 
     # Last resort: lowercase fallback
     if requested.lower() in data.columns:

@@ -1,4 +1,5 @@
-from typing import Dict, Any
+from typing import Any, Dict
+
 from .base import BaseProbe
 
 
@@ -20,7 +21,18 @@ class CarbonProbe(BaseProbe):
         except ImportError:
             pass
         except Exception:
-            pass
+            # GPU enumeration may fail (e.g. broken NVIDIA drivers).
+            # Retry with GPU detection disabled.
+            self.tracker = None
+            try:
+                import pynvml
+                pynvml.nvmlDeviceGetCount = lambda: 0
+
+                from codecarbon import EmissionsTracker as ET
+                self.tracker = ET(save_to_file=False, log_level="error")
+                self.tracker.start()
+            except Exception:
+                self.tracker = None
 
     def stop(self) -> Dict[str, Any]:
         if self.tracker:

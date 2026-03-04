@@ -1,11 +1,13 @@
-import os
-import json
-import sys
 import inspect
+import json
+import os
+import sys
 from datetime import datetime
-from typing import Dict, Any, Optional
-from .base import BaseProbe
+from typing import Any, Dict, Optional
+
 from venturalitica.session import GovernanceSession
+
+from .base import BaseProbe
 
 
 class TraceProbe(BaseProbe):

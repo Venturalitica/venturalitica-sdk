@@ -32,33 +32,46 @@ We continue working on the "Loan Scoring" project.
 Ensure you have run the collection steps:
 
 ```python
+import venturalitica as vl
+from venturalitica.quickstart import load_sample
+
 # 1. Load Data
-df = vl.load_sample("loan")
-train_df = df.sample(frac=0.8)
+df = load_sample("loan")
+train_df = df.sample(frac=0.8, random_state=42)
 val_df = df.drop(train_df.index)
 
-# 2. Run the Article 10 (Data) & Article 15 (Model) Governance Audit
+# 2. Run the Article 10 (Data) & Article 15 (Model) Assurance Audit
 with vl.monitor("loan_annex_audit"):
     # 2.1 Verify Training Data (Art 10)
-    # Download data_policy.oscal.yaml: https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml
-    vl.enforce(data=train_df, policy="data_policy.oscal.yaml", target="class")
+    # Download data_policy.oscal.yaml from:
+    # https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml
+    vl.enforce(
+        data=train_df,
+        target="class",
+        gender="Attribute9",
+        age="Attribute13",
+        policy="data_policy.oscal.yaml"
+    )
     
     # 2.2 Verify Model Performance (Art 15)
-    # Download model_policy.oscal.yaml: https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/model_policy.oscal.yaml
+    # Download model_policy.oscal.yaml from:
+    # https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/model_policy.oscal.yaml
     vl.enforce(
-        data=val_df.assign(prediction=val_df['class']), # Simulated model
-        policy="model_policy.oscal.yaml", 
+        data=val_df.assign(prediction=val_df["class"]),  # Simulated model
         target="class",
-        prediction="prediction"
+        prediction="prediction",
+        gender="Attribute9",
+        policy="model_policy.oscal.yaml"
     )
 ```
 
 ## 3. Generate the Document
 
-1.  Open the Dashboard: `uv run venturalitica ui`.
-2.  Go to the **"Annex IV Generator"** tab.
-3.  Select Provider: **Cloud (Mistral)**, **Local (Ollama)**, or **Sovereign (ALIA - Experimental)**.
-4.  Click **"Generate Annex IV"**.
+1.  Install the dashboard extra if you haven't already: `pip install venturalitica[dashboard]`
+2.  Open the Dashboard: `venturalitica ui`.
+3.  Go to the **"Annex IV Generator"** tab.
+4.  Select Provider: **Cloud (Mistral)**, **Local (Ollama)**, or **Sovereign (ALIA - Experimental)**.
+5.  Click **"Generate Annex IV"**.
 
     ![Annex IV Generator](../assets/academy/annex_iv_generator.png)
 
@@ -113,9 +126,13 @@ By default, we generate `Annex_IV.md` (Markdown) for version control. To convert
 
 ---
 
-### 🎉 Congratulations!
-You have completed the **Venturalítica Academy**.
+### Congratulations!
+You have completed the **Venturalitica Academy**.
 You are now ready to integrate this into your own CI/CD pipeline.
 
-👉 **[Deep Dive: MLOps Integration](../integrations.md)**
-👉 **[Deep Dive: Training Loop](../training.md)**
+### References
+
+- **[Full Lifecycle](../full-lifecycle.md)** -- The entire flow in one copy-paste page
+- **[Dashboard Guide](../dashboard.md)** -- Detailed Dashboard and Phase 4 walkthrough
+- **[Metrics Reference](../metrics.md)** -- All 35+ metrics available for policies
+- **[Policy Authoring](../policy-authoring.md)** -- Write custom OSCAL policies

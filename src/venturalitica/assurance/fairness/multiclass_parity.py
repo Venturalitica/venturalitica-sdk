@@ -1,5 +1,7 @@
 from typing import Literal
+
 import pandas as pd
+
 
 def calc_weighted_demographic_parity_multiclass(
     y_true: pd.Series,

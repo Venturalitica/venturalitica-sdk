@@ -1,19 +1,15 @@
 """
 Quickstart helpers for frictionless SDK demos.
-Enables 60-second 'Aha! Moment' experiences.
+Enables 60-second audit experiences.
 """
 
-import pandas as pd
 from pathlib import Path
-from typing import Dict, Any, List, Optional
-from .models import ComplianceResult
-from . import enforce, monitor
-from .output import render_compliance_results, print_aha_moment
+from typing import List
 
-# UCI Dataset IDs from archive.ics.uci.edu
-UCI_DATASETS = {
-    'loan': 144,    # German Credit Data
-}
+import pandas as pd
+
+from . import enforce, monitor
+from .models import ComplianceResult
 
 # Embedded OSCAL policy for loan scenario (no file dependency)
 LOAN_POLICY_DICT = {
@@ -24,11 +20,11 @@ LOAN_POLICY_DICT = {
         },
         'control-implementations': [
             {
-                'description': 'Credit Scoring Fairness Controls',
+                'description': 'Credit Scoring Fairness (v2)',
                 'implemented-requirements': [
                     {
                         'control-id': 'credit-data-imbalance',
-                        'description': 'Data Quality: Minority class (rejected loans) should represent at least 20% of the dataset to avoid biased training due to severe Class Imbalance.',
+                        'description': 'Data Quality: Minority class representation >= 20%',
                         'props': [
                             {'name': 'metric_key', 'value': 'class_imbalance'},
                             {'name': 'threshold', 'value': '0.2'},
@@ -38,7 +34,7 @@ LOAN_POLICY_DICT = {
                     },
                     {
                         'control-id': 'credit-data-bias',
-                        'description': "Pre-training Fairness: Disparate impact ratio should follow the standard '80% Rule' (Four-Fifths Rule), ensuring favorable loan outcomes are representative across groups.",
+                        'description': 'Disparate impact ratio follows the Four-Fifths Rule',
                         'props': [
                             {'name': 'metric_key', 'value': 'disparate_impact'},
                             {'name': 'threshold', 'value': '0.8'},
@@ -49,10 +45,10 @@ LOAN_POLICY_DICT = {
                     },
                     {
                         'control-id': 'credit-age-disparate',
-                        'description': 'Disparate impact ratio for raw age (Proxy for seniority)',
+                        'description': 'Age disparate impact ratio > 0.5',
                         'props': [
                             {'name': 'metric_key', 'value': 'disparate_impact'},
-                            {'name': 'threshold', 'value': '0.50'},
+                            {'name': 'threshold', 'value': '0.5'},
                             {'name': 'operator', 'value': 'gt'},
                             {'name': 'input:target', 'value': 'target'},
                             {'name': 'input:dimension', 'value': 'age'}
@@ -67,7 +63,7 @@ LOAN_POLICY_DICT = {
 # Sample data registry
 SAMPLE_SCENARIOS = {
     'loan': {
-        'name': 'Credit Scoring Fairness',
+        'name': 'Fairness Audit loan_scoring_v2',
         'uci_id': 144,
         'policy': LOAN_POLICY_DICT,  # Use embedded dict instead of file path
         'target': 'class',
@@ -106,7 +102,7 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
         │ fair-gen │ demographic_parity   │ 0.08  │ ✓ PASS │
         ╰──────────┴──────────────────────┴───────┴────────╯
         
-        🎉 Aha! Moment: All controls passed!
+        Audit Complete: All controls passed!
     """
     if scenario != 'loan':
         raise ValueError(
@@ -124,7 +120,7 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
     df = load_sample('loan', verbose=verbose)
     
     if verbose:
-        print(f"[Venturalítica] 🛡️  Policy: Embedded (no file required)")
+        print("[Venturalítica] 🛡️  Policy: Embedded (no file required)")
         print()
     
     # Use embedded policy dictionary (no file dependency)
@@ -138,7 +134,8 @@ def quickstart(scenario: str = 'loan', verbose: bool = True) -> List[ComplianceR
         results = enforce(data=df, policy=policy, **attrs)
     
     if verbose:
-        print_aha_moment(scenario, results)
+        from .output import print_compliance_summary
+        print_compliance_summary(scenario, results)
     
     return results
 
@@ -152,7 +149,7 @@ def load_sample(name: str, verbose: bool = True) -> pd.DataFrame:
         verbose: Show loading messages
     
     Returns:
-        pd.DataFrame: Sample dataset ready for governance checks
+        pd.DataFrame: Sample dataset ready for assurance checks
     """
     if name != 'loan':
         raise ValueError("Only 'loan' sample is available in SDK. Use venturalitica-sdk-samples for more.")
@@ -186,7 +183,7 @@ def load_sample(name: str, verbose: bool = True) -> pd.DataFrame:
     
     if not dataset_path.exists():
         raise FileNotFoundError(
-            f"Dataset not found. Install ucimlrepo: pip install ucimlrepo"
+            "Dataset not found. Install ucimlrepo: pip install ucimlrepo"
         )
     
     df = pd.read_csv(dataset_path)
@@ -197,17 +194,11 @@ def load_sample(name: str, verbose: bool = True) -> pd.DataFrame:
     return df
 
 
-def show_code(scenario: str = 'loan') -> None:
-    """
-    Display instructions to find the source code for the loan scenario.
-    """
-    print(f"📚 To see the full code for '{scenario}':")
-    print(f"   Open: venturalitica-sdk-samples/scenarios/loan-credit-scoring/00_minimal.py")
-    print(f"   Or visit: https://github.com/venturalitica/venturalitica-sdk-samples")
+def list_scenarios() -> dict:
+    """Returns a dictionary of available quickstart scenarios."""
+    return SAMPLE_SCENARIOS
 
 
-def list_scenarios() -> Dict[str, str]:
-    """
-    List available quickstart scenarios (only 'loan').
-    """
-    return {name: config['description'] for name, config in SAMPLE_SCENARIOS.items()}
+def show_code(scenario: str = 'loan'):
+    """Prints the location of the scenario code."""
+    print(f"Code for {scenario}: see 00_minimal.py in venturalitica-sdk-samples repository.")

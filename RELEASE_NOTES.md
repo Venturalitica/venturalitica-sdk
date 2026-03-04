@@ -182,12 +182,12 @@ This release was completed as part of Phase 4 "Marie Kondo" code quality refacto
 
 Available on PyPI:
 ```bash
-pip install venturalitica-sdk==0.5.0
+pip install venturalitica==0.5.0
 ```
 
 Or with UV:
 ```bash
-uv add venturalitica-sdk==0.5.0
+uv add venturalitica==0.5.0
 ```
 
 ---

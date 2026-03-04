@@ -1,9 +1,10 @@
-import os
 import shutil
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Union
+
 from .loader import OSCALPolicyLoader
 from .models import InternalPolicy
+
 
 class BaseStorage:
     """Abstract base class for policy storage."""

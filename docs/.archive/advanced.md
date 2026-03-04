@@ -30,11 +30,11 @@ By default, the SDK looks for policies in the local filesystem. You can customiz
 
 ```python
 from venturalitica.storage import LocalFileSystemStorage
-from venturalitica.core import GovernanceValidator
+from venturalitica.core import AssuranceValidator
 
 # Use custom policy storage location
 storage = LocalFileSystemStorage(base_path="/custom/policies")
-validator = GovernanceValidator("risks.oscal.yaml", storage=storage)
+validator = AssuranceValidator("risks.oscal.yaml", storage=storage)
 ```
 
 ## Robust Evaluation: Handling Missing Columns

@@ -61,7 +61,7 @@ Functional Roles (Metrics) → Semantic Variables (Policy) → Physical Columns 
 - Same policy can be reused across different datasets
 - Clear audit trail showing exactly which column was used for each metric
 
-### Risk-Driven Governance
+### Risk-Driven Assurance
 
 Venturalítica shifts the focus from "checking boxes" to **managing risks**. Our approach links technical metrics to regulatory requirements:
 
@@ -105,7 +105,7 @@ metrics = {
 # Enforce policy
 vl.enforce(
     metrics=metrics,
-    policy="governance-baseline.oscal.yaml"
+    policy="assurance-baseline.oscal.yaml"
 )
 ```
 
@@ -144,7 +144,7 @@ vl.enforce(
     gender="gender",
     policy=[
         "policies/risks.oscal.yaml",
-        "policies/governance-baseline.oscal.yaml"
+        "policies/assurance-baseline.oscal.yaml"
     ]
 )
 ```
@@ -202,7 +202,7 @@ vl.enforce(
 [Binding] Virtual Role 'prediction' bound to Variable 'prediction' (Column: <predictions>)
 ```
 
-### Multi-Attribute Governance
+### Multi-Attribute Assurance
 
 Monitor multiple protected attributes simultaneously:
 
@@ -377,10 +377,10 @@ mlflow.end_run()
 ```
 
 **What gets logged:**
-- Metrics: `governance.{control_id}.score` (1.0 for pass, 0.0 for fail)
-- Tags: `governance.{control_id}` (PASS/FAIL)
-- Tag: `governance.overall` (PASS/FAIL)
-- Artifact: `governance_report.md` (full compliance report)
+- Metrics: `assurance.{control_id}.score` (1.0 for pass, 0.0 for fail)
+- Tags: `assurance.{control_id}` (PASS/FAIL)
+- Tag: `assurance.overall` (PASS/FAIL)
+- Artifact: `assurance_report.md` (full compliance report)
 
 ### Weights & Biases Integration
 
@@ -407,10 +407,10 @@ wandb.finish()
 ```
 
 **What gets logged:**
-- Metrics: `governance.{control_id}.score`
-- Summary: `governance.{control_id}` (PASS/FAIL)
-- Summary: `governance.overall` (PASS/FAIL)
-- Artifact: `governance_report` (markdown report)
+- Metrics: `assurance.{control_id}.score`
+- Summary: `assurance.{control_id}` (PASS/FAIL)
+- Summary: `assurance.overall` (PASS/FAIL)
+- Artifact: `assurance_report` (markdown report)
 
 ### ClearML Integration
 
@@ -435,9 +435,9 @@ vl.enforce(
 ```
 
 **What gets logged:**
-- Tags: `governance.{control_id}:PASS/FAIL`
-- Tag: `governance.overall:PASS/FAIL`
-- Console logs: Governance report text
+- Tags: `assurance.{control_id}:PASS/FAIL`
+- Tag: `assurance.overall:PASS/FAIL`
+- Console logs: Assurance report text
 
 ---
 
@@ -590,9 +590,9 @@ tracker.stop()  # Writes to emissions.csv
 - **Green AI**: Track and reduce ML carbon footprint
 - **Transparency**: Show stakeholders the environmental cost
 
-##### Tab 2: 🏛️ Governance & Risks (Pain Mode)
+##### Tab 2: 🏛️ Assurance & Risks (Pain Mode)
 
-**Purpose**: Highlight governance gaps to drive SaaS upsell.
+**Purpose**: Highlight assurance gaps to drive SaaS upsell.
 
 **Features:**
 
@@ -600,7 +600,7 @@ tracker.stop()  # Writes to emissions.csv
     - Lists EU AI Act compliance risks:
       - Fundamental Rights Impact (bias)
       - Human Oversight gaps
-      - Data Governance issues
+      - Data Assurance issues
 
 2.  **Mitigation Gap Analysis**
     - Shows missing mitigation plans in OSCAL policies
@@ -734,11 +734,11 @@ with open("compliance_report.md", "w") as f:
 
 ```python
 from venturalitica.storage import LocalFileSystemStorage
-from venturalitica.core import GovernanceValidator
+from venturalitica.core import AssuranceValidator
 
 # Use custom policy storage location
 storage = LocalFileSystemStorage(base_path="/custom/policies")
-validator = GovernanceValidator("risks.oscal.yaml", storage=storage)
+validator = AssuranceValidator("risks.oscal.yaml", storage=storage)
 ```
 
 ### 3. Handling Missing Columns
@@ -809,7 +809,7 @@ uv run python train.py
 ## Next Steps
 
 2. **Create Custom Policies**: Author OSCAL policies for your specific compliance requirements
-3. **Integrate with CI/CD**: Add governance checks to your ML pipeline
+3. **Integrate with CI/CD**: Add assurance checks to your ML pipeline
 4. **Join the Community**: Contribute to the SDK or share your use cases
 
 ---

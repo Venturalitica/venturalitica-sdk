@@ -1,6 +1,6 @@
 # De Cero a Pro: El Viaje de 5 Minutos 🚀
 
-**Objetivo**: Transformarte de "Desarrollador Python" a "Ingeniero de Gobernanza IA" en 3 pasos.
+**Objetivo**: Transformarte de "Desarrollador Python" a "Ingeniero de Assurance IA" en 3 pasos.
 
 ---
 
@@ -9,7 +9,7 @@
 Estás acostumbrado a `pytest` para verificar si tu función suma 2+2 correctamente.
 Pero, ¿cómo pruebas si tu modelo de IA respeta los **Derechos Humanos**?
 
-Venturalítica trata la "Gobernanza" como una dependencia. En lugar de consejos legales vagos, defines **Políticas (OSCAL)** estrictas. Tu pipeline CI/CD las aplica igual que reglas de linter.
+Venturalítica trata la "Assurance" como una dependencia. En lugar de consejos legales vagos, defines **Políticas (OSCAL)** estrictas. Tu pipeline CI/CD las aplica igual que reglas de linter.
 
 ### El Plan de Estudios
 
@@ -23,14 +23,16 @@ Venturalítica trata la "Gobernanza" como una dependencia. En lugar de consejos 
 
 ---
 
-## Paso 1: Instalación
+## Paso 1: Instalación ⚡
 Recomendamos **uv** para velocidad extrema, o `pip` estándar.
 
 ```bash
-uv pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
+uv pip install venturalitica
 # O
-pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
+pip install venturalitica
 ```
+
+> **Nota sobre Telemetría**: Venturalítica recolecta estadísticas de uso **anónimas** (comandos ejecutados, errores técnicos) para mejorar la experiencia del desarrollador. No recolectamos datos de tus modelos ni de tus datasets. Puedes desactivarla configurando `VENTURALITICA_NO_ANALYTICS=1`. [Ver política completa](https://venturalitica.ai/telemetry).
 
 ## Paso 2: Obtén el Código 📦
 

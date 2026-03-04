@@ -1,0 +1,39 @@
+assessment-plan:
+  metadata:
+    title: "Article 15: Model Accuracy and Fairness"
+    version: "1.0"
+  control-implementations:
+    - description: "Model Performance and Fairness Controls"
+      implemented-requirements:
+        - control-id: model-accuracy
+          description: "Model accuracy >= 70%"
+          props:
+            - name: metric_key
+              value: accuracy_score
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: "0.70"
+            - name: severity
+              value: high
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+        - control-id: model-gender-fairness
+          description: "Demographic parity difference < 0.10"
+          props:
+            - name: metric_key
+              value: demographic_parity_diff
+            - name: operator
+              value: "<"
+            - name: threshold
+              value: "0.10"
+            - name: severity
+              value: high
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+            - name: "input:dimension"
+              value: gender

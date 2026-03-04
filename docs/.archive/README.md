@@ -1,6 +1,6 @@
 # Venturalítica SDK Documentation
 
-**Frictionless Governance for AI Systems**
+**Frictionless Assurance for AI Systems**
 
 Welcome! This documentation is designed to get you from zero to compliant in minutes, not days.
 
@@ -78,7 +78,7 @@ Start here if you need **audit-ready documentation**:
 4. **Handshake Moment**: Realize you need organizational policies → Upgrade to SaaS
 
 ### Path 2: Compliance-First Onboarding
-**Goal**: Understand governance architecture before implementation
+**Goal**: Understand assurance architecture before implementation
 
 1. [Core Concepts](core-concepts.md) - Understand the "why"
 2. [OSCAL Authoring](oscal-authoring.md) - Write your policies

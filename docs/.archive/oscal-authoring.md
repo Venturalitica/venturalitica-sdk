@@ -1,6 +1,6 @@
 # OSCAL Policy Authoring Guide
 
-How to write, extend, and validate OSCAL policies for Venturalítica governance checks.
+How to write, extend, and validate OSCAL policies for Venturalítica assurance checks.
 
 ## 1) Minimal Policy Template
 

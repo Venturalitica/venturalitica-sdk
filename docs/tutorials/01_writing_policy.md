@@ -7,7 +7,7 @@ In **Level 1**, you learned to "Block" bad deployments. Now we will write the ac
 
 ## The Policy File (`data_policy.yaml`)
 
-For **Phase 1 (Data Audit)**, we only care about **Article 10 (Data Governance)**.
+For **Phase 1 (Data Audit)**, we only care about **Article 10 (Data Assurance)**.
 Your Data Scientist (The Builder) cannot start training until this file is ready.
 
 ### 1. The Structure

@@ -1,7 +1,15 @@
 from .metrics import (
     calc_accuracy as calc_accuracy,
-    calc_precision as calc_precision,
-    calc_recall as calc_recall,
+)
+from .metrics import (
     calc_f1 as calc_f1,
+)
+from .metrics import (
     calc_mean as calc_mean,
+)
+from .metrics import (
+    calc_precision as calc_precision,
+)
+from .metrics import (
+    calc_recall as calc_recall,
 )

@@ -1,6 +1,7 @@
-from typing import Dict, Any
-import pandas as pd
+from typing import Any, Dict
+
 import numpy as np
+import pandas as pd
 
 
 def calc_multiclass_demographic_parity(df: pd.DataFrame, **kwargs) -> float:

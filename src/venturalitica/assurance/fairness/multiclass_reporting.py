@@ -1,10 +1,12 @@
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
+
 import pandas as pd
-from .multiclass_parity import calc_weighted_demographic_parity_multiclass
+
 from .multiclass_error import (
     calc_macro_equal_opportunity_multiclass,
     calc_micro_equalized_odds_multiclass,
 )
+from .multiclass_parity import calc_weighted_demographic_parity_multiclass
 from .multiclass_predictive import calc_predictive_parity_multiclass
 
 

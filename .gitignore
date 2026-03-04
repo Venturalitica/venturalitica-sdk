@@ -57,3 +57,5 @@ results.json
 venturalitica_technical_doc.json
 system_description.yaml
 bom.json
+node_modules/
+starlight/.astro/

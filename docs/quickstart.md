@@ -7,7 +7,7 @@
 
 Building High-Risk AI requires a fundamental shift in how we approach testing. It is no longer enough to check for technical accuracy (e.g., F1 Score); we must now mathematically prove that the system respects fundamental rights, such as non-discrimination or data quality, as mandated by the **EU AI Act**.
 
-Venturalítica automates this by treating "Governance" as a dependency. Instead of vague legal requirements, you define strict policies (OSCAL) that your model must pass before it can be deployed. This turns compliance into a deterministic engineering problem.
+Venturalítica automates this by treating "Assurance" as a dependency. Instead of vague legal requirements, you define strict policies (OSCAL) that your model must pass before it can be deployed. This turns compliance into a deterministic engineering problem.
 !!! question "Is my System High-Risk?"
     According to [**Article 6**](https://artificialintelligenceact.eu/es/article/6/) of EU AI Act, a system is High-Risk if it is covered by [**Annex I**](https://artificialintelligenceact.eu/es/annex/1/) (Safety Components like machinery/medical devices) or listed in [**Annex III**](https://artificialintelligenceact.eu/es/annex/3/) (Biometrics, Critical Infrastructure, Education, Employment, Essential Services, Law Enforcement, Migration, Justice/Democracy).
 
@@ -25,7 +25,7 @@ When you run `quickstart()`, you are technically running a **Unit Test for Ethic
 ## Step 1: Install
 
 ```bash
-pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
+pip install venturalitica
 ```
 
 ---
@@ -46,15 +46,15 @@ vl.quickstart('loan')
 
   CONTROL                DESCRIPTION                            ACTUAL     LIMIT      RESULT
   ────────────────────────────────────────────────────────────────────────────────────────────────
-  credit-data-imbalance  Data Quality                           0.431      > 0.2      ✅ PASS
-  credit-data-bias       Disparate impact                       0.836      > 0.8      ✅ PASS
-  credit-age-disparate   Age disparity                          0.361      > 0.5      ❌ FAIL
+  credit-data-imbalanc   Data Quality: Minority class repres... 0.429      > 0.2      ✅ PASS
+  credit-data-bias       Disparate impact ratio follows the ... 0.818      > 0.8      ✅ PASS
+  credit-age-disparate   Age disparate impact ratio > 0.5       0.286      > 0.5      ❌ FAIL
   ────────────────────────────────────────────────────────────────────────────────────────────────
   Audit Summary: ❌ VIOLATION | 2/3 controls passed
 ```
 
 !!! info
-    The audit detected age-based bias in the UCI German Credit dataset.
+    The audit detected age-based bias in the UCI German Credit dataset — the age disparate impact ratio (0.286) is well below the 0.5 threshold set by the policy.
 
 
 
@@ -63,7 +63,7 @@ vl.quickstart('loan')
 The `quickstart()` function is a wrapper that performs the full compliance lifecycle in one go:
 
 1.  **Downloads Data**: Fetches the UCI German Credit dataset.  
-2.  **Loads Policy**: Reads `risks.oscal.yaml` which defines the fairness rules.
+2.  **Loads Policy**: Reads `data_policy.oscal.yaml` which defines the fairness rules.
 3.  **Enforces**: Runs the audit (`vl.enforce`).
 4.  **Records**: Captures the evidence (`trace.json`) for the dashboard.
 
@@ -79,7 +79,7 @@ df = dataset.data.features
 df['class'] = dataset.data.targets
 
 # 2. Define the Policy (The "Law")
-# We load a pre-defined policies/risks.oscal.yaml
+# Create data_policy.oscal.yaml (see Academy Level 1 for full policy file)
 
 # 3. Run the Audit (The "Test")
 # This automatically generates the Evidence Bill of Materials (BOM)
@@ -89,13 +89,13 @@ with vl.monitor("manual_audit"):
         target="class",          # The outcome (True/False)
         gender="Attribute9",     # Protected Group A
         age="Attribute13",       # Protected Group B
-        policy="risks.oscal.yaml"
+        policy="data_policy.oscal.yaml"
     )
 ```
 
 ### The Policy Logic
 
-The policy (`risks.oscal.yaml`) is the bridge. It tells the SDK *what* to check so you don't have to hardcode it.
+The policy (`data_policy.oscal.yaml`) is the bridge. It tells the SDK *what* to check so you don't have to hardcode it.
 
 ```yaml
 # ... inside the OSCAL YAML ...
@@ -112,7 +112,7 @@ The policy (`risks.oscal.yaml`) is the bridge. It tells the SDK *what* to check 
       value: gender             # <--- Maps to "Attribute9"
 ```
 
-This design decouples **Governance** (the policy file) from **Engineering** (the python code).
+This design decouples **Assurance** (the policy file) from **Engineering** (the python code).
 
 ---
 
@@ -131,6 +131,7 @@ By running `quickstart()`, you have just generated an immutable **Compliance Art
 Now that we have the evidence (the "Black Box" recording), let's inspect it in the **Regulatory Map**.
 
 ```bash
+pip install venturalitica[dashboard]   # Required for the UI
 venturalitica ui
 ```
 
@@ -155,12 +156,14 @@ Venturalítica will draft a technical document that references your specific run
 > *"As evidenced in `trace_quickstart_loan.json`, the system was audited against **[OSCAL Policy: Credit Scoring Fairness]**. A deviation was detected in Age Disparity (0.36), identifying a potential risk of bias..."*
 
 ### References
-*   **Policy Used**: [`loan/risks.oscal.yaml`](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/policies/loan/risks.oscal.yaml)
+*   **Policy Used**: [`loan/data_policy.oscal.yaml`](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml)
 *   **Legal Basis**:
     *   [EU AI Act Article 9 (Risk Management)](https://artificialintelligenceact.eu/article/9/)
     *   [EU AI Act Article 11 (Technical Documentation)](https://artificialintelligenceact.eu/article/11/)
 
 ## What's Next?
 
-- **[API Reference](api.md)** - Full documentation
-- **Create your own policy** - Copy the YAML above and modify thresholds
+- **[API Reference](api.md)** -- Full function signatures and parameters
+- **[Policy Authoring Guide](policy-authoring.md)** -- Write your own OSCAL policies from scratch
+- **[Metrics Reference](metrics.md)** -- All 35+ available metrics
+- **[Venturalitica Academy](academy/index.md)** -- Guided learning path from Engineer to Architect

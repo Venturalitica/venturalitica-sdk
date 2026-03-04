@@ -1,9 +1,17 @@
-import streamlit as st
 import os
+
+try:
+    import streamlit as st
+except ImportError:
+    raise ImportError(
+        "streamlit is required for the dashboard. "
+        "Install with: pip install venturalitica[dashboard]"
+    )
+
 
 def render_integrations_view():
     st.header("Integrations Status")
-    st.markdown("Monitor your **Governance Ecosystem** connectivity.")
+    st.markdown("Monitor your **Assurance Ecosystem** connectivity.")
     
     # Load captured integrations from runtime meta
     meta_integrations = st.session_state.get('runtime_meta', {}).get('integrations', {})

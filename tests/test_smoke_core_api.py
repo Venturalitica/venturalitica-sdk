@@ -362,8 +362,43 @@ class TestEnforceSmokeTests:
 
     def test_enforce_strict_mode_raises_on_error(self, tmp_work_dir):
         """Enforce should raise exceptions in strict mode."""
+        # Create a valid policy file so FileNotFoundError is not triggered.
+        # Passing data="not-a-dataframe" will cause an AttributeError when
+        # the code tries to access data.columns, and strict mode re-raises it.
+        policy_path = tmp_work_dir / "bad_data_policy.oscal.yaml"
+        policy_path.write_text(
+            yaml.dump(
+                {
+                    "assessment-plan": {
+                        "local-definitions": {
+                            "inventory-items": [
+                                {
+                                    "uuid": "m1",
+                                    "props": [
+                                        {"name": "metric_key", "value": "accuracy_score"},
+                                        {"name": "threshold", "value": "0.50"},
+                                        {"name": "operator", "value": ">="},
+                                    ],
+                                }
+                            ]
+                        },
+                        "control-implementations": [
+                            {
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "C1",
+                                        "description": "Test",
+                                        "links": [{"href": "#m1", "rel": "related"}],
+                                    }
+                                ]
+                            }
+                        ],
+                    }
+                }
+            )
+        )
         with pytest.raises(Exception):
-            enforce(data="not-a-dataframe", policy="some_policy.yaml", strict=True)
+            enforce(data="not-a-dataframe", policy=str(policy_path), strict=True)
 
     def test_enforce_non_strict_mode_handles_errors(self, tmp_work_dir, capsys):
         """Enforce should catch errors in non-strict mode."""

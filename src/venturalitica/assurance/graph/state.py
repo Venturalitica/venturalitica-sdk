@@ -1,4 +1,5 @@
-from typing import TypedDict, List, Dict, Any, Optional, Annotated
+from typing import Annotated, Any, Dict, List, Optional, TypedDict
+
 
 def merge_dicts(a: Dict, b: Dict) -> Dict:
     return {**a, **b}

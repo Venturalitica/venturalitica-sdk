@@ -12,7 +12,7 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Literal, Union, List, Any
+from typing import Any, List, Literal, Union
 
 
 def generate_compliance_badge(
@@ -146,7 +146,7 @@ if __name__ == '__main__':
         output_path=Path('/tmp/metric_badge.svg')
     )
     
-    print(f"✅ Generated badges:")
+    print("✅ Generated badges:")
     print(f"  - {badge_pass}")
     print(f"  - {badge_fail}")
     print(f"  - {metric_badge}")

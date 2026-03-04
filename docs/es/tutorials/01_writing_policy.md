@@ -7,7 +7,7 @@ En el **Nivel 1**, aprendiste a "Bloquear" despliegues incorrectos. Ahora escrib
 
 ## Parte 1: La Política de Datos (`data_policy.yaml`)
 
-Para la **Fase 1 (Auditoría de Datos)**, solo nos importa el **Artículo 10 (Gobernanza de Datos)**.
+Para la **Fase 1 (Auditoría de Datos)**, solo nos importa el **Artículo 10 (Assurance de Datos)**.
 Tu Científico de Datos (El Constructor) no puede comenzar el entrenamiento hasta que este archivo esté listo.
 
 ### 1. La Estructura

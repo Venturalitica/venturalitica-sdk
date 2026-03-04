@@ -1,8 +1,10 @@
-import os
 import json
-from typing import Dict, Any
-from .base import BaseProbe
+import os
+from typing import Any, Dict
+
 from venturalitica.session import GovernanceSession
+
+from .base import BaseProbe
 
 
 class BOMProbe(BaseProbe):

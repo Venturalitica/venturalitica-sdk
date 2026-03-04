@@ -7,7 +7,7 @@
 
 Construir una IA de Alto Riesgo requiere un cambio fundamental en cómo abordamos las pruebas. Ya no es suficiente verificar la precisión técnica (por ejemplo, F1 Score); ahora debemos probar matemáticamente que el sistema respeta los derechos fundamentales, como la no discriminación o la calidad de los datos, tal como lo exige la **Ley de IA de la UE**.
 
-Venturalítica automatiza esto tratando la "Gobernanza" como una dependencia. En lugar de vagos requisitos legales, defines políticas estrictas (OSCAL) que tu modelo debe aprobar antes de ser desplegado. Esto convierte el cumplimiento en un problema de ingeniería determinista.
+Venturalítica automatiza esto tratando la "Assurance" como una dependencia. En lugar de vagos requisitos legales, defines políticas estrictas (OSCAL) que tu modelo debe aprobar antes de ser desplegado. Esto convierte el cumplimiento en un problema de ingeniería determinista.
 
 !!! question "¿Es mi Sistema de Alto Riesgo?"
     Según el [**Artículo 6**](https://artificialintelligenceact.eu/es/article/6/) de la Ley de IA de la UE, un sistema es de Alto Riesgo si está cubierto por el [**Anexo I**](https://artificialintelligenceact.eu/es/annex/1/) (Componentes de Seguridad como maquinaria/dispositivos médicos) o listado en el [**Anexo III**](https://artificialintelligenceact.eu/es/annex/3/) (Biometría, Infraestructura Crítica, Educación, Empleo, Servicios Esenciales, Cumplimiento de la Ley, Migración, Justicia/Democracia).
@@ -26,7 +26,7 @@ Cuando ejecutas `quickstart()`, técnicamente estás ejecutando una **Prueba Uni
 ## Paso 1: Instalación
 
 ```bash
-pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
+pip install venturalitica
 ```
 
 ---
@@ -47,11 +47,11 @@ vl.quickstart('loan')
 
   CONTROL                DESCRIPCION                            ACTUAL     LIMITE     RESULTADO
   ────────────────────────────────────────────────────────────────────────────────────────────────
-  credit-data-imbalance  Calidad de Datos                       0.431      > 0.2      ✅ PASS
-  credit-data-bias       Impacto Dispar                         0.836      > 0.8      ✅ PASS
-  credit-age-disparate   Disparidad por Edad                    0.361      > 0.5      ❌ FAIL
+  credit-data-imbalanc   ...                                    0.429      > 0.2      ✅ PASS
+  credit-data-bias       ...                                    0.818      > 0.8      ✅ PASS
+  credit-age-disparate   ...                                    0.286      > 0.5      ❌ FAIL
   ────────────────────────────────────────────────────────────────────────────────────────────────
-  Resumen de Auditoría: ❌ VIOLACIÓN | 2/3 controles pasados
+  Resumen de Auditoría: ❌ VIOLACIÓN | 2/3 controls passed
 ```
 
 !!! info
@@ -62,7 +62,7 @@ vl.quickstart('loan')
 La función `quickstart()` es un envoltorio que realiza el ciclo de vida completo de cumplimiento de una sola vez:
 
 1.  **Descarga Datos**: Obtiene el conjunto de datos de Crédito Alemán UCI.
-2.  **Carga Política**: Lee `risks.oscal.yaml` que define las reglas de equidad.
+2.  **Carga Política**: Lee `data_policy.oscal.yaml` que define las reglas de equidad.
 3.  **Ejecuta**: Corre la auditoría (`vl.enforce`).
 4.  **Registra**: Captura la evidencia (`trace.json`) para el panel de control.
 
@@ -78,7 +78,7 @@ df = dataset.data.features
 df['class'] = dataset.data.targets
 
 # 2. Definir la Política (La "Ley")
-# Cargamos una pre-definida policies/risks.oscal.yaml
+# Crear data_policy.oscal.yaml (ver Academia Nivel 1 para el archivo completo)
 
 # 3. Ejecutar la Auditoría (La "Prueba")
 # Esto genera automáticamente la Lista de Materiales de Evidencia (BOM)
@@ -88,13 +88,13 @@ with vl.monitor("manual_audit"):
         target="class",          # El resultado (True/False)
         gender="Attribute9",     # Grupo Protegido A
         age="Attribute13",       # Grupo Protegido B
-        policy="risks.oscal.yaml"
+        policy="data_policy.oscal.yaml"
     )
 ```
 
 ### La Lógica de la Política
 
-La política (`risks.oscal.yaml`) es el puente. Le dice al SDK *qué* verificar para que no tengas que codificarlo.
+La política (`data_policy.oscal.yaml`) es el puente. Le dice al SDK *qué* verificar para que no tengas que codificarlo.
 
 ```yaml
 # ... dentro del YAML OSCAL ...
@@ -111,7 +111,7 @@ La política (`risks.oscal.yaml`) es el puente. Le dice al SDK *qué* verificar 
       value: gender             # <--- Mapea a "Attribute9"
 ```
 
-Este diseño desacopla la **Gobernanza** (el archivo de política) de la **Ingeniería** (el código python).
+Este diseño desacopla la **Assurance** (el archivo de política) de la **Ingeniería** (el código python).
 
 ---
 
@@ -130,6 +130,7 @@ Al ejecutar `quickstart()`, acabas de generar un **Artefacto de Cumplimiento** i
 Ahora que tenemos la evidencia (la grabación de la "Caja Negra"), inspeccionémosla en el **Mapa Regulatorio**.
 
 ```bash
+pip install venturalitica[dashboard]   # Requerido para la interfaz
 venturalitica ui
 ```
 
@@ -154,12 +155,16 @@ Venturalítica redactará un documento técnico que hace referencia a tu ejecuci
 > *"Como se evidencia en `trace_quickstart_loan.json`, el sistema fue auditado contra **[Política OSCAL: Equidad en Calificación Crediticia]**. Se detectó una desviación en la Disparidad de Edad (0.36), identificando un riesgo potencial de sesgo..."*
 
 ### Referencias
-*   **Política Usada**: [`loan/risks.oscal.yaml`](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/policies/loan/risks.oscal.yaml)
+*   **Política Usada**: [`loan/data_policy.oscal.yaml`](https://github.com/venturalitica/venturalitica-sdk-samples/blob/main/scenarios/loan-credit-scoring/policies/loan/data_policy.oscal.yaml)
 *   **Base Legal**:
     *   [Ley de IA de la UE Artículo 9 (Gestión de Riesgos)](https://artificialintelligenceact.eu/es/article/9/)
     *   [Ley de IA de la UE Artículo 11 (Documentación Técnica)](https://artificialintelligenceact.eu/es/article/11/)
 
 ## ¿Qué sigue?
 
-- **[Referencia de API](api.md)** - Documentación completa
-- **Crea tu propia política** - Copia el YAML anterior y modifica los umbrales
+- **[Referencia de API](api.md)** -- Firmas completas de `enforce()` y `monitor()`
+- **[Autoría de Políticas](policy-authoring.md)** -- Escribe tus propias políticas OSCAL
+- **[Ciclo de Vida Completo](full-lifecycle.md)** -- De cero al Anexo IV en una sola página
+- **[Academia: Nivel 1](academy/level1_policy.md)** -- Profundización en controles y el Handshake
+- **[Dashboard](dashboard.md)** -- Guía completa de la Caja de Cristal
+- **[Referencia de Métricas](metrics.md)** -- Las 35+ métricas disponibles

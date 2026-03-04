@@ -1,14 +1,15 @@
-from .core import AssuranceValidator, ComplianceResult
-from .integrations import auto_log
-from .binding import COLUMN_SYNONYMS, discover_column
-from .formatting import VenturalíticaJSONEncoder, print_summary
-from pathlib import Path
-from typing import Dict, Union, Any, List, Optional
-import time
 import json
 import os
+import time
 from contextlib import contextmanager
 from dataclasses import asdict
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+from .binding import COLUMN_SYNONYMS, discover_column
+from .core import AssuranceValidator, ComplianceResult
+from .formatting import VenturalíticaJSONEncoder, print_summary
+from .integrations import auto_log
 from .session import GovernanceSession
 
 # We need the version for the enforce print statement
@@ -36,13 +37,13 @@ def monitor(
     Tracks Green AI, Hardware Telemetry, Security Integrity, and Audit Trace.
     """
     from .probes import (
+        ArtifactProbe,
+        BOMProbe,
         CarbonProbe,
+        HandshakeProbe,
         HardwareProbe,
         IntegrityProbe,
-        HandshakeProbe,
         TraceProbe,
-        BOMProbe,
-        ArtifactProbe,
     )
 
     probes = [
@@ -64,12 +65,13 @@ def monitor(
     start_time = time.time()
 
     # Telemetry Start
+    telemetry = None
     try:
         from .telemetry import telemetry
 
         telemetry.capture("sdk_monitor_start", {"name": name, "label": label})
-    except ImportError:
-        pass
+    except Exception:
+        telemetry = None
 
     for probe in probes:
         probe.start()
@@ -81,10 +83,11 @@ def monitor(
         print(f"[Venturalítica] 🔴 Monitor stopped: {name}")
         print(f"  ⏱  Duration: {duration:.2f}s")
 
-        try:
-            telemetry.capture("sdk_monitor_end", {"name": name, "duration": duration})
-        except Exception:
-            pass
+        if telemetry:
+            try:
+                telemetry.capture("sdk_monitor_end", {"name": name, "duration": duration})
+            except Exception:
+                pass
 
         for probe in probes:
             probe.stop()
@@ -211,5 +214,18 @@ def enforce(
             )
         except Exception as e:
             print(f"  ⚠ Failed to cache results: {e}")
+
+    try:
+        from .telemetry import telemetry as _tel
+        passed = sum(1 for r in all_results if r.passed)
+        failed = sum(1 for r in all_results if not r.passed)
+        _tel.capture("sdk_enforce_completed", {
+            "passed_count": passed,
+            "failed_count": failed,
+            "has_red_check": failed > 0,
+            "total_controls": len(all_results),
+        })
+    except Exception:
+        pass
 
     return all_results

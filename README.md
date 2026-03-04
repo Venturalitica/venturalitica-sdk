@@ -1,10 +1,16 @@
 # Venturalítica SDK
 
-![coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+![coverage](https://img.shields.io/badge/coverage-73%25-yellow)
+[![PyPI](https://img.shields.io/pypi/v/venturalitica)](https://pypi.org/project/venturalitica/)
+[![Python](https://img.shields.io/pypi/pyversions/venturalitica)](https://pypi.org/project/venturalitica/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![Discord](https://img.shields.io/discord/P4RURqRm?label=Discord&logo=discord)](https://discord.gg/P4RURqRm)
 
 **Frictionless Governance for AI Systems.**
 
 The Venturalítica SDK enables Data Scientists and ML Engineers to integrate compliance and risk management directly into their training workflows. Built on the **OSCAL** (Open Security Controls Assessment Language) standard, it provides semantic policy enforcement with educational audit trails.
+
+**[Join our Discord community](https://discord.gg/P4RURqRm)** — Get help, share your use case, and discuss EU AI Act compliance with other engineers.
 
 ## ✨ Key Features
 
@@ -21,7 +27,7 @@ The Venturalítica SDK enables Data Scientists and ML Engineers to integrate com
 ## 📦 Installation
 
 ```bash
-pip install git+https://github.com/Venturalitica/venturalitica-sdk.git
+pip install venturalitica
 ```
 
 ## ⚙️ Configuration
@@ -103,11 +109,11 @@ vl.enforce(
 
 ## 📚 Documentation
 
-- **[Tutorial: Zero-Setup Audit](docs/tutorials/local-audit.md)**: "Hello World" - Scan & Visualize in 2 minutes
-- **[Tutorial: Training Integration](docs/training.md)**: Add compliance checks to your Python code
-- **[Concept: Strict Mode](docs/strict_mode.md)**: Enforcing compliance in CI/CD chains
-- **[Concept: The Regulatory Map](docs/compliance-dashboard.md)**: Understanding the Dashboard (Art 9-15)
-- **[Concept: Evidence Collection](docs/evidence-collection.md)**: How to record your audits
+- **[Quickstart Guide](docs/quickstart.md)**: Get started in 60 seconds
+- **[Full Lifecycle Walkthrough](docs/full-lifecycle.md)**: Zero to Annex IV in one page
+- **[Policy Authoring](docs/policy-authoring.md)**: Write OSCAL policies for your AI systems
+- **[Compliance Dashboard](docs/dashboard.md)**: Understanding the Glass Box Dashboard (Art 9-15)
+- **[Evidence Probes](docs/probes.md)**: Automated evidence collection for audits
 - **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)**: Real-world examples
 
 ## 🎯 Core Concepts
@@ -153,7 +159,7 @@ Launch the **Local Regulatory Map** to interpret your evidence:
 venturalitica ui
 ```
 
-**[Read the Guide: Understanding the Dashboard](docs/compliance-dashboard.md)**
+**[Read the Guide: Understanding the Dashboard](docs/dashboard.md)**
 
 **Features:**
 *   **Article 9-15 Walk**: A sequential check of Risk, Data, Transparency, and Oversight.
@@ -165,6 +171,21 @@ venturalitica ui
 *   `emissions.csv` (from CodeCarbon)
 *   OSCAL policies
 
+
+
+## 📡 Telemetry & Privacy
+
+Venturalítica collects **anonymous usage data** to help us improve the SDK.
+- **What we track**: Command usage (`login`, `pull`, `push`), SDK execution times, and errors.
+- **What we DO NOT track**: Your datasets, PII, IP addresses, or any code content.
+- **Privacy First**: We host our analytics in the **EU** and strictly disable IP tracking (`disable_geoip=True`).
+
+**Opt-Out:**
+To disable telemetry completely, set the environment variable:
+```bash
+export VENTURALITICA_NO_ANALYTICS=1
+```
+Or follow the standard [DO_NOT_TRACK](https://consoledonottrack.com/) specification.
 
 ## 🔒 Data Sovereignty & Privacy
 

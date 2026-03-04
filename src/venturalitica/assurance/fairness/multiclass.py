@@ -1,14 +1,12 @@
-from .multiclass_parity import calc_weighted_demographic_parity_multiclass as _weighted_dp
-from .multiclass_error import (
-    calc_macro_equal_opportunity_multiclass as _macro_eo,
-    calc_micro_equalized_odds_multiclass as _micro_eo
-)
-from .multiclass_predictive import calc_predictive_parity_multiclass as _predictive_p
-from .multiclass_reporting import (
-    calc_intersectional_metrics,
-    calc_multiclass_fairness_report as _reporting
-)
 import pandas as pd
+
+from .multiclass_error import calc_macro_equal_opportunity_multiclass as _macro_eo
+from .multiclass_error import calc_micro_equalized_odds_multiclass as _micro_eo
+from .multiclass_parity import calc_weighted_demographic_parity_multiclass as _weighted_dp
+from .multiclass_predictive import calc_predictive_parity_multiclass as _predictive_p
+from .multiclass_reporting import calc_intersectional_metrics
+from .multiclass_reporting import calc_multiclass_fairness_report as _reporting
+
 
 def _get_vitals(df_or_series, *args, **kwargs):
     """Smart vitals extraction: handles both (df, **kwargs) and (y_true, y_pred, prot, **kwargs)"""

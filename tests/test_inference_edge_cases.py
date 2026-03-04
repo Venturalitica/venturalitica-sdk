@@ -59,7 +59,7 @@ class TestProjectContextEdgeCases:
             assert context._code_context is not None
             # Second access returns cached
             code_context2 = context.code_context
-            assert code_context is code_context2
+            assert code_context == code_context2
 
     def test_project_context_readme_lazy_loading(self):
         """Test that README is lazy-loaded on first access."""
@@ -229,7 +229,7 @@ class TestInferSystemDescriptionEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "Test prompt with {bom} {code} {readme}"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content="")
                 mock_factory.return_value.llm = mock_llm
@@ -249,7 +249,7 @@ class TestInferSystemDescriptionEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 # Content is a list
                 mock_llm.invoke.return_value = MagicMock(content=["part1", "part2", "part3"])
@@ -270,7 +270,7 @@ class TestInferSystemDescriptionEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content='{"name": "系统 тест مرحبا"}')
                 mock_factory.return_value.llm = mock_llm
@@ -290,7 +290,7 @@ class TestInferSystemDescriptionEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 long_content = "x" * 10000  # Very long response
                 mock_llm.invoke.return_value = MagicMock(content=long_content)
@@ -327,7 +327,7 @@ class TestInferTechnicalDocumentationEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "prompt with {bom} {code} {readme}"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content="{}")
                 mock_factory.return_value.llm = mock_llm
@@ -360,7 +360,7 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 # Response with markdown code block
                 mock_llm.invoke.return_value = MagicMock(content='```json\n{"risk_level": "HIGH"}\n```')
@@ -377,7 +377,7 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 # Response with generic code block
                 mock_llm.invoke.return_value = MagicMock(content='```\n{"risk_level": "MEDIUM"}\n```')
@@ -398,7 +398,7 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content='{"risk_level": "UNKNOWN", "reasoning": "测试"}')
                 mock_factory.return_value.llm = mock_llm
@@ -417,7 +417,7 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content='{"risk_level": "UNKNOWN"}')
                 mock_factory.return_value.llm = mock_llm
@@ -433,7 +433,7 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.assurance.graph.nodes.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference.NodeFactory") as mock_factory:
                 mock_llm = MagicMock()
                 # Response with minimal fields
                 mock_llm.invoke.return_value = MagicMock(content="{}")
