@@ -1,3 +1,5 @@
+import hashlib
+import json
 import os  # Forced reload triggered by agent
 import sys
 import types
@@ -90,6 +92,56 @@ def _resolve_logo():
         if os.path.exists(path):
             return path, width
     return None, 50
+
+
+def _run_local_scan(target_dir: str):
+    """Scan the project directory to populate evidence for Phase 3."""
+    from pathlib import Path
+
+    # 1. Evidence hash — SHA-256 of all .py files
+    h = hashlib.sha256()
+    py_files = sorted(Path(target_dir).rglob("*.py"))
+    for pf in py_files:
+        if ".venv" in pf.parts or "__pycache__" in pf.parts:
+            continue
+        try:
+            h.update(pf.read_bytes())
+        except OSError:
+            pass
+    st.session_state["evidence_hash"] = h.hexdigest()
+
+    # 2. BOM scan
+    try:
+        from venturalitica.scanner import BOMScanner
+
+        scanner = BOMScanner(target_dir)
+        bom_json = scanner.scan()
+        bom_data = json.loads(bom_json)
+        st.session_state["bom"] = bom_data
+        st.session_state["bom_security"] = {"vulnerable": False, "issues": []}
+    except Exception:
+        st.session_state["bom"] = {}
+        st.session_state["bom_security"] = {}
+
+    # 3. Code context from latest trace (if available)
+    runs_dir = Path(target_dir) / ".venturalitica" / "runs"
+    if runs_dir.exists():
+        sessions = sorted(
+            [d for d in runs_dir.iterdir() if d.is_dir() and d.name != "latest"],
+            reverse=True,
+        )
+        for session_dir in sessions:
+            for trace_file in session_dir.glob("trace_*.json"):
+                try:
+                    trace = json.loads(trace_file.read_text())
+                    if trace.get("code_context"):
+                        st.session_state["code_context"] = trace["code_context"]
+                    st.session_state["runtime_meta"] = trace
+                    break
+                except Exception:
+                    pass
+            if st.session_state.get("code_context"):
+                break
 
 
 def render_dashboard():
@@ -291,6 +343,14 @@ def render_dashboard():
     # PHASE 3 & 4: SESSION CONTEXT REQUIRED
     # =========================================================================
     else:
+        # --- Refresh Local Scan button ---
+        st.sidebar.markdown("### 🔬 Local Scan")
+        if st.sidebar.button("🔄 Refresh Local Scan", use_container_width=True):
+            with st.sidebar:
+                with st.spinner("Scanning project..."):
+                    _run_local_scan(target_dir)
+            st.rerun()
+
         # Session Selector
         st.sidebar.markdown("### 🕒 Session Context")
         available_sessions = ["Global / History"] + list_available_sessions()
