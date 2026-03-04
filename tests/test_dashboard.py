@@ -24,6 +24,7 @@ class MockStreamlit:
         self.code = MagicMock()
         self.markdown = MagicMock()
         self.text = MagicMock()
+        self.write = MagicMock()
         self.button = MagicMock(return_value=False)
         self.spinner = MagicMock()
         self.spinner.return_value.__enter__ = MagicMock()

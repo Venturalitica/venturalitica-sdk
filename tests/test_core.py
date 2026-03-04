@@ -106,6 +106,7 @@ def mock_single_control_policy():
         os.unlink(path)
 
 
+@patch.dict(os.environ, {"CI": "", "VENTURALITICA_STRICT": ""})
 def test_compute_and_evaluate_value_error(mock_single_control_policy):
     validator = AssuranceValidator(mock_single_control_policy)
     from venturalitica.metrics import METRIC_REGISTRY
@@ -118,6 +119,7 @@ def test_compute_and_evaluate_value_error(mock_single_control_policy):
         assert results == []
 
 
+@patch.dict(os.environ, {"CI": "", "VENTURALITICA_STRICT": ""})
 def test_compute_and_evaluate_unexpected_error(mock_single_control_policy, capsys):
     validator = AssuranceValidator(mock_single_control_policy)
     from venturalitica.metrics import METRIC_REGISTRY
@@ -185,6 +187,7 @@ def test_compute_and_evaluate_invalid_data():
         v.compute_and_evaluate("not a dataframe", {})
 
 
+@patch.dict(os.environ, {"CI": "", "VENTURALITICA_STRICT": ""})
 def test_unknown_metric(mock_policy_file):
     validator = AssuranceValidator(mock_policy_file)
     # Inject an unknown metric control into the policy object
@@ -202,6 +205,7 @@ def test_unknown_metric(mock_policy_file):
     assert not any(r.control_id == "U1" for r in results)
 
 
+@patch.dict(os.environ, {"CI": "", "VENTURALITICA_STRICT": ""})
 def test_unexpected_error_eval(mock_policy_file):
     validator = AssuranceValidator(mock_policy_file)
     from venturalitica.metrics import METRIC_REGISTRY
