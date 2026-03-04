@@ -2,6 +2,10 @@ import json
 import os
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+pytest.importorskip("langchain_core", reason="Requires venturalitica[agentic]")
+
 from venturalitica.assurance.graph.nodes import NodeFactory
 from venturalitica.assurance.graph.state import ComplianceState
 
