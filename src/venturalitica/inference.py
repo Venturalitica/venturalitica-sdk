@@ -5,10 +5,21 @@ from typing import Any, Dict, Optional
 
 import yaml
 
-from venturalitica.assurance.graph.nodes import NodeFactory
-from venturalitica.assurance.graph.parser import ASTCodeScanner
 from venturalitica.models import SystemDescription
 from venturalitica.scanner import BOMScanner
+
+
+def _import_agentic():
+    """Lazy-load agentic dependencies (NodeFactory, ASTCodeScanner)."""
+    try:
+        from venturalitica.assurance.graph.nodes import NodeFactory
+        from venturalitica.assurance.graph.parser import ASTCodeScanner
+        return NodeFactory, ASTCodeScanner
+    except ImportError:
+        raise ImportError(
+            "LLM inference requires agentic dependencies. "
+            "Install with: pip install venturalitica[agentic]"
+        )
 
 
 class ProjectContext:
@@ -39,6 +50,7 @@ class ProjectContext:
     def code_context(self) -> Dict[str, Any]:
         """Lazy-load code context via ASTCodeScanner."""
         if self._code_context is None:
+            _, ASTCodeScanner = _import_agentic()
             code_scanner = ASTCodeScanner()
             self._code_context = code_scanner.scan_directory(self.target_dir) or {}
         return self._code_context or {}
@@ -136,6 +148,7 @@ def infer_system_description(
     full_prompt = full_prompt.replace("{readme}", context.readme_content[:3000])
 
     try:
+        NodeFactory, _ = _import_agentic()
         factory = NodeFactory(model_name=model_name, provider=provider, api_key=api_key)
         response = factory.llm.invoke(full_prompt)
         content = response.content
@@ -204,6 +217,7 @@ def infer_technical_documentation(
     full_prompt = full_prompt.replace("{readme}", context.readme_content[:3000])
 
     try:
+        NodeFactory, _ = _import_agentic()
         factory = NodeFactory(model_name=model_name, provider=provider, api_key=api_key)
         response = factory.llm.invoke(full_prompt)
         content = response.content
@@ -257,6 +271,7 @@ def infer_risk_classification(
 
     print(f"⚖️  Evaluating Risk Level using {provider}...")
 
+    NodeFactory, _ = _import_agentic()
     factory = NodeFactory(model_name=model_name, provider=provider, api_key=api_key)
 
     try:

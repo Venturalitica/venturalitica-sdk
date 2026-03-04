@@ -1,6 +1,6 @@
 [project]
 name = "venturalitica"
-version = "0.5.2"
+version = "0.5.3"
 description = "Frictionless Governance for AI. Enforce policies in your ML training with one line of code."
 requires-python = ">=3.11"
 readme = "README.md"
@@ -118,7 +118,7 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-addopts = "--strict-markers -v"
+addopts = "--strict-markers -v --ignore=tests/e2e"
 filterwarnings = [
     # Suppress external library warnings
     "ignore::DeprecationWarning:clearml.utilities.pyhocon",

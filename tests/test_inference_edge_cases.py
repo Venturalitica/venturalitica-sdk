@@ -19,6 +19,13 @@ from venturalitica.inference import (
 from venturalitica.models import RiskAssessment, SystemDescription
 
 
+def _mock_import_agentic():
+    """Create mock NodeFactory and ASTCodeScanner returned by _import_agentic()."""
+    mock_factory_cls = MagicMock()
+    mock_ast_cls = MagicMock()
+    return mock_factory_cls, mock_ast_cls
+
+
 class TestProjectContextEdgeCases:
     """Test ProjectContext edge cases and boundary conditions."""
 
@@ -229,11 +236,14 @@ class TestInferSystemDescriptionEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "Test prompt with {bom} {code} {readme}"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content="")
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = None
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = None
 
                 result = infer_system_description(".")
                 assert isinstance(result, SystemDescription)
@@ -249,12 +259,14 @@ class TestInferSystemDescriptionEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
-                # Content is a list
                 mock_llm.invoke.return_value = MagicMock(content=["part1", "part2", "part3"])
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = {"name": "Test System"}
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = {"name": "Test System"}
 
                 result = infer_system_description(".")
                 assert result.name == "Test System"
@@ -270,11 +282,14 @@ class TestInferSystemDescriptionEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content='{"name": "系统 тест مرحبا"}')
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = {"name": "系统 тест مرحبا"}
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = {"name": "系统 тест مرحبا"}
 
                 result = infer_system_description(".")
                 assert "系统" in result.name
@@ -290,12 +305,15 @@ class TestInferSystemDescriptionEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
                 long_content = "x" * 10000  # Very long response
                 mock_llm.invoke.return_value = MagicMock(content=long_content)
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = {}
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = {}
 
                 result = infer_system_description(".")
                 assert isinstance(result, SystemDescription)
@@ -327,11 +345,14 @@ class TestInferTechnicalDocumentationEdgeCases:
             mock_context.return_value = mock_instance
             mock_context.load_prompt.return_value = "prompt with {bom} {code} {readme}"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content="{}")
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = {}
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = {}
 
                 with patch("venturalitica.models.TechnicalDocumentation"):
                     _ = infer_technical_documentation(".")
@@ -360,12 +381,14 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
-                # Response with markdown code block
                 mock_llm.invoke.return_value = MagicMock(content='```json\n{"risk_level": "HIGH"}\n```')
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = {"risk_level": "HIGH"}
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = {"risk_level": "HIGH"}
 
                 result = infer_risk_classification(system_desc)
                 assert result.risk_level == "HIGH"
@@ -377,12 +400,14 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
-                # Response with generic code block
                 mock_llm.invoke.return_value = MagicMock(content='```\n{"risk_level": "MEDIUM"}\n```')
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = {"risk_level": "MEDIUM"}
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = {"risk_level": "MEDIUM"}
 
                 result = infer_risk_classification(system_desc)
                 assert result.risk_level == "MEDIUM"
@@ -398,11 +423,14 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content='{"risk_level": "UNKNOWN", "reasoning": "测试"}')
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = {
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = {
                     "risk_level": "UNKNOWN",
                     "reasoning": "测试",
                 }
@@ -417,11 +445,14 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
                 mock_llm.invoke.return_value = MagicMock(content='{"risk_level": "UNKNOWN"}')
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = {"risk_level": "UNKNOWN"}
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = {"risk_level": "UNKNOWN"}
 
                 result = infer_risk_classification(system_desc)
                 assert isinstance(result, RiskAssessment)
@@ -433,12 +464,14 @@ class TestInferRiskClassificationEdgeCases:
         with patch("venturalitica.inference.ProjectContext") as mock_context:
             mock_context.load_prompt.return_value = "prompt"
 
-            with patch("venturalitica.inference.NodeFactory") as mock_factory:
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_factory_cls, mock_ast_cls = _mock_import_agentic()
+                mock_import.return_value = (mock_factory_cls, mock_ast_cls)
+
                 mock_llm = MagicMock()
-                # Response with minimal fields
                 mock_llm.invoke.return_value = MagicMock(content="{}")
-                mock_factory.return_value.llm = mock_llm
-                mock_factory.return_value._safe_json_loads.return_value = {}
+                mock_factory_cls.return_value.llm = mock_llm
+                mock_factory_cls.return_value._safe_json_loads.return_value = {}
 
                 result = infer_risk_classification(system_desc)
                 assert result.risk_level == "UNKNOWN"  # Default from model
