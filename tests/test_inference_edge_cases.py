@@ -43,7 +43,10 @@ class TestProjectContextEdgeCases:
             assert context.target_dir == tmpdir
             # Should return empty dicts
             assert isinstance(context.bom, dict)
-            assert isinstance(context.code_context, dict)
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_import.return_value = (MagicMock(), MagicMock())
+                mock_import.return_value[1].return_value.scan_directory.return_value = {}
+                assert isinstance(context.code_context, dict)
 
     def test_project_context_bom_lazy_loading(self):
         """Test that BOM is lazy-loaded on first access."""
@@ -62,11 +65,15 @@ class TestProjectContextEdgeCases:
         with tempfile.TemporaryDirectory() as tmpdir:
             context = ProjectContext(tmpdir)
             assert context._code_context is None
-            code_context = context.code_context
-            assert context._code_context is not None
-            # Second access returns cached
-            code_context2 = context.code_context
-            assert code_context == code_context2
+            with patch("venturalitica.inference._import_agentic") as mock_import:
+                mock_ast_cls = MagicMock()
+                mock_ast_cls.return_value.scan_directory.return_value = {"a.py": {}}
+                mock_import.return_value = (MagicMock(), mock_ast_cls)
+                code_context = context.code_context
+                assert context._code_context is not None
+                # Second access returns cached
+                code_context2 = context.code_context
+                assert code_context == code_context2
 
     def test_project_context_readme_lazy_loading(self):
         """Test that README is lazy-loaded on first access."""
