@@ -1,0 +1,144 @@
+# HUDERIA COBRA Resource C — Deployment Context Template
+# Council of Europe Framework Convention on Artificial Intelligence
+#
+# This is a TEMPLATE — thresholds must be configured based on your AI system's risk profile.
+# HUDERIA does not mandate specific numeric values. These are PRE-DEPLOYMENT evaluation metrics
+# used as a gate in model registry (G3: SageMaker PendingManualApproval, MLflow stage transition).
+#
+# Gate: G3 (Pre-Promotion, Model Registry Approval)
+# Used with: VENTURALITICA_STRICT=true for CI/CD gating. Failing controls block model promotion.
+
+assessment-plan:
+  metadata:
+    title: "HUDERIA COBRA Resource C — Deployment (Pre-Release Evaluation Gate)"
+    version: "1.0"
+    description: "AI model deployment readiness assessment per Council of Europe HUDERIA methodology"
+
+  control-implementations:
+    - description: "HUDERIA COBRA Resource C Risk Factors — Deployment Context (Pre-Release Evaluation)"
+      implemented-requirements:
+
+        # C.1.1 Identity Privacy — L-Diversity
+        - control-id: C.1.1-privacy-l-diversity
+          description: "L-diversity on evaluation data quasi-identifiers (HUDERIA C.1.1: Identity privacy)"
+          props:
+            - name: metric_key
+              value: l_diversity
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 3 for moderate protection, 5+ for high-risk
+            - name: severity
+              value: high
+            - name: "input:quasi_identifiers"
+              value: "age,zip"
+            - name: "input:sensitive_attribute"
+              value: "income"  # CONFIGURE: attribute requiring protection
+            - name: note
+              value: "Sensitive attribute must have >= l distinct values per QI group"
+
+        # C.1.1 Identity Privacy — T-Closeness (stronger guarantee)
+        - control-id: C.1.1-privacy-t-closeness
+          description: "T-closeness on eval data (HUDERIA C.1.1 alternative, stronger)"
+          props:
+            - name: metric_key
+              value: t_closeness
+            - name: operator
+              value: "<"
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.1 (max 10% distribution divergence)
+            - name: severity
+              value: high
+            - name: "input:quasi_identifiers"
+              value: "age,zip"
+            - name: "input:sensitive_attribute"
+              value: "income"
+            - name: note
+              value: "Distribution of sensitive attribute must remain close to overall population"
+
+        # C.1.2 Data Minimization
+        - control-id: C.1.2-data-minimization
+          description: "Data minimization ratio (HUDERIA C.1.2: Minimize personal data collection)"
+          props:
+            - name: metric_key
+              value: data_minimization
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.7 means <= 30% of features are sensitive
+            - name: severity
+              value: medium
+            - name: "input:sensitive_columns"
+              value: "age,gender,race,health"
+            - name: note
+              value: "Score = 1 - (sensitive_cols / total_cols). Minimize sensitive data use."
+
+        # C.2.1 Non-Discrimination — Equalized Odds Ratio
+        - control-id: C.2.1-nondiscrimination-equalized-odds
+          description: "Equalized odds ratio in deployment (HUDERIA C.2.1: Non-discrimination)"
+          props:
+            - name: metric_key
+              value: equalized_odds_ratio
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.8 (80% rule, 4/5 rule)
+            - name: severity
+              value: high
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+            - name: "input:dimension"
+              value: "protected_group"
+            - name: note
+              value: "Both true positive rate and false positive rate must be similar across groups"
+
+        # C.2.1 Non-Discrimination — Disparate Impact
+        - control-id: C.2.1-nondiscrimination-disparate-impact
+          description: "Disparate impact ratio (HUDERIA C.2.1 alternative)"
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.8
+            - name: severity
+              value: high
+            - name: "input:protected_attributes"
+              value: "gender"
+            - name: note
+              value: "Favorable outcome rate ratio: min_group / max_group >= threshold"
+
+        # C.2.1 Non-Discrimination — Counterfactual Fairness
+        - control-id: C.2.1-nondiscrimination-counterfactual
+          description: "Counterfactual fairness (HUDERIA C.2.1 alternative)"
+          props:
+            - name: metric_key
+              value: counterfactual_fairness
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.75
+            - name: severity
+              value: medium
+            - name: "input:protected_attribute"
+              value: "race"
+            - name: note
+              value: "Predictions independent of counterfactual world where protected attribute changed"
+
+# CONTROL SUMMARY
+# C.1.1: Privacy via quasi-identifier group hiding (k-anonymity, l-diversity, t-closeness)
+# C.1.2: Data minimization (proportion of sensitive vs. non-sensitive features)
+# C.2.1: Non-discrimination via outcome rate parity and causal independence
+
+# NOT APPLICABLE IN PRE-DEPLOYMENT CONTEXT:
+# C.3.1 System operator rights: Legal/policy, not metrizable
+# C.4.1 Training adequacy: Organizational, not metrizable
+# C.5.1 Human-in-the-loop: System design choice, declarative
+# C.6.1 Out-of-scope uses: Monitoring & governance control
+# C.7.1 Proximity to decision-making: Transparency / HITL design
+#
+# These are addressed at the SaaS level (Cockpit, Policies, Governance entities)
+# or via OSCAL declarative fields in the system description (annex_iv1.yaml).

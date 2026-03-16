@@ -1,0 +1,258 @@
+# HUDERIA COBRA Resource B — Design & Development Template
+# Council of Europe Framework Convention on Artificial Intelligence
+#
+# This is a TEMPLATE — thresholds must be configured based on your AI system's risk profile.
+# HUDERIA does not mandate specific numeric values. Consult the methodology section 3 (RIA)
+# to determine appropriate thresholds for your context.
+#
+# Gate: G2 (Post-Training, Pre-Release)
+# Used with: VENTURALITICA_STRICT=true for CI/CD enforcement
+
+assessment-plan:
+  metadata:
+    title: "HUDERIA COBRA Resource B — Design & Development"
+    version: "1.0"
+    description: "AI model development context risk assessment per Council of Europe HUDERIA methodology"
+
+  control-implementations:
+    - description: "HUDERIA COBRA Resource B Risk Factors — Design & Development"
+      implemented-requirements:
+
+        # B.5.1 Data Quality
+        - control-id: B.5.1-data-quality-completeness
+          description: "Data completeness (HUDERIA B.5.1: Data quality & completeness)"
+          props:
+            - name: metric_key
+              value: data_completeness
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.95 for critical systems, 0.80 for exploratory
+            - name: severity
+              value: high
+            - name: note
+              value: "Minimum acceptable completeness for training/validation data"
+
+        # B.5.1 Class Balance (training set representation bias)
+        - control-id: B.5.1-class-balance
+          description: "Class balance: no single class < threshold (HUDERIA B.5.1 proxy)"
+          props:
+            - name: metric_key
+              value: class_imbalance
+            - name: operator
+              value: "<"
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.7 if imbalance > 0.7 is acceptable loss
+            - name: severity
+              value: medium
+            - name: note
+              value: "Severe class imbalance in training data can amplify bias"
+
+        # B.5.2 Privacy — K-Anonymity
+        - control-id: B.5.2-privacy-k-anonymity
+          description: "K-anonymity on training/eval data quasi-identifiers (HUDERIA B.5.2)"
+          props:
+            - name: metric_key
+              value: k_anonymity
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 5 for internal research, 20 for regulated data
+            - name: severity
+              value: high
+            - name: "input:quasi_identifiers"
+              value: "age,zip"  # CONFIGURE: domain-specific quasi-identifiers
+            - name: note
+              value: "Each quasi-identifier combination must appear >= k times"
+
+        # B.5.3 Data Integrity — Provenance/Audit Trail
+        - control-id: B.5.3-data-integrity-provenance
+          description: "Data provenance completeness: lineage & audit trail (HUDERIA B.5.3)"
+          props:
+            - name: metric_key
+              value: provenance_completeness
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.90 for production, 0.70 for dev
+            - name: severity
+              value: medium
+            - name: note
+              value: "Documentation of data sources, transformations, versioning"
+
+        # B.6.1 Bias — Causal Fairness Diagnostic
+        - control-id: B.6.1-bias-causal-fairness
+          description: "Causal fairness diagnostic (HUDERIA B.6.1: Development bias)"
+          props:
+            - name: metric_key
+              value: causal_fairness_diagnostic
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.7 means acceptable causal independence
+            - name: severity
+              value: high
+            - name: "input:protected_attributes"
+              value: "gender,race"  # CONFIGURE: domain-specific protected groups
+            - name: note
+              value: "Assessment of causal pathways to bias in protected attributes"
+
+        # B.6.1 Bias — Disparate Impact
+        - control-id: B.6.1-bias-disparate-impact
+          description: "Disparate impact ratio (HUDERIA B.6.1 alternative)"
+          props:
+            - name: metric_key
+              value: disparate_impact
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.8 (80% rule), industry-standard 4/5 rule
+            - name: severity
+              value: high
+            - name: "input:protected_attributes"
+              value: "gender"
+            - name: note
+              value: "Ratio of favorable outcome rates: min_group / max_group >= threshold"
+
+        # B.6.1 Bias — Counterfactual Fairness
+        - control-id: B.6.1-bias-counterfactual
+          description: "Counterfactual fairness (HUDERIA B.6.1 alternative)"
+          props:
+            - name: metric_key
+              value: counterfactual_fairness
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.75
+            - name: severity
+              value: medium
+            - name: "input:protected_attribute"
+              value: "race"
+            - name: note
+              value: "Predictions independent of counterfactual changes to protected attribute"
+
+        # B.6.3 Model Evaluation — Demographic Parity
+        - control-id: B.6.3-eval-demographic-parity
+          description: "Demographic parity difference (HUDERIA B.6.3: Model evaluation fairness)"
+          props:
+            - name: metric_key
+              value: demographic_parity_diff
+            - name: operator
+              value: "<"
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.10 (10% difference acceptable)
+            - name: severity
+              value: high
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+            - name: "input:dimension"
+              value: "gender"
+            - name: note
+              value: "Positive outcome rate must be similar across protected groups"
+
+        # B.6.3 Model Evaluation — Equal Opportunity Difference
+        - control-id: B.6.3-eval-equal-opportunity
+          description: "Equal opportunity difference (HUDERIA B.6.3 alternative)"
+          props:
+            - name: metric_key
+              value: equal_opportunity_diff
+            - name: operator
+              value: "<"
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.10
+            - name: severity
+              value: high
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+            - name: "input:dimension"
+              value: "race"
+            - name: note
+              value: "True positive rate must be similar across groups"
+
+        # B.6.3 Model Evaluation — Equalized Odds Ratio
+        - control-id: B.6.3-eval-equalized-odds
+          description: "Equalized odds ratio (HUDERIA B.6.3 alternative)"
+          props:
+            - name: metric_key
+              value: equalized_odds_ratio
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.8 (80% threshold)
+            - name: severity
+              value: high
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+            - name: "input:dimension"
+              value: "gender"
+            - name: note
+              value: "Both TPR and FPR must be equalized across groups"
+
+        # B.6.3 Model Evaluation — Predictive Parity
+        - control-id: B.6.3-eval-predictive-parity
+          description: "Predictive parity (precision parity, HUDERIA B.6.3)"
+          props:
+            - name: metric_key
+              value: predictive_parity
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.85
+            - name: severity
+              value: medium
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+            - name: "input:dimension"
+              value: "age"
+            - name: note
+              value: "Precision (PPV) must be similar across groups"
+
+        # B.6.5 Model Performance — Minimum F1/Accuracy
+        - control-id: B.6.5-model-performance-f1
+          description: "Model F1-score minimum (HUDERIA B.6.5: Human oversight adequacy)"
+          props:
+            - name: metric_key
+              value: f1_score
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.75 for production, 0.60 for research
+            - name: severity
+              value: high
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+            - name: note
+              value: "Overall model effectiveness must meet minimum standard before human review"
+
+        # B.6.5 Model Performance — Accuracy (alternative)
+        - control-id: B.6.5-model-performance-accuracy
+          description: "Model accuracy minimum (HUDERIA B.6.5 alternative)"
+          props:
+            - name: metric_key
+              value: accuracy_score
+            - name: operator
+              value: ">="
+            - name: threshold
+              value: null  # CONFIGURE: e.g. 0.80
+            - name: severity
+              value: high
+            - name: "input:target"
+              value: target
+            - name: "input:prediction"
+              value: prediction
+            - name: note
+              value: "Minimum acceptable overall correctness threshold"
+
+# HUDERIA B.5.4 Data Drift: Not applicable in pre-training context (deployment monitoring)
+# HUDERIA B.6.2 Explainability: Qualitative assessment, not directly metrizable
+# HUDERIA B.1.1, B.2.1, B.3.1-B.3.2, B.6.4, B.6.5 (HITL), B.6.7: Declarative controls (checklist)

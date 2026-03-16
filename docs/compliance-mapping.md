@@ -157,6 +157,81 @@ ISO 42001 defines an **AI Management System (AIMS)** framework. Venturalitica ma
 
 ---
 
+## HUDERIA: Council of Europe Framework Convention on AI
+
+**HUDERIA** (Human Rights, Democracy and Rule of Law Impact Assessment) is a non-binding Council of Europe methodology for evaluating AI impact on fundamental rights, published February 2026. It complements the EU AI Act and GDPR with a human rights lens.
+
+HUDERIA defines the **COBRA** (Context-Based Risk Analysis) methodology with three resources:
+- **Resource A**: Application context (non-metrizable organizational declarations)
+- **Resource B**: Design & development context (pre-training and post-training)
+- **Resource C**: Deployment context (pre-promotion gates in model registries)
+
+The Venturalitica SDK implements **Resource B** (Gate G2: post-training evaluation) and **Resource C** (Gate G3: pre-promotion gates), which map directly to CI/CD compliance checkpoints.
+
+### HUDERIA COBRA Resource B: Design & Development
+
+Gate G2 (post-training, pre-release) evaluates design and development risks. SDK metrics are mapped as follows:
+
+| COBRA Control | Description | SDK Metric | Configured in |
+| :--- | :--- | :--- | :--- |
+| **B.5.1** Data Quality | Completeness and representativeness | `data_completeness` | `huderia-cobra-design.oscal.yaml` |
+| **B.5.1** Class Balance | Training set imbalance indicator | `class_imbalance` | `huderia-cobra-design.oscal.yaml` |
+| **B.5.2** Privacy Protection | Quasi-identifier group anonymization | `k_anonymity` | `huderia-cobra-design.oscal.yaml` |
+| **B.5.3** Data Integrity | Provenance and audit trail completeness | `provenance_completeness` | `huderia-cobra-design.oscal.yaml` |
+| **B.6.1** Bias: Causal | Causal pathways to protected attribute bias | `causal_fairness_diagnostic` | `huderia-cobra-design.oscal.yaml` |
+| **B.6.1** Bias: Output Parity | Favorable outcome rate disparity | `disparate_impact` | `huderia-cobra-design.oscal.yaml` |
+| **B.6.1** Bias: Counterfactual | Causal independence of predictions | `counterfactual_fairness` | `huderia-cobra-design.oscal.yaml` |
+| **B.6.3** Eval: Demographic Parity | Positive outcome rate difference across groups | `demographic_parity_diff` | `huderia-cobra-design.oscal.yaml` |
+| **B.6.3** Eval: Equal Opportunity | True positive rate difference across groups | `equal_opportunity_diff` | `huderia-cobra-design.oscal.yaml` |
+| **B.6.3** Eval: Equalized Odds | Both TPR and FPR equalization | `equalized_odds_ratio` | `huderia-cobra-design.oscal.yaml` |
+| **B.6.3** Eval: Predictive Parity | Precision (PPV) parity across groups | `predictive_parity` | `huderia-cobra-design.oscal.yaml` |
+| **B.6.5** Model Performance | Minimum model effectiveness threshold | `f1_score`, `accuracy_score` | `huderia-cobra-design.oscal.yaml` |
+
+**Usage**: Enforce HUDERIA B controls during post-training evaluation:
+
+```bash
+VENTURALITICA_STRICT=true uv run venturalitica enforce \
+    --data eval_dataset.csv \
+    --policy src/venturalitica/policies/templates/huderia-cobra-design.oscal.yaml \
+    --target target_column \
+    --prediction prediction_column
+```
+
+### HUDERIA COBRA Resource C: Deployment (Pre-Release)
+
+Gate G3 (pre-promotion in model registries, e.g., SageMaker, MLflow) evaluates deployment-readiness risks with stronger privacy guarantees:
+
+| COBRA Control | Description | SDK Metric | Configured in |
+| :--- | :--- | :--- | :--- |
+| **C.1.1** Privacy: L-Diversity | Minimum distinct sensitive values per QI group | `l_diversity` | `huderia-cobra-prerelease.oscal.yaml` |
+| **C.1.1** Privacy: T-Closeness | Maximum distribution divergence (stronger than l-diversity) | `t_closeness` | `huderia-cobra-prerelease.oscal.yaml` |
+| **C.1.2** Data Minimization | Proportion of sensitive vs. non-sensitive features | `data_minimization` | `huderia-cobra-prerelease.oscal.yaml` |
+| **C.2.1** Non-Discrimination: Odds | Equalized odds ratio across groups | `equalized_odds_ratio` | `huderia-cobra-prerelease.oscal.yaml` |
+| **C.2.1** Non-Discrimination: Impact | Disparate impact ratio across groups | `disparate_impact` | `huderia-cobra-prerelease.oscal.yaml` |
+| **C.2.1** Non-Discrimination: Causal | Counterfactual fairness (protected attr. independence) | `counterfactual_fairness` | `huderia-cobra-prerelease.oscal.yaml` |
+
+**Usage**: Gate model promotion with HUDERIA C controls:
+
+```bash
+VENTURALITICA_STRICT=true uv run venturalitica enforce \
+    --data test_dataset.csv \
+    --policy src/venturalitica/policies/templates/huderia-cobra-prerelease.oscal.yaml \
+    --target target_column \
+    --prediction prediction_column
+```
+
+### Template Configuration
+
+Both HUDERIA templates ship with `null` thresholds. Organizations must configure thresholds based on:
+- **Regulatory context** (e.g., GDPR-regulated EU public sector: k≥20; internal R&D: k≥5)
+- **Protected attributes** (e.g., gender, race, age)
+- **Sensitive attributes** (e.g., diagnosis, income)
+- **Risk tolerance** (high-risk systems require stricter fairness thresholds)
+
+See [full scenario example](../../../venturalitica-scenario-huderia-cobra-public-sector/) for concrete threshold configuration.
+
+---
+
 ## The Two-Policy Pattern and Regulatory Mapping
 
 Venturalitica's two-policy pattern maps directly to the regulatory structure:
