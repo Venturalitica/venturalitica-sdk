@@ -158,6 +158,86 @@ def render_compliance_mapping(code_context, bom_security, runtime_meta):
                     "✅ **Evidence**: Zero known vulnerabilities. Integrity Seal valid."
                 )
 
+    # HUDERIA: Council of Europe Framework Convention on AI & Human Rights
+    with st.expander("🏛️ HUDERIA: Fundamental Rights Impact Assessment (Council of Europe)"):
+        st.info(
+            """
+            **HUDERIA** (Human Rights, Democracy and Rule of Law Impact Assessment) is a
+            non-binding Council of Europe methodology for evaluating AI impact on fundamental rights.
+            It complements GDPR and the EU AI Act with a human rights lens.
+
+            This assessment follows HUDERIA's 4-element methodology:
+            1. **COBRA** (Context-Based Risk Analysis),
+            2. **SEP** (Stakeholder Engagement Process),
+            3. **RIA** (Rights Impact Assessment),
+            4. **Mitigation Planning**.
+            """
+        )
+
+        audit_results = runtime_meta.get("audit_results", [])
+        huderia_controls = [r for r in audit_results if "huderia-cobra" in r.lower()]
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        # COBRA Assessment
+        with col1:
+            st.markdown("#### COBRA ✓/✗")
+            if huderia_controls:
+                cobra_passes = [r for r in huderia_controls if "PASS" in r]
+                cobra_fails = [r for r in huderia_controls if "FAIL" in r]
+                if cobra_fails:
+                    st.error(f"❌ {len(cobra_fails)} risk factors detected")
+                    for fail in cobra_fails[:3]:
+                        st.caption(f"- {fail[:60]}...")
+                else:
+                    st.success(f"✅ All {len(cobra_passes)} risk factors acceptable")
+            else:
+                st.caption("No COBRA assessment run yet")
+
+        # SEP Assessment
+        with col2:
+            st.markdown("#### SEP ✓/✗")
+            sep_found = any("stakeholder" in r.lower() for r in audit_results)
+            if sep_found:
+                st.success("✅ Stakeholder engagement documented")
+            else:
+                st.warning("⚠️ Stakeholder engagement not assessed")
+
+        # RIA Assessment
+        with col3:
+            st.markdown("#### RIA ✓/✗")
+            privacy_metrics = [r for r in audit_results if any(
+                k in r.lower() for k in ["k_anonymity", "l_diversity", "t_closeness", "data_minimization"]
+            )]
+            bias_metrics = [r for r in audit_results if any(
+                k in r.lower() for k in ["disparate_impact", "demographic_parity", "causal_fairness"]
+            )]
+            if privacy_metrics or bias_metrics:
+                st.success(
+                    f"✅ Rights Impact metrics: {len(privacy_metrics)} privacy + {len(bias_metrics)} bias"
+                )
+            else:
+                st.warning("⚠️ No detailed rights impact metrics run")
+
+        # Mitigation Plan
+        with col4:
+            st.markdown("#### Mitigation ✓")
+            st.success("→ See [HUDERIA Methodology Guide](https://www.coe.int/)")
+            st.caption("Define mitigation strategy per COBRA findings")
+
+        st.divider()
+
+        # Detailed Findings
+        if huderia_controls:
+            st.markdown("#### Detailed COBRA Findings")
+            for control in huderia_controls[:5]:
+                if "FAIL" in control:
+                    st.error(control)
+                else:
+                    st.success(control)
+            if len(huderia_controls) > 5:
+                st.caption(f"... and {len(huderia_controls) - 5} more controls")
+
     st.divider()
     st.caption(
         "ℹ️ *This evidence is automatically injected into the Annex IV.2 Generator.*"
