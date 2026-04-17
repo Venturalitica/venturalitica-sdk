@@ -78,9 +78,16 @@ def pull():
             json.dump(config_data, f, indent=2)
 
         # [Annex IV.1] Sync System Description
-        # Check for AISystemVersion object (new schema) or fallback to 'system'
-        system_version = config_data.get("aiSystemVersion", config_data.get("system", {}))
-        policy_info = config_data.get("policy", {})
+        # Check for AISystemVersion object (new schema) or fallback to 'system'.
+        # Both fields can be explicitly null on the wire — coerce to {} so
+        # downstream .get() calls don't crash when the AI System has no
+        # versions yet.
+        system_version = (
+            config_data.get("aiSystemVersion")
+            or config_data.get("system")
+            or {}
+        )
+        policy_info = config_data.get("policy") or {}
         
         # Mapping from SaaS (CamelCase or SnakeCase) to Local SystemDescription
         sys_desc = {

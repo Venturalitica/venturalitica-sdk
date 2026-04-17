@@ -5,6 +5,21 @@ import yaml
 
 from .models import InternalControl, InternalPolicy
 
+# Proposed OSCAL profile properties for AI Assurance (paper Table 2, 16 properties).
+# When present in a policy YAML, these are preserved as profile metadata and
+# propagated to Assessment Results as CharacterizationFacets.
+PROFILE_PROPERTY_NAMES = frozenset({
+    # Lifecycle semantics
+    "lifecycle_phase", "enforcement_mode", "evaluation_method",
+    "evaluation_window", "target_type",
+    # Traceability chain
+    "risk_id", "treatment_id", "policy_id", "objective_id",
+    # Risk-acceptance and justification (Gealy, SaferAI)
+    "risk_acceptance_criteria", "threshold_justification",
+    # Stakeholder deliberation (Panai, Association of AI Ethicists)
+    "stakeholder_consultation_ref",
+})
+
 
 class OSCALPolicyLoader:
     def __init__(self, policy_source: Union[str, Path, Dict[str, Any]]):
@@ -124,11 +139,13 @@ class OSCALPolicyLoader:
         # Extract severity and check for direct metric props
         severity = "low"
         direct_props = {}
+        metadata: Dict[str, Any] = {}
         for p in req.get("props", []):
             name = p.get("name")
             value = p.get("value")
             if name == "severity":
                 severity = value
+                metadata[name] = value
             elif name in ["metric_key", "metric", "threshold", "operator"]:
                 # Map 'metric' to 'metric_key' for compatibility
                 key = "metric_key" if name == "metric" else name
@@ -142,6 +159,21 @@ class OSCALPolicyLoader:
                 if "required_vars" not in direct_props:
                     direct_props["required_vars"] = []
                 direct_props["required_vars"].append(value)
+            elif name in PROFILE_PROPERTY_NAMES:
+                # Profile metadata: carried to Assessment Results for auditor visibility.
+                # A single control MAY declare `lifecycle_phase` multiple times to
+                # indicate that the control applies in several phases (e.g.,
+                # `training` and `validation`). Collect repeated phases into a list.
+                if name == "lifecycle_phase":
+                    existing = metadata.get("lifecycle_phase")
+                    if existing is None:
+                        metadata["lifecycle_phase"] = value
+                    elif isinstance(existing, list):
+                        existing.append(value)
+                    else:
+                        metadata["lifecycle_phase"] = [existing, value]
+                else:
+                    metadata[name] = value
             else:
                 # Generic parameters for metric functions (e.g., quasi_identifiers)
                 if "params" not in direct_props:
@@ -160,6 +192,7 @@ class OSCALPolicyLoader:
                     operator=direct_props.get("operator", "=="),
                     input_mapping=direct_props.get("input_mapping", {}),
                     params=direct_props.get("params", {}),
+                    metadata=metadata,
                 )
             )
             return  # Skip link hunting if we have direct props
@@ -172,13 +205,16 @@ class OSCALPolicyLoader:
                 if metric_uuid in inventory:
                     m_def = inventory[metric_uuid]
                     if "metric_key" in m_def:
-                        # Extract params from inventory definition (anything not an input: or known key)
-                        params = {
-                            k: v
-                            for k, v in m_def.items()
-                            if not k.startswith("input:")
-                            and k not in ["metric_key", "threshold", "operator"]
-                        }
+                        # Separate profile metadata from function params
+                        inventory_metadata = dict(metadata)
+                        params = {}
+                        for k, v in m_def.items():
+                            if k.startswith("input:") or k in ("metric_key", "threshold", "operator"):
+                                continue
+                            if k in PROFILE_PROPERTY_NAMES or k == "severity":
+                                inventory_metadata[k] = v
+                            else:
+                                params[k] = v
                         policy.controls.append(
                             InternalControl(
                                 id=control_id,
@@ -193,6 +229,7 @@ class OSCALPolicyLoader:
                                     if k.startswith("input:")
                                 },
                                 params=params,
+                                metadata=inventory_metadata,
                             )
                         )
 
@@ -207,13 +244,16 @@ class OSCALPolicyLoader:
         }
 
         if "metric_key" in props:
-            # Generic params from control props (anything not input:* or known keys)
-            params = {
-                k: v
-                for k, v in props.items()
-                if not k.startswith("input:")
-                and k not in ["metric_key", "threshold", "operator", "severity"]
-            }
+            # Separate profile metadata from function params
+            catalog_metadata: Dict[str, Any] = {}
+            params: Dict[str, Any] = {}
+            for k, v in props.items():
+                if k.startswith("input:") or k in ("metric_key", "threshold", "operator"):
+                    continue
+                if k in PROFILE_PROPERTY_NAMES or k == "severity":
+                    catalog_metadata[k] = v
+                else:
+                    params[k] = v
             policy.controls.append(
                 InternalControl(
                     id=control.get("id", "unknown"),
@@ -228,6 +268,7 @@ class OSCALPolicyLoader:
                         if k.startswith("input:")
                     },
                     params=params,
+                    metadata=catalog_metadata,
                 )
             )
 

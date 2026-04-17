@@ -11,7 +11,7 @@ class InternalControl:
     metric_key: str
     threshold: float
     operator: str
-    metadata: Dict[str, Any] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     input_mapping: dict = field(default_factory=dict) # Role -> VirtualVarName
     params: dict = field(default_factory=dict)  # Additional params for metric functions (e.g., quasi_identifiers)
 

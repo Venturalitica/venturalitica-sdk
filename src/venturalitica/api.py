@@ -3,6 +3,7 @@ import os
 import time
 from contextlib import contextmanager
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -10,6 +11,8 @@ from .binding import COLUMN_SYNONYMS, discover_column
 from .core import AssuranceValidator, ComplianceResult
 from .formatting import VenturalíticaJSONEncoder, print_summary
 from .integrations import auto_log
+from .oscal.builder import AssessmentResultsBuilder, POAMBuilder
+from .oscal.serializer import to_json as oscal_to_json
 from .session import GovernanceSession
 
 # We need the version for the enforce print statement
@@ -95,7 +98,79 @@ def monitor(
             if summary:
                 print(summary)
 
+        # --- OSCAL Assessment Results generation ---
+        _generate_oscal_artifacts(
+            run_dir=run_dir,
+            name=name,
+            start_time=start_time,
+        )
+
         GovernanceSession.stop()
+
+
+def _generate_oscal_artifacts(run_dir: Path, name: str, start_time: float) -> None:
+    """Generate OSCAL Assessment Results and POA&M from cached results."""
+    try:
+        results_path = Path(run_dir) / "results.json"
+        if not results_path.exists():
+            return
+
+        with open(results_path, "r") as f:
+            raw = json.load(f)
+
+        # Parse cached results back into ComplianceResult objects
+        items = raw if isinstance(raw, list) else raw.get("metrics", [])
+        if not items:
+            return
+
+        results = [
+            ComplianceResult(
+                control_id=r.get("control_id", ""),
+                description=r.get("description", ""),
+                metric_key=r.get("metric_key", ""),
+                threshold=float(r.get("threshold", 0)),
+                actual_value=float(r.get("actual_value", 0)),
+                operator=r.get("operator", ""),
+                passed=r.get("passed", False),
+                severity=r.get("severity", ""),
+                metadata=r.get("metadata", {}),
+            )
+            for r in items
+        ]
+
+        end_ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        start_ts = datetime.fromtimestamp(start_time, tz=timezone.utc).isoformat(timespec="seconds")
+
+        # Collect evidence artifact paths from the run directory
+        evidence = {}
+        for artifact_file in Path(run_dir).glob("*"):
+            if artifact_file.name != "results.json" and artifact_file.is_file():
+                evidence[artifact_file.name] = str(artifact_file)
+
+        # Build OSCAL Assessment Results
+        ar = AssessmentResultsBuilder.build(
+            results,
+            title=f"AI Assurance Assessment: {name}",
+            start_time=start_ts,
+            end_time=end_ts,
+            evidence_artifacts=evidence,
+        )
+
+        ar_path = Path(run_dir) / "assessment-results.oscal.json"
+        with open(ar_path, "w") as f:
+            f.write(oscal_to_json(ar))
+        print(f"  ✓ OSCAL Assessment Results: {ar_path}")
+
+        # Build POA&M (only if failures exist)
+        poam = POAMBuilder.build(ar)
+        if poam:
+            poam_path = Path(run_dir) / "poam.oscal.json"
+            with open(poam_path, "w") as f:
+                f.write(oscal_to_json(poam))
+            print(f"  ✓ OSCAL POA&M: {poam_path} ({len(poam.poam_items)} items)")
+
+    except Exception as e:
+        print(f"  ⚠ OSCAL generation failed: {e}")
 
 
 def enforce(
@@ -105,10 +180,19 @@ def enforce(
     target: str = "target",
     prediction: str = "prediction",
     strict: bool = False,
+    phase: Optional[str] = None,
     **attributes,
 ) -> List[ComplianceResult]:
     """
     Main entry point for enforcing AI Assurance policies.
+
+    Parameters:
+        phase: Optional lifecycle_phase filter. When provided, only controls
+            tagged with that phase (or untagged) are evaluated. Typical values:
+            `training` (raw data, Art. 10), `validation` (model predictions,
+            Art. 15). Controls tagged `monitoring` or `incident` are always
+            skipped by the SDK; they target the runtime proxy (FairGage) and
+            the incident handler respectively.
     """
     global _SESSION_ENFORCED
     _SESSION_ENFORCED = True
@@ -147,9 +231,11 @@ def enforce(
 
                 mapping.update(attributes)
                 # pass strict flag to validator so missing/skip behavior can be enforced
-                results = validator.compute_and_evaluate(data, mapping, strict=strict)
+                results = validator.compute_and_evaluate(
+                    data, mapping, strict=strict, phase=phase
+                )
             elif metrics is not None:
-                results = validator.evaluate(metrics)
+                results = validator.evaluate(metrics, phase=phase)
 
             if results:
                 all_results.extend(results)

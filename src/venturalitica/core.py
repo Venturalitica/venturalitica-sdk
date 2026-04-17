@@ -8,6 +8,14 @@ from .models import ComplianceResult, InternalPolicy
 from .storage import BaseStorage, LocalFileSystemStorage
 
 
+class ComplianceBlockError(RuntimeError):
+    """Raised when a control with enforcement_mode='block' fails.
+
+    This halts the pipeline regardless of the strict flag, as the policy itself
+    has declared the control blocking.
+    """
+
+
 class AssuranceValidator:
     def __init__(
         self,
@@ -70,12 +78,21 @@ class AssuranceValidator:
         data: pd.DataFrame,
         context_mapping: Dict[str, str],
         strict: Optional[bool] = None,
+        phase: Optional[str] = None,
     ) -> List[ComplianceResult]:
         """Computes metrics and evaluates them against controls.
 
         If `strict` is True (or if the validator was initialized in strict mode via CI env vars),
         any control that cannot be evaluated due to missing metric implementation or missing role
         bindings will raise a ValueError.
+
+        If `phase` is provided, only controls whose `lifecycle_phase` metadata matches
+        (or is absent) are evaluated. Phases are the values proposed in the OSCAL profile:
+        `training`, `validation`, `monitoring`, `incident`. Controls tagged `monitoring`
+        are skipped by the SDK because they target the runtime proxy (FairGage).
+
+        Controls declaring `enforcement_mode: block` that fail evaluation raise
+        ComplianceBlockError immediately, regardless of strict mode.
         """
         from .metrics import METRIC_REGISTRY
 
@@ -87,6 +104,8 @@ class AssuranceValidator:
 
         results = []
         for ctrl in self.policy.controls:
+            if not self._control_matches_phase(ctrl, phase):
+                continue
             metric_key = ctrl.metric_key
             calc_fn = METRIC_REGISTRY.get(metric_key)
 
@@ -183,19 +202,23 @@ class AssuranceValidator:
                 passed = self._check_condition(
                     metric_value, ctrl.operator, ctrl.threshold
                 )
-                results.append(
-                    ComplianceResult(
-                        control_id=ctrl.id,
-                        description=ctrl.description,
-                        metric_key=metric_key,
-                        threshold=ctrl.threshold,
-                        actual_value=metric_value,
-                        operator=ctrl.operator,
-                        passed=passed,
-                        severity=ctrl.severity,
-                        metadata=meta_data,
-                    )
+                # Merge profile metadata (policy-level) with metric function metadata
+                # (computation-level). Profile properties carry through to AR as facets.
+                combined_metadata = dict(ctrl.metadata or {})
+                combined_metadata.update(meta_data or {})
+                result = ComplianceResult(
+                    control_id=ctrl.id,
+                    description=ctrl.description,
+                    metric_key=metric_key,
+                    threshold=ctrl.threshold,
+                    actual_value=metric_value,
+                    operator=ctrl.operator,
+                    passed=passed,
+                    severity=ctrl.severity,
+                    metadata=combined_metadata,
                 )
+                results.append(result)
+                self._apply_enforcement_mode(ctrl, result)
             except (ValueError, TypeError, KeyError) as e:
                 # Expected if columns are missing or calculation fails
                 if strict:
@@ -210,28 +233,99 @@ class AssuranceValidator:
                 continue
         return results
 
-    def evaluate(self, metrics: Dict[str, float]) -> List[ComplianceResult]:
-        """Evaluates pre-computed metrics against controls."""
+    def evaluate(
+        self,
+        metrics: Dict[str, float],
+        phase: Optional[str] = None,
+    ) -> List[ComplianceResult]:
+        """Evaluates pre-computed metrics against controls.
+
+        Filters by `lifecycle_phase` when `phase` is provided; controls declaring
+        `enforcement_mode: block` that fail raise ComplianceBlockError.
+        """
         results = []
         for ctrl in self.policy.controls:
+            if not self._control_matches_phase(ctrl, phase):
+                continue
             actual = metrics.get(ctrl.metric_key)
             if actual is None:
                 continue
 
             passed = self._check_condition(actual, ctrl.operator, ctrl.threshold)
-            results.append(
-                ComplianceResult(
-                    control_id=ctrl.id,
-                    description=ctrl.description,
-                    metric_key=ctrl.metric_key,
-                    threshold=ctrl.threshold,
-                    actual_value=actual,
-                    operator=ctrl.operator,
-                    passed=passed,
-                    severity=ctrl.severity,
-                )
+            result = ComplianceResult(
+                control_id=ctrl.id,
+                description=ctrl.description,
+                metric_key=ctrl.metric_key,
+                threshold=ctrl.threshold,
+                actual_value=actual,
+                operator=ctrl.operator,
+                passed=passed,
+                severity=ctrl.severity,
+                metadata=dict(ctrl.metadata or {}),
             )
+            results.append(result)
+            self._apply_enforcement_mode(ctrl, result)
         return results
+
+    @staticmethod
+    def _control_matches_phase(ctrl, phase: Optional[str]) -> bool:
+        """Filters controls by lifecycle_phase.
+
+        A control may declare `lifecycle_phase` as a single string or a list
+        of strings (when it applies to multiple phases, e.g., both training
+        and validation).
+
+        - If `phase` is None: the SDK evaluates all controls except those
+          tagged *exclusively* for the runtime proxy (`monitoring`) or the
+          incident handler (`incident`). A control tagged with both `training`
+          and `monitoring` is still evaluated by the SDK in its training phase.
+        - If `phase` is specified: only controls whose phases include it
+          (or untagged controls) are evaluated.
+        """
+        raw = (ctrl.metadata or {}).get("lifecycle_phase")
+        if raw is None:
+            phases: list = []
+        elif isinstance(raw, list):
+            phases = list(raw)
+        else:
+            phases = [raw]
+
+        if phase is None:
+            # Skip only when the control targets proxy/incident exclusively.
+            if not phases:
+                return True
+            proxy_only = {"monitoring", "incident"}
+            return any(p not in proxy_only for p in phases)
+
+        if not phases:
+            return True
+        return phase in phases
+
+    @staticmethod
+    def _apply_enforcement_mode(ctrl, result: ComplianceResult) -> None:
+        """Reacts to a ComplianceResult according to the control's enforcement_mode.
+
+        - `block`: raises ComplianceBlockError on failure, halting the pipeline.
+        - `warn`: emits a stderr alert on failure; execution continues.
+        - `monitor` (default): silent.
+        """
+        if result.passed:
+            return
+        mode = (ctrl.metadata or {}).get("enforcement_mode", "monitor")
+        if mode == "block":
+            raise ComplianceBlockError(
+                f"Control '{ctrl.id}' failed with enforcement_mode=block: "
+                f"{result.metric_key}={result.actual_value} "
+                f"does not satisfy {result.operator} {result.threshold}"
+            )
+        if mode == "warn":
+            import sys
+            print(
+                f"⚠ [Venturalitica] Control '{ctrl.id}' failed "
+                f"(enforcement_mode=warn): {result.metric_key}="
+                f"{result.actual_value} {result.operator} {result.threshold}",
+                file=sys.stderr,
+            )
 
     def _check_condition(self, actual: float, operator: str, threshold: float) -> bool:
         """Helper to evaluate logical operators."""
