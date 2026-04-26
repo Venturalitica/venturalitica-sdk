@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 from typing import Optional
 
 import requests
@@ -7,6 +8,21 @@ import typer
 
 from ..telemetry import track_command
 from .common import SAAS_URL, app, console, get_config_path
+
+VL_DIR = Path(".venturalitica")
+RUNS_DIR = VL_DIR / "runs"
+
+
+def _latest_ar_path() -> Optional[Path]:
+    """Find the OSCAL assessment-results doc of the most recent local run."""
+    if not RUNS_DIR.exists():
+        return None
+    runs = [p for p in RUNS_DIR.iterdir() if p.is_dir()]
+    if not runs:
+        return None
+    latest = max(runs, key=lambda p: p.stat().st_mtime)
+    ar = latest / "assessment-results.oscal.json"
+    return ar if ar.exists() else None
 
 
 def _create_bundle_payload() -> dict:
@@ -37,17 +53,32 @@ def _create_bundle_payload() -> dict:
             }
         )
 
-    # 3. Load Annex IV if exists
-    annex_iv = {}
-    if os.path.exists("Annex_IV.md"):
-        # Simple parser for structured fields
+    # 3. Load Annex IV if exists.
+    # Prefer the structured payload produced by `vl export-annex-iv` and
+    # stashed under results.json["annex_iv"] — that's the 9-section EU AI
+    # Act Art.11 document the platform binds to the uploaded artifact.
+    # Fall back to parsing the legacy Annex_IV.md when the structured file
+    # is absent, so projects that predate the new CLI still send something.
+    annex_iv: dict = {}
+    legacy_md = False
+    if os.path.exists(".venturalitica/results.json"):
+        try:
+            with open(".venturalitica/results.json", "r") as f:
+                maybe = json.load(f)
+            if isinstance(maybe, dict) and isinstance(maybe.get("annex_iv"), dict):
+                annex_iv = maybe["annex_iv"]
+        except json.JSONDecodeError:
+            pass
+    if not annex_iv and os.path.exists("Annex_IV.md"):
+        legacy_md = True
         with open("Annex_IV.md", "r") as f:
-            lines = f.readlines()
-            for line in lines:
+            for line in f:
                 if "Intended Purpose:" in line:
                     annex_iv["intended_purpose"] = line.split(":", 1)[1].strip()
                 elif "Hardware:" in line:
                     annex_iv["hardware"] = line.split(":", 1)[1].strip()
+    if legacy_md and not annex_iv.get("generated_by"):
+        annex_iv["generated_by"] = "legacy-annex-md-parser"
 
     # Intelligent Metrics Extraction
     metrics = []
@@ -192,13 +223,70 @@ def push(
     with open(creds_path, "r") as f:
         creds = json.load(f)
 
-    # Generate the bundle payload in-memory (no file required)
-    try:
-        payload = _create_bundle_payload()
-    except Exception as e:
-        console.print(f"[bold red]Failed to prepare bundle:[/bold red] {e}")
+    # OSCAL-native push: ship the `assessment-results.oscal.json`
+    # produced by the monitor() run. The platform rejects any other shape.
+    ar_path = _latest_ar_path()
+    if ar_path is None:
+        console.print(
+            "[bold red]No OSCAL assessment-results found.[/bold red] "
+            "Run `monitor()` or `vl audit` first to produce "
+            ".venturalitica/runs/<run_id>/assessment-results.oscal.json."
+        )
         raise typer.Exit(code=1)
 
+    try:
+        with open(ar_path, "r") as f:
+            ar_doc = json.load(f)
+    except Exception as e:
+        console.print(f"[bold red]Failed to load AR doc {ar_path}:[/bold red] {e}")
+        raise typer.Exit(code=1)
+
+    # Embed Annex IV (EU AI Act Art.11) into the AR's back-matter.resources
+    # with class='annex-iv'. The platform's oscal-ar-ingestion.service walks
+    # back-matter looking for that exact class to extract the 9-section doc
+    # and bind it to the produced MODEL artifact's AnnexIvDocument row. The
+    # legacy top-level bundle.annex_iv field is no longer consumed (post
+    # OSCAL-native rewrite), so this injection is the only path that lands
+    # the doc on the platform side.
+    annex_iv_payload: dict = {}
+    if os.path.exists(".venturalitica/results.json"):
+        try:
+            with open(".venturalitica/results.json", "r") as f:
+                maybe = json.load(f)
+            if isinstance(maybe, dict) and isinstance(maybe.get("annex_iv"), dict):
+                annex_iv_payload = maybe["annex_iv"]
+        except json.JSONDecodeError:
+            pass
+    if annex_iv_payload:
+        import base64 as _b64
+        import uuid as _uuid
+        ar_root = ar_doc.get("assessment-results", ar_doc)
+        back_matter = ar_root.setdefault("back-matter", {})
+        resources = back_matter.setdefault("resources", [])
+        # Drop any prior annex-iv resource so re-pushes overwrite cleanly.
+        resources[:] = [
+            r for r in resources
+            if not any(
+                isinstance(p, dict) and p.get("name") == "class" and p.get("value") == "annex-iv"
+                for p in (r.get("props") or [])
+            )
+        ]
+        encoded = _b64.b64encode(
+            json.dumps(annex_iv_payload, ensure_ascii=False).encode("utf-8")
+        ).decode("ascii")
+        resources.append({
+            "uuid": str(_uuid.uuid4()),
+            "title": "EU AI Act Art.11 Annex IV technical documentation",
+            "description": (
+                "9-section Annex IV doc derived by `vl export-annex-iv` from the "
+                "OSCAL Assessment Results. Class='annex-iv' is the platform's "
+                "lookup key (oscal-ar-ingestion.service)."
+            ),
+            "props": [{"name": "class", "value": "annex-iv"}],
+            "base64": {"value": encoded},
+        })
+
+    payload: dict = {"assessment_results": ar_doc}
     if external_run_url:
         payload["external_run_url"] = external_run_url
     if treatment_id:
@@ -213,18 +301,21 @@ def push(
         response.raise_for_status()
         data = response.json()
         console.print(
-            "[bold green]✓ Handshake complete. Results successfully pushed.[/bold green]"
+            "[bold green]✓ Handshake complete. OSCAL assessment-results pushed.[/bold green]"
         )
+        console.print(f"  Source: {ar_path}")
         console.print(
             f"  SaaS Job ID: {data.get('job_id') or data.get('audit_trace_id')}"
         )
 
         try:
             from ..telemetry import telemetry
+            ar_root = ar_doc.get("assessment-results", ar_doc)
+            primary = (ar_root.get("results") or [{}])[0]
             telemetry.capture("sdk_push_completed", {
-                "has_metrics": bool(payload.get("metrics")),
-                "has_bom": bool(payload.get("bom")),
-                "artifact_count": len(payload.get("artifacts", [])),
+                "ar_uuid": ar_root.get("uuid"),
+                "observation_count": len(primary.get("observations", [])),
+                "finding_count": len(primary.get("findings", [])),
             })
         except Exception:
             pass
