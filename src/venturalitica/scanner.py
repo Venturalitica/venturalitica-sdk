@@ -1,5 +1,6 @@
 import ast
 import os
+import sys
 from typing import Optional, Set
 
 from cyclonedx.model.bom import Bom
@@ -30,10 +31,116 @@ class BOMScanner:
         """
         self._scan_requirements()
         self._scan_pyproject()
+        self._scan_imports()
         self._scan_models()
-        
+
         output = JsonV1Dot5(self.bom).output_as_string()
         return output
+
+    def _scan_imports(self) -> None:
+        """
+        AST-walk every .py file under target_dir collecting top-level
+        imported package names. Resolve each via importlib.metadata to
+        confirm it's a real installed distribution + capture its
+        version. Emits one CycloneDX Component(type=LIBRARY) per
+        observed dependency.
+
+        Why: requirements.txt / pyproject.toml is rarely present in
+        scenario directories — the trainer just imports `mlflow`,
+        `sklearn`, `pandas`, `fairlearn`, etc. Without import scanning,
+        the BOM was reduced to AST-detected model class instances,
+        leaving the platform's ManagedItem(ICT_THIRD_PARTY) inventory
+        empty (DORA Art.28(9) gap). The set of imported top-level
+        packages observed in the run directory is the most honest
+        proxy for "what does this AI system actually depend on".
+
+        Filtering rules:
+          - Only top-level package (`from sklearn.linear_model import X`
+            → 'sklearn').
+          - Skip stdlib modules (sys.stdlib_module_names; Python 3.10+).
+          - Skip relative imports (level > 0 — those are local).
+          - Skip the SDK itself (`venturalitica`) — it's not a
+            third party from the user's POV.
+          - Dedupe across files.
+          - Skip names that don't resolve to an installed
+            distribution (filters typo'd / vendored).
+        """
+        try:
+            import importlib.metadata as _md
+        except ImportError:  # pragma: no cover — Python <3.8 unsupported
+            return
+        try:
+            stdlib = set(sys.stdlib_module_names)  # type: ignore[attr-defined]
+        except AttributeError:
+            # Python <3.10 — best-effort fallback list of common stdlib roots.
+            stdlib = {
+                'os', 'sys', 'json', 're', 'time', 'datetime', 'math',
+                'pathlib', 'typing', 'collections', 'itertools', 'functools',
+                'subprocess', 'shutil', 'tempfile', 'logging', 'asyncio',
+                'urllib', 'http', 'io', 'csv', 'sqlite3', 'hashlib', 'hmac',
+                'base64', 'uuid', 'random', 'pickle', 'argparse', 'unittest',
+                'ast', 'inspect', 'dataclasses', 'enum', 'warnings', 'copy',
+                'string', 'struct', 'threading', 'multiprocessing',
+            }
+        skip = {'venturalitica'}
+
+        EXCLUDE_DIRS = {'.venv', 'venv', '__pycache__', '.git', '.ipynb_checkpoints'}
+        observed: Set[str] = set()
+        for root, dirs, files in os.walk(self.target_dir):
+            dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
+            for file in files:
+                if not file.endswith('.py'):
+                    continue
+                path = os.path.join(root, file)
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        tree = ast.parse(f.read(), filename=path)
+                except Exception:
+                    continue
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Import):
+                        for alias in node.names:
+                            top = (alias.name or '').split('.')[0]
+                            if top:
+                                observed.add(top)
+                    elif isinstance(node, ast.ImportFrom):
+                        if (node.level or 0) > 0:
+                            continue  # relative import, local
+                        if not node.module:
+                            continue
+                        top = node.module.split('.')[0]
+                        observed.add(top)
+
+        # Map import-name → distribution-name(s). Many libraries ship
+        # under a different distribution name than their importable
+        # module (sklearn → scikit-learn, cv2 → opencv-python, yaml →
+        # PyYAML, etc.). importlib.metadata.packages_distributions()
+        # was added in Python 3.10 and uses the runtime metadata to
+        # resolve this honestly. Fall back to the import-name
+        # verbatim for older runtimes.
+        try:
+            import_to_dist = _md.packages_distributions()  # type: ignore[attr-defined]
+        except AttributeError:
+            import_to_dist = {}
+
+        emitted: Set[str] = set()
+        for name in sorted(observed):
+            if not name or name in stdlib or name in skip:
+                continue
+            distributions = import_to_dist.get(name)
+            if not distributions:
+                # Fall back to import-name as distribution name (works
+                # when they happen to coincide, e.g. `requests`).
+                distributions = [name]
+            for dist_name in distributions:
+                if dist_name in emitted:
+                    continue
+                try:
+                    version = _md.version(dist_name)
+                except _md.PackageNotFoundError:
+                    continue
+                emitted.add(dist_name)
+                self._add_component(dist_name, version, ComponentType.LIBRARY)
 
     def _scan_requirements(self) -> None:
         """Parses requirements.txt if present."""
