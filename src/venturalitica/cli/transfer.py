@@ -241,6 +241,10 @@ def push(
         console.print(f"[bold red]Failed to load AR doc {ar_path}:[/bold red] {e}")
         raise typer.Exit(code=1)
 
+    # Run directory holds the bom.json + other probe outputs alongside
+    # the AR. Used below to embed the CycloneDX SBOM into back-matter.
+    run_dir: Optional[Path] = ar_path.parent if ar_path is not None else None
+
     # Embed Annex IV (EU AI Act Art.11) into the AR's back-matter.resources
     # with class='annex-iv'. The platform's oscal-ar-ingestion.service walks
     # back-matter looking for that exact class to extract the 9-section doc
@@ -284,6 +288,53 @@ def push(
             ),
             "props": [{"name": "class", "value": "annex-iv"}],
             "base64": {"value": encoded},
+        })
+
+    # Embed CycloneDX BOM into the AR's back-matter.resources with
+    # class='cyclonedx-bom'. The trace probe writes a CycloneDX 1.5 doc
+    # to `.venturalitica/runs/<run_id>/bom.json` listing the
+    # ML-model + library components scanned from the trainer. The
+    # platform's bom-ingestion service upserts each component as a
+    # ManagedItem(ICT_THIRD_PARTY) row + AISystemManagedItemLink so
+    # the SoA / DORA Art.28(9) supply-chain catalog auto-populates
+    # from observed dependencies — no hand-typed inventory.
+    bom_doc: dict = {}
+    if run_dir is not None and (run_dir / "bom.json").exists():
+        try:
+            with open(run_dir / "bom.json", "r") as f:
+                maybe_bom = json.load(f)
+            if isinstance(maybe_bom, dict) and isinstance(maybe_bom.get("components"), list):
+                bom_doc = maybe_bom
+        except (json.JSONDecodeError, OSError):
+            pass
+    if bom_doc:
+        import base64 as _b64
+        import uuid as _uuid
+        ar_root = ar_doc.get("assessment-results", ar_doc)
+        back_matter = ar_root.setdefault("back-matter", {})
+        resources = back_matter.setdefault("resources", [])
+        # Drop any prior cyclonedx-bom resource so re-pushes overwrite cleanly.
+        resources[:] = [
+            r for r in resources
+            if not any(
+                isinstance(p, dict) and p.get("name") == "class" and p.get("value") == "cyclonedx-bom"
+                for p in (r.get("props") or [])
+            )
+        ]
+        encoded_bom = _b64.b64encode(
+            json.dumps(bom_doc, ensure_ascii=False).encode("utf-8")
+        ).decode("ascii")
+        resources.append({
+            "uuid": str(_uuid.uuid4()),
+            "title": "CycloneDX SBOM (DORA Art.28(9) supply-chain inventory)",
+            "description": (
+                "CycloneDX 1.5 SBOM emitted by the trace probe scanner. The "
+                "platform's bom-ingestion service upserts each component as a "
+                "ManagedItem(ICT_THIRD_PARTY) and links it to the pushing "
+                "AISystem via AISystemManagedItemLink(DEPENDS_ON)."
+            ),
+            "props": [{"name": "class", "value": "cyclonedx-bom"}],
+            "base64": {"value": encoded_bom},
         })
 
     payload: dict = {"assessment_results": ar_doc}
