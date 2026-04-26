@@ -188,6 +188,29 @@ class TestAssessmentResultsBuilder:
         )
         assert ar.import_ap.href == "data_policy.oscal.yaml"
 
+    def test_observations_carry_control_objective_props(self, mixed_results):
+        """Each observation must surface the metric data as structured props
+        with `types=['control-objective']` so the SaaS AR ingester
+        (`oscal-ar-ingestion.service.ts:extractMetricsFromResult`) can
+        materialize TechnicalMetric + RiskEvaluation rows. Without this
+        the metric values stay buried in free-text descriptions and the
+        platform-side metric-processing chain leaves the rows empty."""
+        ar = AssessmentResultsBuilder.build(mixed_results)
+        observations = ar.results[0].observations
+        assert len(observations) == len(mixed_results)
+        for obs, cr in zip(observations, mixed_results):
+            assert obs.types == ["control-objective"], (
+                f"observation for {cr.control_id} missing 'control-objective' "
+                f"discriminator; SaaS ingester will skip it"
+            )
+            props = {p.name: p.value for p in obs.props}
+            assert props.get("control-id") == cr.control_id
+            assert props.get("metric-key") == cr.metric_key
+            assert props.get("actual-value") == str(cr.actual_value)
+            assert props.get("threshold") == str(cr.threshold)
+            assert props.get("operator") == cr.operator
+            assert props.get("severity") == cr.severity
+
     def test_evidence_linked_to_observations(self, passing_results):
         evidence = {"bom.json": "/vault/bom.json", "trace.json": "/vault/trace.json"}
         ar = AssessmentResultsBuilder.build(

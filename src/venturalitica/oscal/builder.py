@@ -5,7 +5,8 @@ The builders act as an adapter layer: the SDK's internal representation
 the OSCAL layer produces standards-compliant Assessment Results and POA&M.
 """
 
-from typing import Dict, List, Optional
+import json
+from typing import Any, Dict, List, Optional
 
 from ..models import ComplianceResult
 from .models import (
@@ -20,6 +21,7 @@ from .models import (
     OSCALFinding,
     OSCALMetadata,
     OSCALObservation,
+    OSCALProp,
     OSCALResult,
     OSCALRisk,
     PlanOfActionAndMilestones,
@@ -43,6 +45,10 @@ class AssessmentResultsBuilder:
         start_time: str = "",
         end_time: str = "",
         evidence_artifacts: Optional[Dict[str, str]] = None,
+        ai_system_uuid: str = "",
+        ai_system_version_uuid: str = "",
+        trace_id: str = "",
+        probe_results: Optional[Dict[str, Dict[str, Any]]] = None,
     ) -> AssessmentResults:
         """Convert enforce() results into an OSCAL Assessment Results document.
 
@@ -72,6 +78,23 @@ class AssessmentResultsBuilder:
                 for name, href in evidence_artifacts.items()
             ]
 
+            # `types=['control-objective']` is the discriminator the SaaS AR
+            # ingester (`oscal-ar-ingestion.service.ts:extractMetricsFromResult`)
+            # uses to tell metric-evaluation observations apart from BOM
+            # component declarations. The structured `props` carry the
+            # ComplianceResult fields verbatim — without them the platform
+            # parser drops the observation and `TechnicalMetric` /
+            # `RiskEvaluation` rows stay empty.
+            obs_props: List[OSCALProp] = [
+                OSCALProp(name="control-id", value=cr.control_id),
+                OSCALProp(name="metric-key", value=cr.metric_key),
+                OSCALProp(name="actual-value", value=str(cr.actual_value)),
+                OSCALProp(name="threshold", value=str(cr.threshold)),
+                OSCALProp(name="operator", value=cr.operator),
+            ]
+            if cr.severity:
+                obs_props.append(OSCALProp(name="severity", value=cr.severity))
+
             obs = OSCALObservation(
                 title=f"Evaluation of {cr.control_id}",
                 description=(
@@ -79,8 +102,10 @@ class AssessmentResultsBuilder:
                     f"{cr.actual_value} {cr.operator} {cr.threshold}. "
                     f"Result: {'PASS' if cr.passed else 'FAIL'}."
                 ),
+                types=["control-objective"],
                 collected=end_time or "",
                 relevant_evidence=evidence_refs,
+                props=obs_props,
             )
             observations.append(obs)
 
@@ -163,8 +188,36 @@ class AssessmentResultsBuilder:
             risks=risks,
         )
 
+        # Paper-coherent tenant binding: the platform's AR ingester reads
+        # these props to resolve AISystemVersion by UUID (no "latest" fallback).
+        binding_props: List[OSCALProp] = []
+        if ai_system_uuid:
+            binding_props.append(OSCALProp(name="ai-system-uuid", value=ai_system_uuid))
+        if ai_system_version_uuid:
+            binding_props.append(
+                OSCALProp(name="ai-system-version-uuid", value=ai_system_version_uuid)
+            )
+        if trace_id:
+            binding_props.append(OSCALProp(name="trace-id", value=trace_id))
+
+        # Probe telemetry — emitted one prop per probe with a JSON-encoded
+        # value so the SaaS ingester can surface the full payload (carbon
+        # emissions, hardware telemetry, BOM, handshake attestation, …) on
+        # the AssuranceTrace cockpit. Prop name prefix `probe:` mirrors
+        # the `input:` convention used elsewhere in the contract.
+        for probe_name, payload in (probe_results or {}).items():
+            if not isinstance(payload, dict) or not payload:
+                continue
+            try:
+                encoded = json.dumps(payload, default=str, sort_keys=True)
+            except (TypeError, ValueError):
+                continue
+            binding_props.append(
+                OSCALProp(name=f"probe:{probe_name}", value=encoded)
+            )
+
         return AssessmentResults(
-            metadata=OSCALMetadata(title=title),
+            metadata=OSCALMetadata(title=title, props=binding_props),
             import_ap=ImportAP(href=policy_href) if policy_href else None,
             results=[oscal_result],
         )

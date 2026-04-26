@@ -30,6 +30,20 @@ OSCAL_VERSION = "1.1.2"
 
 
 @dataclass
+class OSCALProp:
+    """OSCAL prop (name/value pair) used across metadata, observations, etc.
+
+    The platform's AR ingester reads specific names (e.g. `ai-system-uuid`,
+    `ai-system-version-uuid`, `trace-id`) from `metadata.props[]` to resolve
+    tenant bindings — see src/lib/services/oscal-ar-ingestion.service.ts.
+    """
+
+    name: str
+    value: str
+    ns: str = ""
+
+
+@dataclass
 class OSCALMetadata:
     """OSCAL metadata block (required on every document)."""
 
@@ -37,6 +51,7 @@ class OSCALMetadata:
     version: str = "1.0"
     last_modified: str = field(default_factory=_now)
     oscal_version: str = OSCAL_VERSION
+    props: List[OSCALProp] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -56,6 +71,13 @@ class OSCALObservation:
     """A single measurement or inspection performed during assessment.
 
     Maps one-to-one with a ComplianceResult metric evaluation.
+
+    The `props` list carries the structured metric data (control-id,
+    metric-key, actual-value, threshold, operator, severity). The SaaS
+    AR ingester reads these props to materialize TechnicalMetric +
+    RiskEvaluation rows; without them only the free-text `description`
+    survives the round-trip and the platform-side metric-processing
+    chain leaves `TechnicalMetric.value`/`threshold` empty.
     """
 
     uuid: str = field(default_factory=_uuid)
@@ -65,6 +87,7 @@ class OSCALObservation:
     types: List[str] = field(default_factory=lambda: ["control-implementation"])
     collected: str = field(default_factory=_now)
     relevant_evidence: List[RelevantEvidence] = field(default_factory=list)
+    props: List["OSCALProp"] = field(default_factory=list)
 
 
 @dataclass
