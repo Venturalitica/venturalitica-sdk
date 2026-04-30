@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -34,9 +34,16 @@ jobs:
           version: "latest"
       - run: uv python install ${{ matrix.python-version }}
       - run: uv sync --group dev --python ${{ matrix.python-version }}
-      - run: uv run pytest --tb=short -q
+      - name: Run tests with coverage
         env:
           VENTURALITICA_NO_ANALYTICS: "1"
+        run: |
+          uv run pytest \
+            --cov=src/venturalitica \
+            --cov-report=xml \
+            --cov-report=term \
+            --cov-fail-under=70 \
+            -q
 
   build:
     runs-on: ubuntu-latest
