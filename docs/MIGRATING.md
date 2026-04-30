@@ -1,0 +1,83 @@
+# Migrating to v0.6.0
+
+Companion to the IEEE Computer 2026 paper *AI Assurance That Compiles*.
+
+## Why this version
+
+Single-document OSCAL: every AssuranceMeasure now lives in one
+`assessment-plan` envelope, matching the paper's Listing 1. The split
+emission of `model_policy.oscal.yaml` + `data_policy.oscal.yaml` is
+deprecated; `assessment_plan.oscal.yaml` is the new source of truth.
+
+## Breaking changes
+
+### 1. `OSCALMapper.toMultiSSP / toSSP / buildSSP` removed
+
+**Before (v0.5):**
+
+```python
+mapper = OSCALMapper()
+docs = mapper.toMultiSSP(ai_system)
+ssp = mapper.toSSP(ai_system, target_type="model")
+```
+
+**After (v0.6):**
+
+```python
+from venturalitica.oscal import build_assessment_plan
+
+plan = build_assessment_plan(ai_system)
+```
+
+The `OSCALMapper.toAssessmentPlan(ai_system, options?)` method is also
+available if you prefer the class form.
+
+### 2. `model_policy.oscal.yaml` / `data_policy.oscal.yaml` deprecated
+
+`vl pull` still emits these files for **one release** as filtered views
+of `assessment_plan.oscal.yaml`, but they are no longer authoritative.
+Update any tooling that parses the legacy files to read the unified one
+instead.
+
+### 3. `system-security-plan` no longer emitted internally
+
+The SaaS and SDK no longer produce `system-security-plan` documents.
+The `vl-fairness-gate` (Rust proxy) parser still accepts SSPs from
+external, customer-authored policies for backwards compatibility.
+
+## New features (in scope of the paper)
+
+### `vl export-annex-iv --agentic`
+
+Generates the narrative sections of EU AI Act Annex IV (Article 11)
+through a local Ollama model (default `mistral`) or Mistral managed
+(`--provider cloud`). Sections §4 (performance metrics), §6 (POA&M)
+and §7 (standards) remain deterministically derived from OSCAL
+Assessment Results — never overwritten by the LLM.
+
+```bash
+vl export-annex-iv --agentic                     # local Ollama
+vl export-annex-iv --agentic --provider cloud    # Mistral managed
+vl export-annex-iv --agentic --force-regenerate  # bypass cache
+```
+
+The cache lives at `.venturalitica/annex_iv.cache.json` and is keyed on
+`(language, model, run_id, policy_hash)`.
+
+## Recommended upgrade steps
+
+```bash
+pip install --upgrade venturalitica==0.6.0
+rm -f .venturalitica/model_policy.oscal.yaml .venturalitica/data_policy.oscal.yaml
+vl pull                       # regenerates assessment_plan.oscal.yaml
+```
+
+Update CI scripts that read OSCAL artefacts to point at
+`.venturalitica/assessment_plan.oscal.yaml`.
+
+## References
+
+- Normative spec: [`docs/contracts/oscal-assessment-plan-v1.md`](./contracts/oscal-assessment-plan-v1.md)
+- Cross-component smoke: [`docs/contracts/cross-component-smoke.md`](./contracts/cross-component-smoke.md)
+- v0.6.0 changelog: [`CHANGELOG.md`](../CHANGELOG.md)
+- v0.6.0 release notes: [`RELEASE_NOTES.md`](../RELEASE_NOTES.md)

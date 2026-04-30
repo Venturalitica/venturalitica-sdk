@@ -1,0 +1,97 @@
+---
+title: Migración a v0.6.0
+description: Guía de actualización de v0.5 a v0.6.0 (unificación OSCAL).
+sidebar:
+  label: Migración a v0.6
+  order: 95
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution">
+v0.6.0 incluye cambios incompatibles en la emisión de OSCAL. Lee la sección de cambios incompatibles antes de actualizar.
+</Aside>
+
+Documento complementario del artículo de IEEE Computer 2026 *AI Assurance That Compiles*.
+
+## Por qué esta versión
+
+OSCAL en un único documento: cada AssuranceMeasure vive ahora dentro de
+un único sobre `assessment-plan`, en línea con el Listing 1 del artículo.
+La emisión separada de `model_policy.oscal.yaml` y `data_policy.oscal.yaml`
+queda obsoleta; `assessment_plan.oscal.yaml` pasa a ser la nueva fuente de verdad.
+
+## Cambios incompatibles
+
+### 1. Se elimina `OSCALMapper.toMultiSSP / toSSP / buildSSP`
+
+**Antes (v0.5):**
+
+```python
+mapper = OSCALMapper()
+docs = mapper.toMultiSSP(ai_system)
+ssp = mapper.toSSP(ai_system, target_type="model")
+```
+
+**Ahora (v0.6):**
+
+```python
+from venturalitica.oscal import build_assessment_plan
+
+plan = build_assessment_plan(ai_system)
+```
+
+También está disponible el método `OSCALMapper.toAssessmentPlan(ai_system, options?)`
+si prefieres la forma orientada a clase.
+
+### 2. `model_policy.oscal.yaml` / `data_policy.oscal.yaml` quedan obsoletos
+
+`vl pull` seguirá emitiendo estos ficheros durante **una versión más** como
+vistas filtradas de `assessment_plan.oscal.yaml`, pero ya no son la fuente
+autoritativa. Actualiza cualquier herramienta que consuma los ficheros
+heredados para que lea el documento unificado.
+
+### 3. `system-security-plan` deja de emitirse internamente
+
+El SaaS y el SDK ya no producen documentos `system-security-plan`.
+El parser de `vl-fairness-gate` (proxy en Rust) sigue aceptando SSPs
+provenientes de políticas externas redactadas por el cliente, por
+compatibilidad hacia atrás.
+
+## Funcionalidades nuevas (alineadas con el artículo)
+
+### `vl export-annex-iv --agentic`
+
+Genera las secciones narrativas del Anexo IV (Artículo 11) del Reglamento
+de IA de la UE mediante un modelo local de Ollama (por defecto `mistral`)
+o Mistral gestionado (`--provider cloud`). Las secciones §4 (métricas de
+rendimiento), §6 (POA&M) y §7 (estándares) siguen derivándose de forma
+determinista a partir de los OSCAL Assessment Results: el LLM nunca las
+sobrescribe.
+
+```bash
+vl export-annex-iv --agentic                     # Ollama local
+vl export-annex-iv --agentic --provider cloud    # Mistral gestionado
+vl export-annex-iv --agentic --force-regenerate  # ignora la caché
+```
+
+La caché reside en `.venturalitica/annex_iv.cache.json` y se indexa por
+`(idioma, modelo, run_id, policy_hash)`.
+
+## Pasos recomendados de actualización
+
+```bash
+pip install --upgrade venturalitica==0.6.0
+rm -f .venturalitica/model_policy.oscal.yaml .venturalitica/data_policy.oscal.yaml
+vl pull                       # regenera assessment_plan.oscal.yaml
+```
+
+Actualiza los scripts de CI que lean artefactos OSCAL para que apunten a
+`.venturalitica/assessment_plan.oscal.yaml`.
+
+## Referencias
+
+- Especificación normativa: [`oscal-assessment-plan-v1.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/contracts/oscal-assessment-plan-v1.md)
+- Smoke entre componentes: [`cross-component-smoke.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/contracts/cross-component-smoke.md)
+- Changelog v0.6.0: [`CHANGELOG.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/CHANGELOG.md)
+- Notas de versión v0.6.0: [`RELEASE_NOTES.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/RELEASE_NOTES.md)
