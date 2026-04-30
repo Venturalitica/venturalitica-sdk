@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the IEEE Computer 2026 paper."
+title: "Venturalítica SDK"
+authors:
+  - family-names: Cilla
+    given-names: Rodrigo
+version: "0.6.0"
+date-released: "2026-04-30"
+license: Apache-2.0
+repository-code: "https://github.com/Venturalitica/venturalitica-sdk"
+url: "https://venturalitica.ai"
+keywords:
+  - "AI assurance"
+  - "EU AI Act"
+  - "ISO 42001"
+  - "OSCAL"
+  - "compliance"
+  - "fairness"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Cilla
+      given-names: Rodrigo
+  title: "AI Assurance That Compiles: Executable OSCAL for the EU AI Act"
+  journal: "IEEE Computer"
+  year: 2026
+  # doi: 10.1109/<DOI>           # fill once IEEE Xplore DOI is assigned
+  # url: https://arxiv.org/abs/<ARXIV-ID>
