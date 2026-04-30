@@ -49,10 +49,11 @@ against each other.
 `packages/venturalitica-sdk/tests/fixtures/oscal/assessment-plan.canonical.json`
 is shared verbatim across all three components:
 
-- Python: read by `tests/test_oscal_roundtrip.py` (13 test cases — root
-  shape, mandatory props, symbolic operators, severity/enforcement-mode
-  vocabulary, traceability props, input bindings, JSON+YAML roundtrip,
-  SSP-leakage guard).
+- Python: read by `tests/test_oscal_roundtrip.py` (13 test functions →
+  20 collected cases after parametrization — root shape, mandatory
+  props, symbolic operators, severity/enforcement-mode vocabulary,
+  traceability props, input bindings, JSON+YAML roundtrip, SSP-leakage
+  guard).
 - Rust: embedded via
   `include_str!("../../../packages/venturalitica-sdk/tests/fixtures/oscal/assessment-plan.canonical.json")`
   in `vl-fairness-gate/src/oscal/parser.rs:229` (test
@@ -76,7 +77,7 @@ is shared verbatim across all three components:
 # SDK Python
 cd packages/venturalitica-sdk
 VENTURALITICA_NO_ANALYTICS=1 uv run pytest tests/test_oscal_roundtrip.py -q
-# Expected: 13 test cases pass (parametrized cases may expand the count, all green)
+# Expected: 20 cases pass (13 functions, parametrized to 20)
 ```
 
 ```bash
@@ -126,7 +127,7 @@ integration test) of the v0.6.0 stabilization plan.
 
 Add to your release checklist before tagging:
 
-- [ ] `pytest tests/test_oscal_roundtrip.py` — green (13 cases).
+- [ ] `pytest tests/test_oscal_roundtrip.py` — green (20 cases).
 - [ ] `cargo test oscal::parser` in `vl-fairness-gate` — green
       (canonical-fixture test included).
 - [ ] `npm run test:unit -- oscal` in `venturalitica` — green
@@ -140,8 +141,8 @@ Add to your release checklist before tagging:
 
 ## References
 
-- Normative spec: `docs/contracts/oscal-assessment-plan-v1.md`
-  (referenced from `sync.py:32-35,47`; authored alongside v0.6.0).
+- Normative spec: `docs/contracts/oscal-assessment-plan-v1.md` at the
+  integration-repo root (shared by SaaS, SDK and Proxy).
 - Paper Listing 1: `docs/papers/ieee-computer-2026/main.tex`
   (root repo, not the SDK submodule).
 - Companion CHANGELOG entry: `packages/venturalitica-sdk/CHANGELOG.md`
