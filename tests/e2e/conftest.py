@@ -1,10 +1,9 @@
 import os
-import shutil
-import signal
 import subprocess
 import time
-import pytest
 from pathlib import Path
+
+import pytest
 from playwright.sync_api import sync_playwright
 
 
@@ -42,8 +41,8 @@ def sandbox_dir(tmp_path):
 @pytest.fixture(scope="function")
 def dashboard_process(sandbox_dir):
     """Launches the Streamlit dashboard in the sandbox."""
-    import sys
     import socket
+    import sys
 
     # Ensure env vars
     env = os.environ.copy()

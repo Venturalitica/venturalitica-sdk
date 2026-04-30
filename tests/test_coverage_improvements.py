@@ -15,18 +15,15 @@ Strategy:
 import json
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
 import yaml
 
 from venturalitica import enforce, monitor
-from venturalitica.core import AssuranceValidator, ComplianceResult
-from venturalitica.models import InternalPolicy, InternalControl
+from venturalitica.core import AssuranceValidator
 from venturalitica.session import GovernanceSession
-
 
 # ============================================================================
 # Coverage: Error Handling and Edge Cases

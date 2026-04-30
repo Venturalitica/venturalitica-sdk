@@ -13,7 +13,6 @@ Test Coverage:
 
 import json
 import os
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -407,7 +406,7 @@ class TestEnforceSmokeTests:
         # Should return empty list, not raise
         assert results == []
 
-        captured = capsys.readouterr()
+        capsys.readouterr()
         # May contain error message or just empty results
         assert True  # Successfully handled without raising
 

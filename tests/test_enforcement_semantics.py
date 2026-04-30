@@ -6,7 +6,6 @@
   skipped by the SDK because they target the runtime proxy / incident handler.
 """
 
-import sys
 
 import pandas as pd
 import pytest

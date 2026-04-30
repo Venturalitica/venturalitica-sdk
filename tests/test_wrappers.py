@@ -470,7 +470,6 @@ def test_upload_policy_artifacts_mlflow_import_error(tmp_path):
     # Simulate MLflow not installed
     import sys
 
-    original_modules = sys.modules.copy()
     sys.modules["mlflow"] = None  # This will cause ImportError on import
 
     try:
@@ -522,7 +521,7 @@ def test_predict_with_custom_pred_col(tmp_path):
     df = pd.DataFrame({"target": [1, 0], "feature": [0.5, 0.6]})
 
     with patch("venturalitica.enforce", return_value=[]) as mock_enforce:
-        result = wrapper.predict(df, audit_data=df, prediction="my_pred")
+        wrapper.predict(df, audit_data=df, prediction="my_pred")
 
     mock_enforce.assert_called_once()
     call_kwargs = mock_enforce.call_args[1]
@@ -544,6 +543,6 @@ def test_wrap_function_emits_warning():
 
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
-        wrapped = wrap(DummyModel())
+        wrap(DummyModel())
         assert len(w) == 1
         assert "experimental" in str(w[0].message).lower()

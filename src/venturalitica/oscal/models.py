@@ -10,7 +10,7 @@ Reference: https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from uuid import uuid4
 
 

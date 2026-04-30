@@ -18,7 +18,6 @@ from venturalitica.oscal.models import (
 )
 from venturalitica.oscal.serializer import to_json
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

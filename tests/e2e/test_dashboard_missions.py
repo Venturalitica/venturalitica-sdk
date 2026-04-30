@@ -1,12 +1,10 @@
-import os
-import json
-import sys
 import re
+import sys
 import time
-import pytest
+from pathlib import Path
+
 import yaml
 from playwright.sync_api import Page, expect
-from pathlib import Path
 
 
 def test_mission_lifecycle(browser_context, dashboard_process, sandbox_dir):
@@ -530,7 +528,7 @@ def _step_6_verify_and_evaluate(page: Page, sandbox_dir: Path):
                 print(f"  - {run_dir.name}")
                 results_file = run_dir / "results.json"
                 if results_file.exists():
-                    print(f"    ✓ results.json exists")
+                    print("    ✓ results.json exists")
 
     print("DEBUG: Verify & Evaluate step completed")
 
@@ -558,7 +556,7 @@ def _step_7_generate_annex_iv(page: Page, sandbox_dir: Path):
     try:
         expect(page.get_by_text("LoanApp")).to_be_visible(timeout=5000)
         print("DEBUG: System description (LoanApp) found in Declaration")
-    except:
+    except Exception:
         print("DEBUG: System description not immediately visible, but may be in code block")
 
     # Check Technical Evidence (BOM) tab
@@ -577,7 +575,7 @@ def _step_7_generate_annex_iv(page: Page, sandbox_dir: Path):
     try:
         expect(page.get_by_text("Annex IV.2 Editor & Preview")).to_be_visible(timeout=5000)
         print("DEBUG: Annex IV.2 Editor section found")
-    except:
+    except Exception:
         print("DEBUG: Annex IV.2 Editor section not immediately visible")
 
     # Note: We won't actually click "Smart Draft" as it requires AI/LLM setup
@@ -618,6 +616,6 @@ def _wait_for_streamlit(page: Page):
         status = page.locator('[data-testid="stStatusWidget"]')
         if status.is_visible():
             status.wait_for(state="hidden", timeout=15000)
-    except:
+    except Exception:
         pass
     time.sleep(0.5)
