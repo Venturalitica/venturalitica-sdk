@@ -109,11 +109,14 @@ vl.enforce(
 
 ## 📚 Documentation
 
-- **[Quickstart Guide](docs/quickstart.md)**: Get started in 60 seconds
-- **[Full Lifecycle Walkthrough](docs/full-lifecycle.md)**: Zero to Annex IV in one page
-- **[Policy Authoring](docs/policy-authoring.md)**: Write OSCAL policies for your AI systems
-- **[Compliance Dashboard](docs/dashboard.md)**: Understanding the Glass Box Dashboard (Art 9-15)
-- **[Evidence Probes](docs/probes.md)**: Automated evidence collection for audits
+**[Read Full Documentation](https://venturalitica.github.io/venturalitica-sdk/)** — Hosted on Starlight.
+
+Quick guides:
+- **Quickstart Guide**: Get started in 60 seconds
+- **Full Lifecycle Walkthrough**: Zero to Annex IV in one page
+- **Policy Authoring**: Write OSCAL policies for your AI systems
+- **Compliance Dashboard**: Understanding the Glass Box Dashboard (Art 9-15)
+- **Evidence Probes**: Automated evidence collection for audits
 - **[Samples Repository](https://github.com/venturalitica/venturalitica-sdk-samples)**: Real-world examples
 
 ## 🎯 Core Concepts
@@ -159,7 +162,7 @@ Launch the **Local Regulatory Map** to interpret your evidence:
 venturalitica ui
 ```
 
-**[Read the Guide: Understanding the Dashboard](docs/dashboard.md)**
+**[Read the Guide: Understanding the Dashboard](https://venturalitica.github.io/venturalitica-sdk/)**
 
 **Features:**
 *   **Article 9-15 Walk**: A sequential check of Risk, Data, Transparency, and Oversight.
