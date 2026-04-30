@@ -1,3 +1,49 @@
+## v0.6.0 — OSCAL Unification (2026-04-30)
+
+Companion to the IEEE Computer 2026 paper *AI Assurance That Compiles*.
+
+### Headline
+Single-document OSCAL: every AssuranceMeasure now lives in one
+`assessment-plan` envelope, matching the paper's Listing 1.
+
+### Breaking changes
+- `OSCALMapper.toMultiSSP / toSSP / buildSSP` removed. Use
+  `OSCALMapper.toAssessmentPlan(ai_system, options?)` (or the
+  `build_assessment_plan` helper) instead.
+- `vl pull` writes `assessment_plan.oscal.yaml` as the source of truth.
+  `model_policy.oscal.yaml` and `data_policy.oscal.yaml` are still
+  emitted for one release as filtered views, but they are no longer
+  authoritative.
+- `system-security-plan` no longer emitted by SaaS or SDK; the proxy
+  parser still accepts SSPs from external policies for backwards
+  compatibility.
+
+### New (in scope of the paper)
+- `vl export-annex-iv --agentic` fills §1/§2/§3/§5/§8/§9 narrative via
+  Ollama (default `mistral`) or Mistral managed (`--provider cloud`).
+- Round-trip contract tests against
+  `tests/fixtures/oscal/assessment-plan.canonical.json` (20 cases, all
+  green).
+- Cross-component smoke procedure at
+  `docs/contracts/cross-component-smoke.md` keeps SDK Python, SaaS TS
+  and Proxy Rust in lock-step against the canonical fixture.
+
+### Hygiene
+See CHANGELOG `[0.6.0] / Hygiene` for the full list of stabilization
+commits (lints, coverage gate, pre-commit, version-consistency test,
+docs sync).
+
+### Migration
+See `CHANGELOG.md` (`[0.6.0]` → *Breaking changes*) for the full
+migration guide and prop-by-prop mapping.
+
+### Upgrade
+```bash
+pip install --upgrade venturalitica==0.6.0
+```
+
+---
+
 # Release Notes - venturalitica-sdk v0.5.0 "Marie Kondo"
 
 **Release Date:** February 12, 2026

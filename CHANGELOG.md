@@ -2,6 +2,66 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-04-18
+
+### OSCAL unification — one dialect end-to-end
+
+Replaces the split `model_policy` / `data_policy` SSP emission with a single
+`assessment-plan` document covering every AssuranceMeasure the SaaS
+declares. Matches the IEEE Computer paper's Listing 1 verbatim.
+
+**Breaking changes** (no backward-compat shims):
+- `vl pull` now writes `assessment_plan.oscal.yaml` as the source of
+  truth. The legacy `model_policy.oscal.yaml` / `data_policy.oscal.yaml`
+  are still emitted for one release as filtered views keyed on
+  `target_type`, but they are no longer authoritative.
+- SaaS-emitted OSCAL no longer has a `system-security-plan` root. The
+  parser still accepts SSPs from external (customer-authored) policies,
+  but nothing in the SaaS or SDK emits them.
+- `OSCALMapper.toMultiSSP` / `.toSSP` / `.buildSSP` deleted. Replace
+  with `OSCALMapper.toAssessmentPlan(aiSystem, options?)`.
+
+### Agentic Annex IV writer
+
+- New `vl export-annex-iv --agentic` fills §1/§2/§3/§5/§8/§9 narrative
+  sections via a local Ollama model (default `mistral`). `--provider
+  cloud` routes to Mistral managed if `MISTRAL_API_KEY` is set.
+- `--cache` (default) reuses `.venturalitica/annex_iv.cache.json` across
+  demo recordings. Cache key: `(language, model, run_id, policy_hash)`
+  — invalidates on any drift. `--force-regenerate` overrides.
+- §4 (performance metrics) / §6 (POA&M) / §7 (standards) are derived
+  deterministically from the OSCAL Assessment Results + Assessment
+  Plan, never overwritten by the LLM.
+
+### Round-trip contract test
+
+- New `tests/test_oscal_roundtrip.py` (20 tests, all green) asserts
+  every prop from paper Listing 1 survives JSON + YAML round-trips
+  against the canonical fixture at
+  `tests/fixtures/oscal/assessment-plan.canonical.json`.
+- Rust parser (`vl-fairness-gate/src/oscal/parser.rs`) mirrors the
+  same fixture via `include_str!` so the three implementations (SaaS,
+  SDK, proxy) stay in lock-step.
+
+### Contract specification
+
+Published the normative specification at
+`docs/contracts/oscal-assessment-plan-v1.md`: envelope shape, 16
+extension props with exhaustive value sets, canonicalisation rules
+(symbolic operators, canonical enforcement modes), consumer split,
+and forbidden shortcuts.
+
+### Hygiene
+- Cleared remaining ruff F401/F541 warnings (3 unused imports + 1 f-string).
+- `publiccode.yml` bumped to 0.6.0 (releaseDate 2026-04-30).
+- Added cross-file version consistency test (`tests/test_version_consistency.py`).
+- `verify_strict_mode.py` migrated into the regular pytest suite as `tests/test_strict_mode.py` (3 tests).
+- `.pre-commit-config.yaml` added: ruff + standard hygiene hooks (trailing whitespace, EOL, YAML/TOML/large-file checks).
+- CI coverage floor enforced at 70 % in `.github/workflows/ci.yml` (measured baseline: 84 %).
+- Coverage badge in README refreshed to 84 % (brightgreen).
+- Cross-component smoke procedure documented in `docs/contracts/cross-component-smoke.md` (SDK Python ↔ SaaS TS ↔ Proxy Rust against the canonical fixture).
+- Starlight reference/api.mdx (EN+ES) synchronised with the v0.6.0 public API surface (`enforce`, `monitor`, `wrap`, `quickstart`, `PolicyManager`).
+
 ## [0.5.0-starlight] - 2026-02-18
 
 ### Astro Starlight Documentation Migration
