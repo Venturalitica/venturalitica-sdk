@@ -1,6 +1,6 @@
 # Venturalítica SDK
 
-![coverage](https://img.shields.io/badge/coverage-73%25-yellow)
+![coverage](https://img.shields.io/badge/coverage-84%25-brightgreen)
 [![PyPI](https://img.shields.io/pypi/v/venturalitica)](https://pypi.org/project/venturalitica/)
 [![Python](https://img.shields.io/pypi/pyversions/venturalitica)](https://pypi.org/project/venturalitica/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
