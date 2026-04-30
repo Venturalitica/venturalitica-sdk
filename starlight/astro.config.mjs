@@ -50,6 +50,11 @@ export default defineConfig({
           items: [
             { slug: 'quickstart' },
             { slug: 'full-lifecycle' },
+            {
+              slug: 'migrating',
+              label: 'Migrating to v0.6',
+              translations: { es: 'Migración a v0.6' },
+            },
           ],
         },
         {
