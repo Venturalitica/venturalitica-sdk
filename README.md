@@ -6,6 +6,8 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Discord](https://img.shields.io/discord/P4RURqRm?label=Discord&logo=discord)](https://discord.gg/P4RURqRm)
 
+> 📄 **Companion to the IEEE Computer 2026 paper** *AI Assurance That Compiles: Executable OSCAL for the EU AI Act* — [arXiv preprint (forthcoming)](https://arxiv.org/abs/<ARXIV-ID>) · [IEEE Xplore (forthcoming)](https://doi.org/<DOI>) · [`CITATION.cff`](./CITATION.cff) · [Normative OSCAL contract](./docs/contracts/oscal-assessment-plan-v1.md).
+
 **Frictionless Governance for AI Systems.**
 
 The Venturalítica SDK enables Data Scientists and ML Engineers to integrate compliance and risk management directly into their training workflows. Built on the **OSCAL** (Open Security Controls Assessment Language) standard, it provides semantic policy enforcement with educational audit trails.
