@@ -2,10 +2,10 @@
 title: "Referencia de API"
 sidebar:
   label: "API"
-description: "Documentación completa de las funciones públicas y tipos de datos del SDK Venturalitica v0.5.0."
+description: "Documentación completa de las funciones públicas y tipos de datos del SDK Venturalitica v0.6.0."
 ---
 
-Venturalitica expone cinco símbolos públicos. Esta página documenta sus firmas exactas y comportamiento a partir de la v0.5.0.
+Venturalitica expone cinco símbolos públicos. Esta página documenta sus firmas exactas y comportamiento a partir de la v0.6.0.
 
 ---
 
@@ -23,7 +23,7 @@ results = vl.quickstart("loan")
 
 | Parámetro | Tipo | Por defecto | Descripción |
 | :--- | :--- | :--- | :--- |
-| `scenario` | `str` | *(requerido)* | Nombre del escenario predefinido: `"loan"`, `"hiring"`, `"health"`. |
+| `scenario` | `str` | `"loan"` | Nombre del escenario predefinido. Solo `"loan"` (auditoría de equidad sobre UCI German Credit) viene incluido con el SDK; cualquier otro valor lanza `ValueError`. Escenarios adicionales se publican en el repositorio `venturalitica-sdk-samples`. |
 | `verbose` | `bool` | `True` | Imprime la tabla estructurada de cumplimiento en la consola. |
 
 **Retorna:** `List[ComplianceResult]`
@@ -46,6 +46,7 @@ def enforce(
     target="target",
     prediction="prediction",
     strict=False,
+    phase=None,
     **attributes,
 ) -> List[ComplianceResult]
 ```
@@ -54,10 +55,11 @@ def enforce(
 | :--- | :--- | :--- | :--- |
 | `data` | `DataFrame` o `None` | `None` | DataFrame de Pandas que contiene características, objetivos y, opcionalmente, predicciones. |
 | `metrics` | `Dict[str, float]` o `None` | `None` | Diccionario de métricas precalculadas. Úsalo cuando ya hayas calculado tus métricas de forma externa. |
-| `policy` | `str`, `Path` o `List` | `"risks.oscal.yaml"` | Ruta a uno o más archivos de política OSCAL. Pasa una lista para aplicar múltiples políticas en una sola llamada. |
+| `policy` | `str`, `Path` o `List` | `"risks.oscal.yaml"` | Ruta a uno o más archivos de política OSCAL. Pasa una lista para aplicar múltiples políticas en una sola llamada. El sobre canónico en v0.6.0 es el `assessment_plan.oscal.yaml` unificado que emite `vl pull`. |
 | `target` | `str` | `"target"` | Nombre de la columna que contiene las etiquetas de verdad fundamental. |
 | `prediction` | `str` | `"prediction"` | Nombre de la columna que contiene las predicciones del modelo. |
 | `strict` | `bool` | `False` | Si es `True`, las métricas faltantes, variables no vinculadas y errores de cálculo generan excepciones en lugar de omitirse. Se activa automáticamente cuando `CI=true` o `VENTURALITICA_STRICT=true`. |
+| `phase` | `str` o `None` | `None` | Filtro opcional de `lifecycle_phase`. Solo se evalúan los controles etiquetados con esa fase (o sin etiqueta). Valores típicos: `"training"` (datos crudos, Art. 10), `"validation"` (predicciones del modelo, Art. 15). Los controles etiquetados como `monitoring` o `incident` siempre los omite el SDK; van dirigidos al proxy en tiempo de ejecución y al manejador de incidentes respectivamente. |
 | `**attributes` | keyword args | | Mapeos para variables protegidas y dimensiones. Por ejemplo: `gender="Attribute9"`, `age="Attribute13"`. |
 
 **Retorna:** `List[ComplianceResult]`
@@ -73,7 +75,8 @@ results = vl.enforce(
     prediction="prediction",
     gender="Attribute9",     # mapea 'gender' abstracto -> columna 'Attribute9'
     age="Attribute13",       # mapea 'age' abstracto -> columna 'Attribute13'
-    policy="data_policy.oscal.yaml",
+    policy="assessment_plan.oscal.yaml",
+    phase="training",        # solo se ejecutan los controles del Art. 10 (datos)
 )
 ```
 
@@ -82,7 +85,8 @@ results = vl.enforce(
 ```python
 results = vl.enforce(
     metrics={"accuracy_score": 0.92, "demographic_parity_diff": 0.07},
-    policy="model_policy.oscal.yaml",
+    policy="assessment_plan.oscal.yaml",
+    phase="validation",      # solo se ejecutan los controles del Art. 15 (modelo)
 )
 ```
 
@@ -100,13 +104,13 @@ Al usar el modo DataFrame, el SDK resuelve los nombres de columna mediante un si
 
 #### Múltiples Políticas
 
-Pasa una lista para aplicar varias políticas en una sola llamada:
+Pasa una lista para aplicar varias políticas en una sola llamada. La v0.6.0 emite un único `assessment_plan.oscal.yaml` que ya cubre todas las AssuranceMeasure de extremo a extremo, así que el modo lista resulta más útil cuando quieres combinar una política emitida por la SaaS con un archivo OSCAL escrito por el cliente:
 
 ```python
 results = vl.enforce(
     data=df,
     target="class",
-    policy=["data_policy.oscal.yaml", "model_policy.oscal.yaml"],
+    policy=["assessment_plan.oscal.yaml", "extra_controls.oscal.yaml"],
     gender="Attribute9",
 )
 ```
@@ -176,9 +180,9 @@ Audita transparentemente tu modelo durante flujos de trabajo estándar de Scikit
 **Retorna:** `AssuranceWrapper` (preserva la API original del modelo: `.fit()`, `.predict()`, etc.)
 
 ```python
-wrapped = vl.wrap(LogisticRegression(), policy="model_policy.oscal.yaml")
+wrapped = vl.wrap(LogisticRegression(), policy="assessment_plan.oscal.yaml")
 wrapped.fit(X_train, y_train)
-preds = wrapped.predict(X_test)  # La auditoria se ejecuta automaticamente
+preds = wrapped.predict(X_test)  # La auditoría se ejecuta automáticamente
 ```
 
 ---
@@ -187,11 +191,25 @@ preds = wrapped.predict(X_test)  # La auditoria se ejecuta automaticamente
 
 ### `PolicyManager`
 
-Acceso programático a la carga y manipulación de políticas OSCAL.
+Acceso programático a la carga y manipulación de políticas OSCAL. Lo utiliza el editor de políticas en Streamlit y cualquier herramienta que necesite leer o escribir una política serializada en YAML dentro de un directorio de trabajo.
 
 ```python
 from venturalitica import PolicyManager
+
+mgr = PolicyManager(target_dir=".venturalitica")
+policy = mgr.load()
+errors = mgr.validate(policy)
+if not errors:
+    mgr.save(policy)
 ```
+
+| Miembro | Firma | Descripción |
+| :--- | :--- | :--- |
+| `__init__` | `PolicyManager(target_dir: str)` | Resuelve la ruta de la política en `<target_dir>/model_policy.oscal.yaml`. (Para los flujos nuevos de v0.6.0 prefiere el `assessment_plan.oscal.yaml` unificado que escribe `vl pull`; `PolicyManager` está pensado para el esquema simplificado del editor.) |
+| `load()` | `() -> Dict[str, Any]` | Lee el YAML de la política y lo devuelve como diccionario. Devuelve un esqueleto `{"title": "New Policy", "controls": []}` si el archivo no existe. Los archivos legacy en formato lista quedan envueltos bajo la clave `controls`. |
+| `save(data)` | `(Dict[str, Any]) -> bool` | Valida la forma básica (`title` es obligatorio) y vuelve a escribir el diccionario como YAML. Lanza `ValueError` si falta `title`. |
+| `validate(data)` | `(Dict[str, Any]) -> List[str]` | Devuelve una lista de mensajes de error legibles (vacía si la política es válida). Verifica `title`, la lista `controls` y los campos requeridos en cada control (`id`, `metric_key`, `operator`, `threshold`). |
+| `get_schema()` | `staticmethod -> Dict[str, Any]` | Devuelve el JSON Schema (Draft-07) que describe la forma simplificada de la política. |
 
 ---
 

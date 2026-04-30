@@ -5,7 +5,7 @@ sidebar:
 description: "Complete API reference for enforce(), monitor(), wrap(), quickstart(), and PolicyManager."
 ---
 
-Venturalitica exposes five public symbols. This page documents their exact signatures and behavior as of v0.5.0.
+Venturalitica exposes five public symbols. This page documents their exact signatures and behavior as of v0.6.0.
 
 ---
 
@@ -23,7 +23,7 @@ results = vl.quickstart("loan")
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `scenario` | `str` | *(required)* | Predefined scenario name: `"loan"`, `"hiring"`, `"health"`. |
+| `scenario` | `str` | `"loan"` | Predefined scenario name. Only `"loan"` (UCI German Credit fairness audit) is bundled with the SDK; any other value raises `ValueError`. Additional scenarios live in the `venturalitica-sdk-samples` repository. |
 | `verbose` | `bool` | `True` | Print the structured compliance table to the console. |
 
 **Returns:** `List[ComplianceResult]`
@@ -46,6 +46,7 @@ def enforce(
     target="target",
     prediction="prediction",
     strict=False,
+    phase=None,
     **attributes,
 ) -> List[ComplianceResult]
 ```
@@ -54,10 +55,11 @@ def enforce(
 | :--- | :--- | :--- | :--- |
 | `data` | `DataFrame` or `None` | `None` | Pandas DataFrame containing features, targets, and optionally predictions. |
 | `metrics` | `Dict[str, float]` or `None` | `None` | Pre-computed metrics dict. Use this when you have already calculated your metrics externally. |
-| `policy` | `str`, `Path`, or `List` | `"risks.oscal.yaml"` | Path to one or more OSCAL policy files. Pass a list to enforce multiple policies in a single call. |
+| `policy` | `str`, `Path`, or `List` | `"risks.oscal.yaml"` | Path to one or more OSCAL policy files. Pass a list to enforce multiple policies in a single call. The canonical v0.6.0 envelope is the unified `assessment_plan.oscal.yaml` emitted by `vl pull`. |
 | `target` | `str` | `"target"` | Name of the column containing ground truth labels. |
 | `prediction` | `str` | `"prediction"` | Name of the column containing model predictions. |
 | `strict` | `bool` | `False` | If `True`, missing metrics, unbound variables, and calculation errors raise exceptions instead of being skipped. Auto-enabled when `CI=true` or `VENTURALITICA_STRICT=true`. |
+| `phase` | `str` or `None` | `None` | Optional `lifecycle_phase` filter. Only controls tagged with this phase (or untagged) are evaluated. Typical values: `"training"` (raw data, Art. 10), `"validation"` (model predictions, Art. 15). Controls tagged `monitoring` or `incident` are always skipped by the SDK; they target the runtime proxy and incident handler respectively. |
 | `**attributes` | keyword args | | Mappings for protected variables and dimensions. For example: `gender="Attribute9"`, `age="Attribute13"`. |
 
 **Returns:** `List[ComplianceResult]`
@@ -73,7 +75,8 @@ results = vl.enforce(
     prediction="prediction",
     gender="Attribute9",     # maps abstract 'gender' -> column 'Attribute9'
     age="Attribute13",       # maps abstract 'age' -> column 'Attribute13'
-    policy="data_policy.oscal.yaml",
+    policy="assessment_plan.oscal.yaml",
+    phase="training",        # only Art. 10 (data) controls run
 )
 ```
 
@@ -82,7 +85,8 @@ results = vl.enforce(
 ```python
 results = vl.enforce(
     metrics={"accuracy_score": 0.92, "demographic_parity_diff": 0.07},
-    policy="model_policy.oscal.yaml",
+    policy="assessment_plan.oscal.yaml",
+    phase="validation",      # only Art. 15 (model) controls run
 )
 ```
 
@@ -100,13 +104,13 @@ When using DataFrame mode, the SDK resolves column names through a synonym syste
 
 #### Multiple Policies
 
-Pass a list to enforce several policies in one call:
+Pass a list to enforce several policies in one call. v0.6.0 emits a single `assessment_plan.oscal.yaml` document that already covers every AssuranceMeasure end-to-end, so list mode is most useful when you want to merge an internal SaaS-emitted policy with a customer-authored OSCAL file:
 
 ```python
 results = vl.enforce(
     data=df,
     target="class",
-    policy=["data_policy.oscal.yaml", "model_policy.oscal.yaml"],
+    policy=["assessment_plan.oscal.yaml", "extra_controls.oscal.yaml"],
     gender="Attribute9",
 )
 ```
@@ -176,7 +180,7 @@ Transparently audit your model during Scikit-Learn standard workflows by hooking
 **Returns:** `AssuranceWrapper` (preserves the original model API: `.fit()`, `.predict()`, etc.)
 
 ```python
-wrapped = vl.wrap(LogisticRegression(), policy="model_policy.oscal.yaml")
+wrapped = vl.wrap(LogisticRegression(), policy="assessment_plan.oscal.yaml")
 wrapped.fit(X_train, y_train)
 preds = wrapped.predict(X_test)  # Audit runs automatically
 ```
@@ -187,11 +191,25 @@ preds = wrapped.predict(X_test)  # Audit runs automatically
 
 ### `PolicyManager`
 
-Programmatic access to OSCAL policy loading and manipulation.
+Programmatic access to OSCAL policy loading and manipulation. Used by the Streamlit policy editor and any tool that needs to read or write a YAML-serialized policy under a workspace directory.
 
 ```python
 from venturalitica import PolicyManager
+
+mgr = PolicyManager(target_dir=".venturalitica")
+policy = mgr.load()
+errors = mgr.validate(policy)
+if not errors:
+    mgr.save(policy)
 ```
+
+| Member | Signature | Description |
+| :--- | :--- | :--- |
+| `__init__` | `PolicyManager(target_dir: str)` | Resolves the policy file at `<target_dir>/model_policy.oscal.yaml`. (For new v0.6.0 workflows, prefer the unified `assessment_plan.oscal.yaml` written by `vl pull`; `PolicyManager` is intended for the simplified editor schema.) |
+| `load()` | `() -> Dict[str, Any]` | Reads the policy YAML and returns it as a dict. Returns a stub `{"title": "New Policy", "controls": []}` if the file does not exist. Legacy list-only files are wrapped under a `controls` key. |
+| `save(data)` | `(Dict[str, Any]) -> bool` | Validates the basic shape (`title` is required) and writes the dict back as YAML. Raises `ValueError` if `title` is missing. |
+| `validate(data)` | `(Dict[str, Any]) -> List[str]` | Returns a list of human-readable error strings (empty if valid). Checks for `title`, a `controls` list, and required fields (`id`, `metric_key`, `operator`, `threshold`) on each control. |
+| `get_schema()` | `staticmethod -> Dict[str, Any]` | Returns the JSON Schema (Draft-07) describing the simplified policy shape. |
 
 ---
 
