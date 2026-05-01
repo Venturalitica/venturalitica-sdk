@@ -7,6 +7,16 @@ description: "Comandos CLI y funcionalidades que dependen de la plataforma SaaS 
 
 Esta página documenta los comandos CLI y funcionalidades que actualmente son experimentales. Su API puede cambiar o ser eliminada en futuras versiones.
 
+:::caution[Servicio SaaS gestionado disponible próximamente]
+El endpoint SaaS gestionado de Venturalítica todavía no está operativo. Los
+comandos CLI `vl pull`, `vl push` y `vl login` requieren un endpoint SaaS
+configurado mediante `VENTURALITICA_SAAS_URL`. Para v0.6.0 recomendamos el
+**flujo de trabajo en modo local** (consulta el [Inicio Rápido](/venturalitica-sdk/es/quickstart/)
+y la [Guía de Migración](/venturalitica-sdk/es/migrating/)): el SDK se ejecuta
+totalmente sin conexión contra un archivo local `assessment_plan.oscal.yaml`.
+Anunciaremos la disponibilidad del SaaS en una futura versión menor.
+:::
+
 :::caution
 **Experimental**: Estas funcionalidades dependen de la plataforma SaaS de Venturalitica, que aún no está disponible públicamente. Se incluyen en el SDK para usuarios pioneros y pruebas internas.
 :::

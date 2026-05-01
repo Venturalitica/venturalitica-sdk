@@ -7,6 +7,16 @@ description: "CLI commands and features that depend on the Venturalitica SaaS pl
 
 This page documents CLI commands and features that are currently experimental. Their API may change or be removed in future releases.
 
+:::caution[Hosted SaaS forthcoming]
+The hosted Venturalítica SaaS endpoint is not yet operational. The CLI
+commands `vl pull`, `vl push`, and `vl login` require a SaaS endpoint
+configured via `VENTURALITICA_SAAS_URL`. For v0.6.0 we recommend the
+**local-mode workflow** (see [Quickstart](/venturalitica-sdk/quickstart/) and the
+[Migrating guide](/venturalitica-sdk/migrating/)): the SDK runs fully offline
+against a local `assessment_plan.oscal.yaml`. We will announce SaaS
+availability in a future minor release.
+:::
+
 :::caution
 **Experimental**: These features depend on the Venturalitica SaaS platform, which is not yet publicly available. They are included in the SDK for early adopters and internal testing.
 :::
