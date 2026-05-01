@@ -12,6 +12,23 @@ from venturalitica.cli.transfer import _create_bundle_payload, push
 # ---------------------------------------------------------------------------
 
 
+def _synthetic_assessment_results() -> dict:
+    """Minimal OSCAL Assessment Results doc for push tests."""
+    return {
+        "assessment-results": {
+            "uuid": "ar-test-uuid",
+            "metadata": {
+                "title": "Synthetic AR",
+                "oscal-version": "1.1.2",
+                "version": "1.0",
+                "last-modified": "2026-04-30T00:00:00Z",
+            },
+            "import-ap": {"href": "#plan"},
+            "results": [],
+        }
+    }
+
+
 def _setup_project(
     tmp_path,
     results_data=None,
@@ -20,10 +37,16 @@ def _setup_project(
     annex_iv_lines=None,
     credentials=None,
     mlflow_run_id=None,
+    assessment_results=None,
+    run_id: str = "run-test-001",
 ):
     """
     Prepare a temporary project tree under *tmp_path* and return the
     credentials directory path.
+
+    Pass ``assessment_results=True`` (or a dict) to materialise
+    ``.venturalitica/runs/<run_id>/assessment-results.oscal.json`` so
+    ``push()`` can locate the OSCAL AR doc it now requires.
     """
     vent_dir = tmp_path / ".venturalitica"
     vent_dir.mkdir(parents=True, exist_ok=True)
@@ -40,6 +63,16 @@ def _setup_project(
 
     if annex_iv_lines is not None:
         (tmp_path / "Annex_IV.md").write_text("\n".join(annex_iv_lines))
+
+    if assessment_results is not None:
+        ar_doc = (
+            assessment_results
+            if isinstance(assessment_results, dict)
+            else _synthetic_assessment_results()
+        )
+        run_dir = vent_dir / "runs" / run_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+        (run_dir / "assessment-results.oscal.json").write_text(json.dumps(ar_doc))
 
     config_dir = tmp_path / ".venturalitica_config"
     config_dir.mkdir(parents=True, exist_ok=True)
@@ -401,6 +434,7 @@ class TestPushSuccess:
                 tmp_path,
                 results_data=[{"m": 1}],
                 credentials={"key": "bearer-token"},
+                assessment_results=True,
             )
             mock_resp = MagicMock()
             mock_resp.raise_for_status = MagicMock()
@@ -431,6 +465,7 @@ class TestPushSuccess:
                 tmp_path,
                 results_data=[],
                 credentials={"key": "k"},
+                assessment_results=True,
             )
             mock_resp = MagicMock()
             mock_resp.raise_for_status = MagicMock()

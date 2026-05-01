@@ -1,0 +1,101 @@
+{
+  "assessment-plan": {
+    "uuid": "11111111-2222-3333-4444-555555555555",
+    "metadata": {
+      "title": "Canonical Venturalítica assessment-plan fixture — every extension prop exercised",
+      "oscal-version": "1.1.2",
+      "last-modified": "2026-04-18T00:00:00Z"
+    },
+    "control-implementations": [
+      {
+        "component-uuid": "cmpv-aisystem-version-canonical",
+        "description": "AssuranceMeasure guardrails dispatched at DEPLOY time",
+        "implemented-requirements": [
+          {
+            "uuid": "req-demographic-parity",
+            "control-id": "A.6.2.4",
+            "description": "Demographic parity (Four-Fifths Rule) — fails pipeline when disparate-impact ratio drops below 0.80.",
+            "props": [
+              { "name": "metric_key",                "value": "demographic_parity_diff" },
+              { "name": "operator",                  "value": "<" },
+              { "name": "threshold",                 "value": "0.1" },
+              { "name": "severity",                  "value": "block" },
+              { "name": "enforcement_mode",          "value": "block" },
+              { "name": "evaluation_method",         "value": "automated" },
+              { "name": "evaluation_window",         "value": "per-run" },
+              { "name": "target_type",               "value": "system_and_dataset" },
+              { "name": "lifecycle_phase",           "value": "validation" },
+              { "name": "lifecycle_phase",           "value": "production" },
+              { "name": "risk_id",                   "value": "risk-gender-bias" },
+              { "name": "risk_title",                "value": "Gender bias in credit approval" },
+              { "name": "treatment_id",              "value": "treat-reweighting" },
+              { "name": "policy_id",                 "value": "pol-eeoc-fourfifths" },
+              { "name": "objective_id",              "value": "obj-nondiscriminatory-credit" },
+              { "name": "threshold_justification",   "value": "EEOC Four-Fifths Rule (29 CFR §1607.4(D))" },
+              { "name": "risk_acceptance_criteria",  "value": "Residual disparate-impact gap ≤ 10%" },
+              { "name": "input:protected",           "value": "gender" },
+              { "name": "input:target",              "value": "loan_approval" },
+              { "name": "input:target_value",        "value": "1" }
+            ]
+          },
+          {
+            "uuid": "req-accuracy-baseline",
+            "control-id": "A.6.2.6",
+            "description": "Minimum acceptable predictive performance (AUC).",
+            "props": [
+              { "name": "metric_key",           "value": "auc_score" },
+              { "name": "operator",             "value": ">=" },
+              { "name": "threshold",            "value": "0.80" },
+              { "name": "severity",             "value": "warn" },
+              { "name": "enforcement_mode",     "value": "warn" },
+              { "name": "evaluation_method",    "value": "automated" },
+              { "name": "evaluation_window",    "value": "per-run" },
+              { "name": "target_type",          "value": "system" },
+              { "name": "lifecycle_phase",      "value": "validation" },
+              { "name": "risk_id",              "value": "risk-model-underperformance" },
+              { "name": "input:label",          "value": "y_true" },
+              { "name": "input:prediction",     "value": "y_pred" }
+            ]
+          },
+          {
+            "uuid": "req-hitl-large-loan",
+            "control-id": "A.8.1",
+            "description": "Loans above €100k require analyst review (EU AI Act Art.14 meaningful human oversight).",
+            "props": [
+              { "name": "metric_key",           "value": "loan_amount_eur" },
+              { "name": "operator",             "value": ">" },
+              { "name": "threshold",            "value": "100000" },
+              { "name": "severity",             "value": "warn" },
+              { "name": "enforcement_mode",     "value": "warn" },
+              { "name": "evaluation_method",    "value": "human" },
+              { "name": "evaluation_window",    "value": "per-run" },
+              { "name": "target_type",          "value": "system" },
+              { "name": "lifecycle_phase",      "value": "production" },
+              { "name": "risk_id",              "value": "risk-art14-oversight" },
+              { "name": "risk_title",           "value": "Meaningful human oversight failure" },
+              { "name": "policy_id",            "value": "pol-eu-ai-act-art14" }
+            ]
+          },
+          {
+            "uuid": "req-drift-monitoring",
+            "control-id": "A.9.3",
+            "description": "Continuous population stability monitoring over a sliding window.",
+            "props": [
+              { "name": "metric_key",           "value": "psi_score" },
+              { "name": "operator",             "value": "<" },
+              { "name": "threshold",            "value": "0.2" },
+              { "name": "severity",             "value": "warn" },
+              { "name": "enforcement_mode",     "value": "monitor" },
+              { "name": "evaluation_method",    "value": "automated" },
+              { "name": "evaluation_window",    "value": "sliding-window" },
+              { "name": "target_type",          "value": "system" },
+              { "name": "lifecycle_phase",      "value": "monitoring" },
+              { "name": "lifecycle_phase",      "value": "production" },
+              { "name": "risk_id",              "value": "risk-post-market-drift" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

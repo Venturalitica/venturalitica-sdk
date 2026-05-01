@@ -42,7 +42,7 @@ jobs:
             --cov=src/venturalitica \
             --cov-report=xml \
             --cov-report=term \
-            --cov-fail-under=70 \
+            --cov-fail-under=80 \
             -q
 
   build:

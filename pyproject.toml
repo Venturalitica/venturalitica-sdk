@@ -1,7 +1,7 @@
 [project]
 name = "venturalitica"
-version = "0.5.4"
-description = "Frictionless Governance for AI. Enforce policies in your ML training with one line of code."
+version = "0.6.0"
+description = "AI assurance that compiles. Turn EU AI Act + ISO 42001 + DORA controls into executable OSCAL policy and enforce it at training time with one decorator."
 requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -10,7 +10,7 @@ authors = [
 ]
 keywords = ["ai", "governance", "fairness", "mlops", "eu-ai-act", "oscal", "compliance"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
@@ -89,7 +89,6 @@ exclude = [
   ".env.example",
   "*.svg",
   "uv.lock",
-  "verify_strict_mode.py",
   "model_policy.oscal.yaml",
   "results.json",
   "bom.json",
@@ -128,6 +127,29 @@ filterwarnings = [
     "ignore::FutureWarning:pandas",
     # Only show warnings from our code
     "default::UserWarning",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/venturalitica"]
+# Modules behind opt-in extras: skipped from base coverage. The agentic
+# Annex IV writer needs `venturalitica[agentic]` (LangChain + Mistral/Ollama
+# clients), and the Streamlit dashboard needs `venturalitica[dashboard]`.
+# Both have integration coverage via notebooks and `vl ui` smoke; unit
+# coverage is tracked separately when those extras are installed.
+omit = [
+    "src/venturalitica/dashboard/*",
+    "src/venturalitica/assurance/graph/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
 ]
 
 [tool.ruff]
