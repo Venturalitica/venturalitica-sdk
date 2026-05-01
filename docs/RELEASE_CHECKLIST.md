@@ -1,4 +1,37 @@
-# v0.6.0 Release Checklist
+# v0.6.x Release Checklist
+
+## E2 — TestPyPI smoke (v0.6.0)
+
+- Date: 2026-05-01
+- Branch SHA: `9678dc2` on `staging`
+- Workflow: `Publish` → `testpypi` env → completed success.
+- TestPyPI: <https://test.pypi.org/project/venturalitica/0.6.0/>
+- Smoke install: `uv pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ --index-strategy unsafe-best-match venturalitica==0.6.0` → installed.
+- `python -c "import venturalitica; print(venturalitica.__version__)"` → `0.6.0` ✅
+- 5 public symbols import OK: `enforce, monitor, wrap, quickstart, PolicyManager`.
+- **Issue surfaced**: `vl` binary missing. Docs reference `vl pull/push/login/ui` but pyproject only declared `venturalitica` script. Hotfixed in v0.6.1.
+
+## D9 — v0.6.1 hotfix (vl CLI alias)
+
+- Date: 2026-05-01
+- Branch SHA: `658c912` on `staging`
+- Change: `[project.scripts]` adds `vl = "venturalitica.cli:app"`. Both binaries dispatch to the same Typer app.
+- Workflow: `Publish` v0.6.1 → `testpypi` env → completed success.
+- TestPyPI: <https://test.pypi.org/project/venturalitica/0.6.1/>
+- Smoke install: same command with `==0.6.1` (after TestPyPI index propagated, `--refresh` flag needed once).
+- `vl --help` → Typer Usage banner with 5 subcommands (export-annex-iv, login, ui, pull, push) ✅
+- `venturalitica --help` → identical Typer app ✅
+- `python -c "import venturalitica; print(venturalitica.__version__)"` → `0.6.1` ✅
+- CI workflow on `658c912`: completed success (coverage gate 80% met, measured 84%).
+
+## F3 — Notebooks against TestPyPI wheel (v0.6.1)
+
+- Date: 2026-05-01
+- Source: `notebooks/00-quickstart.ipynb`, `notebooks/01-training-tutorial.ipynb` from the repo, executed against v0.6.1 TestPyPI wheel.
+- Tooling: `jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=180`.
+- 00-quickstart.ipynb: 5 cells, **0 errors** (12034 bytes output).
+- 01-training-tutorial.ipynb: 13 cells, **0 errors** (24149 bytes output).
+- Both notebooks complete without exceptions; the bundled `policy.oscal.yaml` is consumed correctly by the published wheel.
 
 ## F4 — Streamlit dashboard E2E (Playwright mission lifecycle)
 
