@@ -28,42 +28,105 @@ def pull():
         creds = json.load(f)
 
     try:
-        # Pull OSCAL policies (model + data in one call)
+        # Pull the canonical OSCAL assessment-plan (single dialect — see
+        # docs/contracts/oscal-assessment-plan-v1.md). No more split
+        # model/data SSPs: one document carries every implemented-
+        # requirement tagged with lifecycle_phase + target_type so the
+        # SDK can filter locally for each consumer.
         response = requests.get(
             f"{SAAS_URL}/api/pull?format=oscal",
             headers={"Authorization": f"Bearer {creds['key']}"},
         )
         response.raise_for_status()
-        oscal_multi = response.json()
+        oscal_doc = response.json()
 
-        # Extract model and data policies
-        model_policy = oscal_multi.get("model", {})
-        data_policy = oscal_multi.get("data", {})
-        risks = oscal_multi.get("risks", [])
+        plan = oscal_doc.get("assessment-plan")
+        if not plan:
+            raise ValueError(
+                "SaaS did not return an assessment-plan root — expected the "
+                "canonical OSCAL dialect per docs/contracts/oscal-assessment-plan-v1.md. "
+                "Check the SaaS version (>= v0.6.0)."
+            )
 
-        # Save model policy
-        with open("model_policy.oscal.yaml", "w") as f:
-            yaml.dump(model_policy, f)
-        model_reqs = model_policy.get("system-security-plan", {}).get("control-implementation", {}).get("implemented-requirements", [])
-        console.print(f"  ✓ Saved model_policy.oscal.yaml ({len(model_reqs)} controls)")
+        impls = plan.get("control-implementations", []) or []
+        all_requirements = [
+            req
+            for impl in impls
+            for req in (impl.get("implemented-requirements", []) or [])
+        ]
 
-        # Save data policy
-        with open("data_policy.oscal.yaml", "w") as f:
-            yaml.dump(data_policy, f)
-        data_reqs = data_policy.get("system-security-plan", {}).get("control-implementation", {}).get("implemented-requirements", [])
-        console.print(f"  ✓ Saved data_policy.oscal.yaml ({len(data_reqs)} controls)")
+        # Persist one full policy file (the source of truth)…
+        with open("assessment_plan.oscal.yaml", "w") as f:
+            yaml.dump(oscal_doc, f, sort_keys=False)
+        console.print(
+            f"  ✓ Saved assessment_plan.oscal.yaml ({len(all_requirements)} requirement(s))"
+        )
 
-        # Log identified risks and their binding status
-        for risk in risks:
-            title = risk.get("title")
-            # Check if risk is covered in either model or data policies
-            is_in_model = any(req.get("legacy-id") == risk.get("uuid") for req in model_reqs)
-            is_in_data = any(req.get("legacy-id") == risk.get("uuid") for req in data_reqs)
-            if is_in_model or is_in_data:
-                policy_type = "model" if is_in_model else "data"
-                console.print(f"  [green]✓ Bound [{policy_type}][/green] {title}")
-            else:
-                console.print(f"  [yellow]⚠ Unbound[/yellow] {title}")
+        # …and cache the canonical JSON at .venturalitica/policy.oscal.json
+        # so monitor() + annex-iv can read the tenant binding props
+        # (ai-system-uuid, ai-system-version-uuid) without re-parsing YAML.
+        # This is the path POLICY_PATH_CANDIDATES[0] uses everywhere.
+        os.makedirs(".venturalitica", exist_ok=True)
+        with open(".venturalitica/policy.oscal.json", "w") as f:
+            json.dump(oscal_doc, f, indent=2)
+
+        # …and emit two backwards-compatible filtered views keyed on
+        # target_type so legacy trainers that still read model_policy /
+        # data_policy paths keep working for one release.
+        def _requirements_by_target(target: str):
+            out = []
+            for req in all_requirements:
+                for p in req.get("props", []) or []:
+                    if p.get("name") == "target_type" and p.get("value") in (
+                        target,
+                        "system_and_dataset" if target == "system" else None,
+                    ):
+                        out.append(req)
+                        break
+            return out
+
+        model_reqs = _requirements_by_target("system")
+        data_reqs = [
+            req
+            for req in all_requirements
+            if any(
+                p.get("name") == "target_type" and p.get("value") in ("dataset", "system_and_dataset")
+                for p in req.get("props", []) or []
+            )
+        ]
+
+        def _dump_view(path: str, requirements):
+            wrapper = {
+                "assessment-plan": {
+                    **plan,
+                    "control-implementations": [
+                        {
+                            **(impls[0] if impls else {"component-uuid": "derived"}),
+                            "implemented-requirements": requirements,
+                        }
+                    ],
+                }
+            }
+            with open(path, "w") as f:
+                yaml.dump(wrapper, f, sort_keys=False)
+
+        _dump_view("model_policy.oscal.yaml", model_reqs)
+        _dump_view("data_policy.oscal.yaml", data_reqs)
+        console.print(
+            f"  ✓ Filtered views: model_policy.oscal.yaml ({len(model_reqs)}) + "
+            f"data_policy.oscal.yaml ({len(data_reqs)})"
+        )
+
+        # Log risk binding status from the new dialect. Each requirement
+        # carries a `risk_id` prop that points to the IdentifiedRisk.
+        risks_seen = set()
+        for req in all_requirements:
+            for p in req.get("props", []) or []:
+                if p.get("name") == "risk_id" and p.get("value"):
+                    risks_seen.add(p["value"])
+        console.print(
+            f"  Risks referenced by assessment-plan: {len(risks_seen)}"
+        )
 
         # Also pull general config for display/verification
         response = requests.get(

@@ -1,5 +1,8 @@
 # Import submodules to register commands
 from . import (
+    annex_iv as annex_iv,
+)
+from . import (
     auth as auth,
 )
 from . import (

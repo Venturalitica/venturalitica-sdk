@@ -92,8 +92,13 @@ def monitor(
             except Exception:
                 pass
 
+        probe_results: Dict[str, Dict[str, Any]] = {}
         for probe in probes:
-            probe.stop()
+            result = probe.stop() or {}
+            # Keep the structured payload keyed by the probe's human name
+            # (matches `get_summary()`'s prefix) so the SaaS ingester can
+            # surface each probe on the AssuranceTrace cockpit.
+            probe_results[probe.name] = dict(result) if isinstance(result, dict) else {}
             summary = probe.get_summary()
             if summary:
                 print(summary)
@@ -103,12 +108,18 @@ def monitor(
             run_dir=run_dir,
             name=name,
             start_time=start_time,
+            probe_results=probe_results,
         )
 
         GovernanceSession.stop()
 
 
-def _generate_oscal_artifacts(run_dir: Path, name: str, start_time: float) -> None:
+def _generate_oscal_artifacts(
+    run_dir: Path,
+    name: str,
+    start_time: float,
+    probe_results: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> None:
     """Generate OSCAL Assessment Results and POA&M from cached results."""
     try:
         results_path = Path(run_dir) / "results.json"
@@ -147,6 +158,30 @@ def _generate_oscal_artifacts(run_dir: Path, name: str, start_time: float) -> No
             if artifact_file.name != "results.json" and artifact_file.is_file():
                 evidence[artifact_file.name] = str(artifact_file)
 
+        # Read tenant binding from the AP the SDK pulled earlier. The
+        # platform-side AP emitter stamps `ai-system-uuid` and
+        # `ai-system-version-uuid` into metadata.props[] — we echo both
+        # back into the AR so the platform resolves the correct version
+        # by UUID with no "latest" fallback.
+        ai_system_uuid = ""
+        ai_system_version_uuid = ""
+        policy_path = Path(".venturalitica") / "policy.oscal.json"
+        if policy_path.exists():
+            try:
+                with open(policy_path, "r") as f:
+                    ap_doc = json.load(f)
+                ap_root = ap_doc.get("assessment-plan", ap_doc)
+                for p in (ap_root.get("metadata", {}).get("props", []) or []):
+                    if p.get("name") == "ai-system-uuid":
+                        ai_system_uuid = str(p.get("value", ""))
+                    elif p.get("name") == "ai-system-version-uuid":
+                        ai_system_version_uuid = str(p.get("value", ""))
+            except Exception:
+                # Best-effort — if the AP doc is malformed, fall through
+                # with empty binding props; platform will log a deprecation
+                # warning and use the legacy resolver.
+                pass
+
         # Build OSCAL Assessment Results
         ar = AssessmentResultsBuilder.build(
             results,
@@ -154,6 +189,9 @@ def _generate_oscal_artifacts(run_dir: Path, name: str, start_time: float) -> No
             start_time=start_ts,
             end_time=end_ts,
             evidence_artifacts=evidence,
+            ai_system_uuid=ai_system_uuid,
+            ai_system_version_uuid=ai_system_version_uuid,
+            probe_results=probe_results or {},
         )
 
         ar_path = Path(run_dir) / "assessment-results.oscal.json"
