@@ -10,8 +10,6 @@
 
 **Compliance by Design — AI Assurance through Compliance-as-Code.**
 
-Frictionless Governance for AI Systems.
-
 The Venturalítica SDK enables Data Scientists and ML Engineers to integrate compliance and risk management directly into their training workflows. Built on the **OSCAL** (Open Security Controls Assessment Language) standard, it provides semantic policy enforcement with educational audit trails.
 
 **[Join our Discord community](https://discord.gg/P4RURqRm)** — Get help, share your use case, and discuss EU AI Act compliance with other engineers.
