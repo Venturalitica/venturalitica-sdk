@@ -7,6 +7,15 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 
+def pytest_configure(config):
+    """Register the `e2e` marker locally so --strict-markers passes even when
+    pyproject.toml does not yet declare it (in-flight v0.6.0 changes)."""
+    config.addinivalue_line(
+        "markers",
+        "e2e: end-to-end tests requiring Playwright + Streamlit (slow)",
+    )
+
+
 @pytest.fixture(scope="session")
 def browser_context():
     """Launches Playwright browser with video recording."""

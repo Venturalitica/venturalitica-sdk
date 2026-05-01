@@ -3,8 +3,11 @@ import sys
 import time
 from pathlib import Path
 
+import pytest
 import yaml
 from playwright.sync_api import Page, expect
+
+pytestmark = [pytest.mark.e2e]
 
 
 def test_mission_lifecycle(browser_context, dashboard_process, sandbox_dir):
@@ -56,7 +59,7 @@ def test_mission_lifecycle(browser_context, dashboard_process, sandbox_dir):
 def _step_1_define_system(page: Page, sandbox_dir):
     """Mission 1: Define System Identity"""
     print("--- Step 1: System Identity ---")
-    page.get_by_role("button", name="Start Mission 1").click(timeout=5000)
+    page.get_by_role("button", name="Start Step 1").click(timeout=5000)
     expect(page.get_by_text("Phase 1: System Identity")).to_be_visible()
 
     page.get_by_label("Commercial Name").fill("LoanApp")
