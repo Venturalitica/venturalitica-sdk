@@ -1,6 +1,6 @@
 [project]
 name = "venturalitica"
-version = "0.6.0"
+version = "0.6.1"
 description = "AI assurance that compiles. Turn EU AI Act + ISO 42001 + DORA controls into executable OSCAL policy and enforce it at training time with one decorator."
 requires-python = ">=3.11"
 readme = "README.md"
@@ -41,6 +41,7 @@ Changelog = "https://github.com/Venturalitica/venturalitica-sdk/releases"
 
 [project.scripts]
 venturalitica = "venturalitica.cli:app"
+vl = "venturalitica.cli:app"
 
 [project.optional-dependencies]
 agentic = [

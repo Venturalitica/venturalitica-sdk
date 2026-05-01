@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2026-05-01
+
+### Added
+- `vl` CLI alias as a shorter shortcut for the `venturalitica` command. Both `vl pull` and `venturalitica pull` now work identically; the docs (Starlight, MIGRATING, RELEASE_NOTES) standardise on `vl` as the canonical short form.
+
+### Why this hotfix
+v0.6.0 shipped without the `vl` script entry-point even though all the documentation (Quickstart, Migrating guide, Experimental features, OSCAL contract, cross-component smoke) referenced `vl pull / vl push / vl login / vl ui` as the canonical CLI. Users who installed `pip install venturalitica==0.6.0` and copied the snippets verbatim hit `command not found: vl`. This release adds the alias so the docs match the package.
+
 ## [0.6.0] - 2026-04-18
 
 ### OSCAL unification — one dialect end-to-end
