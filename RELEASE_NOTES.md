@@ -24,9 +24,9 @@ Single-document OSCAL: every AssuranceMeasure now lives in one
 - Round-trip contract tests against
   `tests/fixtures/oscal/assessment-plan.canonical.json` (20 cases, all
   green).
-- Cross-component smoke procedure at
-  `docs/contracts/cross-component-smoke.md` keeps SDK Python, SaaS TS
-  and Proxy Rust in lock-step against the canonical fixture.
+- Internal cross-component smoke runbook at
+  `docs/development/cross-component-smoke.md` keeps the Venturalítica
+  SaaS, SDK and Rust proxy in lock-step against the canonical fixture.
 
 ### Hygiene
 See CHANGELOG `[0.6.0] / Hygiene` for the full list of stabilization

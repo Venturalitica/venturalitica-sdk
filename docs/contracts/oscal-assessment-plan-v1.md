@@ -1,12 +1,12 @@
 # OSCAL `assessment-plan` — Venturalítica v1 canonical contract
 
 **Status:** normative (non-negotiable).
-**Applies to:** SaaS emitters (`src/app/actions/declare-conformity.ts`, `src/lib/oscal/mapper.ts`, `src/app/api/pull/route.ts`), SDK emit/parse (`packages/venturalitica-sdk/src/venturalitica/cli/sync.py`, `venturalitica/oscal/*`), Rust parser (`vl-fairness-gate/src/oscal/parser.rs`), pathfinder fixtures, policy templates.
-**Source:** arXiv preprint *Making AI Compliance Evidence Machine-Readable* ([arXiv:2604.13767](https://arxiv.org/abs/2604.13767)) Listing 1 (§5 + §6), root-level `CLAUDE.md` OSCAL Policy Format section.
+**Applies to:** every component that produces, transports or consumes a Venturalítica OSCAL Assessment Plan document — SaaS-style emitters, the `venturalitica` Python SDK, any downstream runtime proxy or enforcement gate that parses the envelope, and policy template fixtures.
+**Source:** arXiv preprint *Making AI Compliance Evidence Machine-Readable* ([arXiv:2604.13767](https://arxiv.org/abs/2604.13767)) Listing 1 (§5 + §6).
 **Invariants:**
-1. Only `assessment-plan` is emitted or round-tripped internally.
-2. The Rust parser still accepts `system-security-plan` for externally-authored policies, but no in-tree code emits it.
-3. Every property listed below is preserved across the full round-trip (SaaS → proxy → SDK → SaaS).
+1. Only `assessment-plan` is emitted by Venturalítica components.
+2. Compliant parsers MAY accept `system-security-plan` for externally-authored policies (backwards compatibility) but no Venturalítica component emits it.
+3. Every property listed below is preserved across the full round-trip (emitter → transport → SDK → re-emit).
 
 ---
 
@@ -95,14 +95,14 @@ Input bindings (paper §6.3):
 | Consumer                              | Phases consumed                       | Props consumed                                   |
 |---------------------------------------|---------------------------------------|--------------------------------------------------|
 | SDK training-time enforcer (`vl.enforce`) | `design`, `data_preparation`, `training`, `validation` | metric_key, operator, threshold, severity, enforcement_mode, input:* |
-| FairGage runtime proxy                | `production`, `monitoring`            | all of §3 (uses evaluation_window + evaluation_method for HITL routing) |
+| Runtime enforcement proxy             | `production`, `monitoring`            | all of §3 (uses evaluation_window + evaluation_method for HITL routing) |
 | Governance platform (SaaS)            | all phases (for UI + traceability)    | all of §3 |
 
 Unknown props are ignored by every consumer (forward compatibility per paper §5.3).
 
 ## 6. What is NOT allowed
 
-- Emitting a `system-security-plan` root from any SaaS or SDK code path. The Rust parser retains that branch **only** to accept externally-authored policies.
+- Emitting a `system-security-plan` root from any SaaS or SDK code path. Downstream proxy parsers MAY retain a `system-security-plan` code branch **only** to accept externally-authored policies for backwards compatibility.
 - Wrapping the policy in `{ "measures": [...] }`, `{ "controls": [...] }`, or any other native shortcut. There is one envelope (`assessment-plan`) and one per-measure shape (`implemented-requirement` with `props[]`).
 - Emitting the legacy `gate` / `audit` enforcement values.
 - Camel-case prop names (`enforcementMode`, `evaluationMethod`, …). These are application-internal and MUST be mapped to the snake-case OSCAL prop names at the edge.
@@ -121,15 +121,14 @@ This is enforced by `packages/venturalitica-sdk/tests/test_oscal_roundtrip.py` a
 
 ## 8. Fixtures
 
-- **Canonical:** `packages/venturalitica-sdk/tests/fixtures/oscal/assessment-plan.canonical.json` — one measure per extension prop family; used as the round-trip reference.
-- **Minimal:** `vl-fairness-gate/src/oscal/parser.rs` `tests::test_parse_oscal_ssp` + `test_parse_oscal_assessment_plan` inline fixtures.
-- **Rejection:** `vl-fairness-gate/src/oscal/parser.rs` `tests::test_third_root_rejected` — asserts a document with a root other than the two supported is refused.
+- **Canonical:** `tests/fixtures/oscal/assessment-plan.canonical.json` (in this SDK repository) — one measure per extension prop family; used as the round-trip reference. Downstream parsers (in any language) are encouraged to consume the same fixture for parity testing.
+- **Rejection cases:** any compliant parser MUST refuse documents whose root is neither `assessment-plan` nor `system-security-plan`. The SDK exercises this guard in `tests/test_oscal_roundtrip.py::test_no_system_security_plan_leakage`.
 
 ## 9. Versioning
 
 This document is `v1`. Any property addition/removal requires:
 1. A new `oscal-assessment-plan-v<N>.md` superseding this file.
-2. A migration note + back-compat policy (the Rust parser MUST accept both for one release).
-3. An entry in `packages/venturalitica-sdk/CHANGELOG.md`.
+2. A migration note + back-compat policy: downstream parsers MUST accept both the previous and the new contract versions for at least one release cycle.
+3. An entry in the SDK `CHANGELOG.md`.
 
 `oscal-version` inside the metadata is pinned at `1.1.2` (NIST OSCAL schema version, independent of this contract's version).
