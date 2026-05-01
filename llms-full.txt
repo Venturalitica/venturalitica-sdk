@@ -4,15 +4,21 @@
 
 > Compliance-as-Code for High-Risk AI. Transform Python code into Legal Evidence.
 
-**AI Assurance through Compliance-as-Code.**
+**Compliance by Design — AI Assurance through Compliance-as-Code.**
 
 Venturalítica transforms your Python code into **Legal Evidence**. It automatically maps your technical metrics, data audits, and execution logs to the **EU AI Act (Articles 9-15)** without leaving your local environment.
+
+> 📄 **Companion to the arXiv preprint** *[Making AI Compliance Evidence Machine-Readable](https://arxiv.org/abs/2604.13767)* (Cilla Ugarte et al., 2026). See [Citation](https://github.com/Venturalitica/venturalitica-sdk/blob/main/CITATION.cff).
 
 **Open Source & Free.** Help us build the standard for AI compliance in Europe.
 
 [⭐ Star on GitHub](https://github.com/venturalitica/venturalitica-sdk)[📦 View on PyPI](https://pypi.org/project/venturalitica/)
 
 ***
+
+Runs fully offline
+
+Venturalítica is a local-first SDK: install from PyPI and audit your AI systems against a local `assessment_plan.oscal.yaml` policy. No network calls, no hosted account required. The hosted SaaS (real-time policy sync, multi-user evidence sharing) is forthcoming.
 
 ## Quickstart in 60 Seconds
 
@@ -1139,6 +1145,105 @@ You have completed the **Venturalitica Academy**. You are now ready to integrate
 * **[Metrics Reference](/venturalitica-sdk/reference/metrics/)** — All 35+ metrics available for policies
 * **[Policy Authoring](/venturalitica-sdk/guides/policy-authoring/)** — Write custom OSCAL policies
 
+# Compliance by Design
+
+> The umbrella concept behind Venturalítica — building AI compliance into the training pipeline, not after it.
+
+## Why this term?
+
+[Section titled “Why this term?”](#why-this-term)
+
+> Compliance by Design extends to AI the ex-ante, built-in approach that *Privacy by Design* (GDPR Art. 25) introduced for personal data and that *Security by Design* (ENISA, NIST SSDF) standardised for cybersecurity. **Policy is the input contract of the training run, not a post-hoc checklist.**
+
+Compliance by Design is the design philosophy. Compliance-as-Code is the technique that delivers it (executable OSCAL policy, decorators, deterministic enforcement). AI Assurance is the deliverable the regulator audits (Assessment Results, Annex IV technical documentation, evidence bundle).
+
+```text
+Compliance by Design (the why)
+    ↓ enabled by
+Compliance-as-Code (the how)
+    ↓ producing
+AI Assurance (the deliverable)
+```
+
+## Three patterns in the SDK
+
+[Section titled “Three patterns in the SDK”](#three-patterns-in-the-sdk)
+
+### 1. Decorator-driven enforcement
+
+[Section titled “1. Decorator-driven enforcement”](#1-decorator-driven-enforcement)
+
+`vl.enforce(metrics, policy=…)` runs *inside* the training script, not as a downstream audit. A control violation with `severity=block` halts the run before the model is registered:
+
+```python
+import venturalitica as vl
+
+
+with vl.monitor(name="Loan Default Audit"):
+    metrics = pipeline.run(X_train, y_train)
+
+
+vl.enforce(metrics, policy="assessment_plan.oscal.yaml", strict=True)
+```
+
+Compliance is a function call, not a JIRA ticket.
+
+### 2. OSCAL-first input contract
+
+[Section titled “2. OSCAL-first input contract”](#2-oscal-first-input-contract)
+
+`vl pull` retrieves the `assessment_plan.oscal.yaml` *before* training starts. The policy is the input contract of the run — the training script reads its compliance obligations the same way it reads its hyperparameter file:
+
+```bash
+vl pull                                    # fetches assessment-plan
+python train.py                            # reads it as input
+```
+
+This inverts the traditional “model first, audit later” workflow.
+
+### 3. Evidence as byproduct
+
+[Section titled “3. Evidence as byproduct”](#3-evidence-as-byproduct)
+
+`vl.monitor()` collects evidence (CycloneDX BOM, hardware fingerprint, file integrity, AST trace, carbon footprint) as the pipeline runs. On completion, the SDK materialises an **OSCAL Assessment Results** document, no separate audit pass needed. `vl export-annex-iv` derives the Art. 11 narrative from the same evidence:
+
+```bash
+vl export-annex-iv --agentic   # narrative for §1/2/3/5/8/9
+```
+
+The same run produces the model, the assurance evidence, and the regulator-facing documentation.
+
+## Regulatory lineage
+
+[Section titled “Regulatory lineage”](#regulatory-lineage)
+
+| Framework     | Clause      | What it asks for                              | How CbD answers                                        |
+| ------------- | ----------- | --------------------------------------------- | ------------------------------------------------------ |
+| GDPR          | Art. 25     | Data protection by design and by default      | Direct precedent — same ex-ante built-in approach      |
+| EU AI Act     | Art. 9      | Risk management throughout the lifecycle      | Decorator-driven enforcement at training time          |
+| EU AI Act     | Art. 15     | Accuracy, robustness, cybersecurity by design | `enforce()` blocks deployment if thresholds fail       |
+| EU AI Act     | Annex IV §3 | Monitoring, functioning and control           | `vl.monitor()` + Assessment Results                    |
+| ISO/IEC 42001 | A.6.2.4     | AI impact assessment                          | OSCAL Assessment Plan before training                  |
+| ISO/IEC 42001 | A.8.2       | Data quality                                  | Probes + policy controls in the assessment-plan        |
+| ISO/IEC 42001 | A.8.3       | System lifecycle                              | Evidence collected per run, attached to model registry |
+| NIST AI RMF   | Govern 1.7  | AI risks integrated into risk management      | Compliance contract is the training input              |
+
+## Why this matters for v0.6.0
+
+[Section titled “Why this matters for v0.6.0”](#why-this-matters-for-v060)
+
+v0.6.0 unifies all OSCAL emission into a single `assessment-plan` envelope (see [Migrating to v0.6](/venturalitica-sdk/migrating/) and the [normative contract](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/contracts/oscal-assessment-plan-v1.md)). That single envelope is what makes Compliance by Design tractable: **one document** in, **one document** out — both in the same OSCAL dialect, both auditable by `vl-fairness-gate` (Rust) and any other NIST OSCAL parser.
+
+## Further reading
+
+[Section titled “Further reading”](#further-reading)
+
+* arXiv preprint: [*Making AI Compliance Evidence Machine-Readable*](https://arxiv.org/abs/2604.13767) (Cilla Ugarte et al., 2026).
+* [Quickstart](/venturalitica-sdk/quickstart/)
+* [Migrating to v0.6](/venturalitica-sdk/migrating/)
+* [Policy Authoring](/venturalitica-sdk/guides/policy-authoring/)
+* [Glass Box Dashboard](/venturalitica-sdk/guides/dashboard/)
+
 # Full Lifecycle: Zero to Annex IV
 
 > A single-page walkthrough of the entire Venturalitica compliance lifecycle using the Loan Credit Scoring scenario.
@@ -2193,6 +2298,10 @@ The dashboard uses Streamlit. Standard Streamlit shortcuts apply:
 
 This page documents CLI commands and features that are currently experimental. Their API may change or be removed in future releases.
 
+Hosted SaaS forthcoming
+
+The hosted Venturalítica SaaS endpoint is not yet operational. The CLI commands `vl pull`, `vl push`, and `vl login` require a SaaS endpoint configured via `VENTURALITICA_SAAS_URL`. For v0.6.0 we recommend the **local-mode workflow** (see [Quickstart](/venturalitica-sdk/quickstart/) and the [Migrating guide](/venturalitica-sdk/migrating/)): the SDK runs fully offline against a local `assessment_plan.oscal.yaml`. We will announce SaaS availability in a future minor release.
+
 Caution
 
 **Experimental**: These features depend on the Venturalitica SaaS platform, which is not yet publicly available. They are included in the SDK for early adopters and internal testing.
@@ -2677,6 +2786,100 @@ Caution
 
 **SSP Format Inconsistency**: The CLI `pull` command currently downloads policies in `system-security-plan` format. These load correctly but differ from the `assessment-plan` format generated by the Dashboard. A future release will unify this.
 
+# Migrating to v0.6.0
+
+> Upgrade guide from v0.5 to v0.6.0 (OSCAL unification).
+
+Caution
+
+v0.6.0 contains breaking changes around OSCAL emission. Read the breaking-changes section before upgrading.
+
+Companion to the arXiv preprint *Making AI Compliance Evidence Machine-Readable* ([Cilla Ugarte et al., 2026](https://arxiv.org/abs/2604.13767)).
+
+## Why this version
+
+[Section titled “Why this version”](#why-this-version)
+
+Single-document OSCAL: every AssuranceMeasure now lives in one `assessment-plan` envelope, matching the paper’s Listing 1. The split emission of `model_policy.oscal.yaml` + `data_policy.oscal.yaml` is deprecated; `assessment_plan.oscal.yaml` is the new source of truth.
+
+## Breaking changes
+
+[Section titled “Breaking changes”](#breaking-changes)
+
+### 1. `OSCALMapper.toMultiSSP / toSSP / buildSSP` removed
+
+[Section titled “1. OSCALMapper.toMultiSSP / toSSP / buildSSP removed”](#1-oscalmappertomultissp--tossp--buildssp-removed)
+
+**Before (v0.5):**
+
+```python
+mapper = OSCALMapper()
+docs = mapper.toMultiSSP(ai_system)
+ssp = mapper.toSSP(ai_system, target_type="model")
+```
+
+**After (v0.6):**
+
+```python
+from venturalitica.oscal import build_assessment_plan
+
+
+plan = build_assessment_plan(ai_system)
+```
+
+The `OSCALMapper.toAssessmentPlan(ai_system, options?)` method is also available if you prefer the class form.
+
+### 2. `model_policy.oscal.yaml` / `data_policy.oscal.yaml` deprecated
+
+[Section titled “2. model\_policy.oscal.yaml / data\_policy.oscal.yaml deprecated”](#2-model_policyoscalyaml--data_policyoscalyaml-deprecated)
+
+`vl pull` still emits these files for **one release** as filtered views of `assessment_plan.oscal.yaml`, but they are no longer authoritative. Update any tooling that parses the legacy files to read the unified one instead.
+
+### 3. `system-security-plan` no longer emitted internally
+
+[Section titled “3. system-security-plan no longer emitted internally”](#3-system-security-plan-no-longer-emitted-internally)
+
+The SaaS and SDK no longer produce `system-security-plan` documents. The `vl-fairness-gate` (Rust proxy) parser still accepts SSPs from external, customer-authored policies for backwards compatibility.
+
+## New features (in scope of the paper)
+
+[Section titled “New features (in scope of the paper)”](#new-features-in-scope-of-the-paper)
+
+### `vl export-annex-iv --agentic`
+
+[Section titled “vl export-annex-iv --agentic”](#vl-export-annex-iv---agentic)
+
+Generates the narrative sections of EU AI Act Annex IV (Article 11) through a local Ollama model (default `mistral`) or Mistral managed (`--provider cloud`). Sections §4 (performance metrics), §6 (POA\&M) and §7 (standards) remain deterministically derived from OSCAL Assessment Results — never overwritten by the LLM.
+
+```bash
+vl export-annex-iv --agentic                     # local Ollama
+vl export-annex-iv --agentic --provider cloud    # Mistral managed
+vl export-annex-iv --agentic --force-regenerate  # bypass cache
+```
+
+The cache lives at `.venturalitica/annex_iv.cache.json` and is keyed on `(language, model, run_id, policy_hash)`.
+
+## Recommended upgrade steps
+
+[Section titled “Recommended upgrade steps”](#recommended-upgrade-steps)
+
+```bash
+pip install --upgrade venturalitica==0.6.0
+rm -f .venturalitica/model_policy.oscal.yaml .venturalitica/data_policy.oscal.yaml
+vl pull                       # regenerates assessment_plan.oscal.yaml
+```
+
+Update CI scripts that read OSCAL artefacts to point at `.venturalitica/assessment_plan.oscal.yaml`.
+
+## References
+
+[Section titled “References”](#references)
+
+* Normative spec: [`oscal-assessment-plan-v1.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/contracts/oscal-assessment-plan-v1.md)
+* Cross-component smoke: [`cross-component-smoke.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/contracts/cross-component-smoke.md)
+* v0.6.0 changelog: [`CHANGELOG.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/CHANGELOG.md)
+* v0.6.0 release notes: [`RELEASE_NOTES.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/RELEASE_NOTES.md)
+
 # 60-Second Quickstart
 
 > Your first bias audit in under 60 seconds.
@@ -2728,6 +2931,8 @@ Install with extras for additional capabilities:
 * `pip install "venturalitica[agentic]"` — LangGraph agent support
 * `pip install "venturalitica[green]"` — CodeCarbon energy tracking
 * `pip install "venturalitica[full]"` — All of the above
+
+> Venturalítica’s quickstart is **fully local**. The example below uses a bundled toy policy; in production, edit your own `assessment_plan.oscal.yaml` (see the [Policy Authoring guide](/venturalitica-sdk/guides/policy-authoring/)).
 
 ***
 
@@ -2800,13 +3005,13 @@ with vl.monitor("manual_audit"):
         target="class",          # The outcome (True/False)
         gender="Attribute9",     # Protected Group A
         age="Attribute13",       # Protected Group B
-        policy="data_policy.oscal.yaml"  # Your OSCAL policy file
+        policy="risks.oscal.yaml"  # Your OSCAL policy file
     )
 ```
 
 Note
 
-The code above requires a `data_policy.oscal.yaml` file. Head to the [Full Lifecycle](/venturalitica-sdk/full-lifecycle/) guide (Step 2) for the complete copy-paste YAML, or jump straight to [Level 1: The Engineer](/venturalitica-sdk/academy/level1-policy/) to learn how to write one from scratch.
+The code above requires a `risks.oscal.yaml` file. Head to the [Full Lifecycle](/venturalitica-sdk/full-lifecycle/) guide (Step 2) for the complete copy-paste YAML, or jump straight to [Level 1: The Engineer](/venturalitica-sdk/academy/level1-policy/) to learn how to write one from scratch.
 
 ### The Policy Logic
 
@@ -2907,7 +3112,7 @@ Venturalitica will draft a technical document that references your specific run:
 
 > Complete API reference for enforce(), monitor(), wrap(), quickstart(), and PolicyManager.
 
-Venturalitica exposes five public symbols. This page documents their exact signatures and behavior as of v0.5.0.
+Venturalitica exposes five public symbols. This page documents their exact signatures and behavior as of v0.6.0.
 
 ***
 
@@ -2928,10 +3133,10 @@ import venturalitica as vl
 results = vl.quickstart("loan")
 ```
 
-| Parameter  | Type   | Default      | Description                                                 |
-| :--------- | :----- | :----------- | :---------------------------------------------------------- |
-| `scenario` | `str`  | *(required)* | Predefined scenario name: `"loan"`, `"hiring"`, `"health"`. |
-| `verbose`  | `bool` | `True`       | Print the structured compliance table to the console.       |
+| Parameter  | Type   | Default  | Description                                                                                                                                                                                                       |
+| :--------- | :----- | :------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scenario` | `str`  | `"loan"` | Predefined scenario name. Only `"loan"` (UCI German Credit fairness audit) is bundled with the SDK; any other value raises `ValueError`. Additional scenarios live in the `venturalitica-sdk-samples` repository. |
+| `verbose`  | `bool` | `True`   | Print the structured compliance table to the console.                                                                                                                                                             |
 
 **Returns:** `List[ComplianceResult]`
 
@@ -2955,19 +3160,21 @@ def enforce(
     target="target",
     prediction="prediction",
     strict=False,
+    phase=None,
     **attributes,
 ) -> List[ComplianceResult]
 ```
 
-| Parameter      | Type                         | Default              | Description                                                                                                                                                                  |
-| :------------- | :--------------------------- | :------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `data`         | `DataFrame` or `None`        | `None`               | Pandas DataFrame containing features, targets, and optionally predictions.                                                                                                   |
-| `metrics`      | `Dict[str, float]` or `None` | `None`               | Pre-computed metrics dict. Use this when you have already calculated your metrics externally.                                                                                |
-| `policy`       | `str`, `Path`, or `List`     | `"risks.oscal.yaml"` | Path to one or more OSCAL policy files. Pass a list to enforce multiple policies in a single call.                                                                           |
-| `target`       | `str`                        | `"target"`           | Name of the column containing ground truth labels.                                                                                                                           |
-| `prediction`   | `str`                        | `"prediction"`       | Name of the column containing model predictions.                                                                                                                             |
-| `strict`       | `bool`                       | `False`              | If `True`, missing metrics, unbound variables, and calculation errors raise exceptions instead of being skipped. Auto-enabled when `CI=true` or `VENTURALITICA_STRICT=true`. |
-| `**attributes` | keyword args                 |                      | Mappings for protected variables and dimensions. For example: `gender="Attribute9"`, `age="Attribute13"`.                                                                    |
+| Parameter      | Type                         | Default              | Description                                                                                                                                                                                                                                                                                                                                    |
+| :------------- | :--------------------------- | :------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data`         | `DataFrame` or `None`        | `None`               | Pandas DataFrame containing features, targets, and optionally predictions.                                                                                                                                                                                                                                                                     |
+| `metrics`      | `Dict[str, float]` or `None` | `None`               | Pre-computed metrics dict. Use this when you have already calculated your metrics externally.                                                                                                                                                                                                                                                  |
+| `policy`       | `str`, `Path`, or `List`     | `"risks.oscal.yaml"` | Path to one or more OSCAL policy files. Pass a list to enforce multiple policies in a single call. The canonical v0.6.0 envelope is the unified `assessment_plan.oscal.yaml` emitted by `vl pull`.                                                                                                                                             |
+| `target`       | `str`                        | `"target"`           | Name of the column containing ground truth labels.                                                                                                                                                                                                                                                                                             |
+| `prediction`   | `str`                        | `"prediction"`       | Name of the column containing model predictions.                                                                                                                                                                                                                                                                                               |
+| `strict`       | `bool`                       | `False`              | If `True`, missing metrics, unbound variables, and calculation errors raise exceptions instead of being skipped. Auto-enabled when `CI=true` or `VENTURALITICA_STRICT=true`.                                                                                                                                                                   |
+| `phase`        | `str` or `None`              | `None`               | Optional `lifecycle_phase` filter. Only controls tagged with this phase (or untagged) are evaluated. Typical values: `"training"` (raw data, Art. 10), `"validation"` (model predictions, Art. 15). Controls tagged `monitoring` or `incident` are always skipped by the SDK; they target the runtime proxy and incident handler respectively. |
+| `**attributes` | keyword args                 |                      | Mappings for protected variables and dimensions. For example: `gender="Attribute9"`, `age="Attribute13"`.                                                                                                                                                                                                                                      |
 
 **Returns:** `List[ComplianceResult]`
 
@@ -2984,7 +3191,8 @@ results = vl.enforce(
     prediction="prediction",
     gender="Attribute9",     # maps abstract 'gender' -> column 'Attribute9'
     age="Attribute13",       # maps abstract 'age' -> column 'Attribute13'
-    policy="data_policy.oscal.yaml",
+    policy="assessment_plan.oscal.yaml",
+    phase="training",        # only Art. 10 (data) controls run
 )
 ```
 
@@ -2993,7 +3201,8 @@ results = vl.enforce(
 ```python
 results = vl.enforce(
     metrics={"accuracy_score": 0.92, "demographic_parity_diff": 0.07},
-    policy="model_policy.oscal.yaml",
+    policy="assessment_plan.oscal.yaml",
+    phase="validation",      # only Art. 15 (model) controls run
 )
 ```
 
@@ -3017,13 +3226,13 @@ When using DataFrame mode, the SDK resolves column names through a synonym syste
 
 [Section titled “Multiple Policies”](#multiple-policies)
 
-Pass a list to enforce several policies in one call:
+Pass a list to enforce several policies in one call. v0.6.0 emits a single `assessment_plan.oscal.yaml` document that already covers every AssuranceMeasure end-to-end, so list mode is most useful when you want to merge an internal SaaS-emitted policy with a customer-authored OSCAL file:
 
 ```python
 results = vl.enforce(
     data=df,
     target="class",
-    policy=["data_policy.oscal.yaml", "model_policy.oscal.yaml"],
+    policy=["assessment_plan.oscal.yaml", "extra_controls.oscal.yaml"],
     gender="Attribute9",
 )
 ```
@@ -3101,7 +3310,7 @@ Transparently audit your model during Scikit-Learn standard workflows by hooking
 **Returns:** `AssuranceWrapper` (preserves the original model API: `.fit()`, `.predict()`, etc.)
 
 ```python
-wrapped = vl.wrap(LogisticRegression(), policy="model_policy.oscal.yaml")
+wrapped = vl.wrap(LogisticRegression(), policy="assessment_plan.oscal.yaml")
 wrapped.fit(X_train, y_train)
 preds = wrapped.predict(X_test)  # Audit runs automatically
 ```
@@ -3116,11 +3325,26 @@ preds = wrapped.predict(X_test)  # Audit runs automatically
 
 [Section titled “PolicyManager”](#policymanager)
 
-Programmatic access to OSCAL policy loading and manipulation.
+Programmatic access to OSCAL policy loading and manipulation. Used by the Streamlit policy editor and any tool that needs to read or write a YAML-serialized policy under a workspace directory.
 
 ```python
 from venturalitica import PolicyManager
+
+
+mgr = PolicyManager(target_dir=".venturalitica")
+policy = mgr.load()
+errors = mgr.validate(policy)
+if not errors:
+    mgr.save(policy)
 ```
+
+| Member           | Signature                        | Description                                                                                                                                                                                                                         |
+| :--------------- | :------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `__init__`       | `PolicyManager(target_dir: str)` | Resolves the policy file at `<target_dir>/model_policy.oscal.yaml`. (For new v0.6.0 workflows, prefer the unified `assessment_plan.oscal.yaml` written by `vl pull`; `PolicyManager` is intended for the simplified editor schema.) |
+| `load()`         | `() -> Dict[str, Any]`           | Reads the policy YAML and returns it as a dict. Returns a stub `{"title": "New Policy", "controls": []}` if the file does not exist. Legacy list-only files are wrapped under a `controls` key.                                     |
+| `save(data)`     | `(Dict[str, Any]) -> bool`       | Validates the basic shape (`title` is required) and writes the dict back as YAML. Raises `ValueError` if `title` is missing.                                                                                                        |
+| `validate(data)` | `(Dict[str, Any]) -> List[str]`  | Returns a list of human-readable error strings (empty if valid). Checks for `title`, a `controls` list, and required fields (`id`, `metric_key`, `operator`, `threshold`) on each control.                                          |
+| `get_schema()`   | `staticmethod -> Dict[str, Any]` | Returns the JSON Schema (Draft-07) describing the simplified policy shape.                                                                                                                                                          |
 
 ***
 
