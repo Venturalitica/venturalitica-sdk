@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Discord](https://img.shields.io/discord/P4RURqRm?label=Discord&logo=discord)](https://discord.gg/P4RURqRm)
 
-> 📄 **Companion to the IEEE Computer 2026 paper** *AI Assurance That Compiles: Executable OSCAL for the EU AI Act* — [arXiv preprint (forthcoming)](https://arxiv.org/abs/<ARXIV-ID>) · [IEEE Xplore (forthcoming)](https://doi.org/<DOI>) · [`CITATION.cff`](./CITATION.cff) · [Normative OSCAL contract](./docs/contracts/oscal-assessment-plan-v1.md).
+> 📄 **Companion to the arXiv preprint** *[Making AI Compliance Evidence Machine-Readable](https://arxiv.org/abs/2604.13767)* (Cilla Ugarte et al., 2026). See [`CITATION.cff`](./CITATION.cff) and the [normative OSCAL contract](./docs/contracts/oscal-assessment-plan-v1.md).
 
 **Frictionless Governance for AI Systems.**
 

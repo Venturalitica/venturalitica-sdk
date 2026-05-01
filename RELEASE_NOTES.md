@@ -1,6 +1,6 @@
 ## v0.6.0 — OSCAL Unification (2026-04-30)
 
-Companion to the IEEE Computer 2026 paper *AI Assurance That Compiles*.
+Companion to the arXiv preprint *Making AI Compliance Evidence Machine-Readable* (Cilla Ugarte et al., 2026, arXiv:2604.13767).
 
 ### Headline
 Single-document OSCAL: every AssuranceMeasure now lives in one

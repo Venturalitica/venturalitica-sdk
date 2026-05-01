@@ -1,9 +1,15 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite the IEEE Computer 2026 paper."
+message: "If you use this software, please cite the arXiv preprint."
 title: "Venturalítica SDK"
 authors:
-  - family-names: Cilla
+  - family-names: Cilla Ugarte
     given-names: Rodrigo
+  - family-names: Patricio Guisado
+    given-names: Miguel Ángel
+  - family-names: Berlanga de Jesús
+    given-names: Antonio
+  - family-names: Molina López
+    given-names: José Manuel
 version: "0.6.0"
 date-released: "2026-04-30"
 license: Apache-2.0
@@ -19,10 +25,14 @@ keywords:
 preferred-citation:
   type: article
   authors:
-    - family-names: Cilla
+    - family-names: Cilla Ugarte
       given-names: Rodrigo
-  title: "AI Assurance That Compiles: Executable OSCAL for the EU AI Act"
-  journal: "IEEE Computer"
+    - family-names: Patricio Guisado
+      given-names: Miguel Ángel
+    - family-names: Berlanga de Jesús
+      given-names: Antonio
+    - family-names: Molina López
+      given-names: José Manuel
+  title: "Making AI Compliance Evidence Machine-Readable"
   year: 2026
-  # doi: 10.1109/<DOI>           # fill once IEEE Xplore DOI is assigned
-  # url: https://arxiv.org/abs/<ARXIV-ID>
+  url: "https://arxiv.org/abs/2604.13767"

@@ -1,6 +1,6 @@
 # Migrating to v0.6.0
 
-Companion to the IEEE Computer 2026 paper *AI Assurance That Compiles*.
+Companion to the arXiv preprint *Making AI Compliance Evidence Machine-Readable* ([Cilla Ugarte et al., 2026](https://arxiv.org/abs/2604.13767)).
 
 ## Why this version
 
