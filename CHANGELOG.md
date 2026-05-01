@@ -62,6 +62,13 @@ and forbidden shortcuts.
 - Cross-component smoke procedure documented in `docs/contracts/cross-component-smoke.md` (SDK Python ↔ SaaS TS ↔ Proxy Rust against the canonical fixture).
 - Starlight reference/api.mdx (EN+ES) synchronised with the v0.6.0 public API surface (`enforce`, `monitor`, `wrap`, `quickstart`, `PolicyManager`).
 
+### Concept
+- Introduced **Compliance by Design** as the umbrella concept for v0.6.0:
+  the OSCAL unification (single `assessment-plan` envelope in/out) makes
+  the compliance contract a tractable input to the training run, not a
+  post-hoc audit. See [docs/concepts/compliance-by-design](https://github.com/Venturalitica/venturalitica-sdk/blob/main/starlight/src/content/docs/concepts/compliance-by-design.mdx)
+  in the published docs and the [arXiv preprint](https://arxiv.org/abs/2604.13767).
+
 ## [0.5.0-starlight] - 2026-02-18
 
 ### Astro Starlight Documentation Migration

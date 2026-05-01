@@ -1,0 +1,114 @@
+---
+title: Compliance by Design
+description: El concepto paraguas de Venturalítica — construir el cumplimiento de IA dentro del pipeline de entrenamiento, no después.
+sidebar:
+  label: Compliance by Design
+  order: 10
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## ¿Por qué este término?
+
+> *Compliance by Design* (cumplimiento por diseño) extiende a la IA el
+> mismo enfoque ex-ante e incorporado desde el origen que *Privacy by
+> Design* (GDPR Art. 25) introdujo para los datos personales y que
+> *Security by Design* (ENISA, NIST SSDF) estandarizó para la
+> ciberseguridad. **La política es el contrato de entrada de la
+> ejecución de entrenamiento, no una checklist a posteriori.**
+
+Compliance by Design es la filosofía de diseño. Compliance-as-Code es
+la técnica que la materializa (política OSCAL ejecutable, decoradores,
+aplicación determinista). AI Assurance es el entregable que el
+regulador audita (Assessment Results, documentación técnica del
+Anexo IV, paquete de evidencias).
+
+```text
+Compliance by Design (el porqué)
+    ↓ habilitado por
+Compliance-as-Code (el cómo)
+    ↓ produce
+AI Assurance (el entregable)
+```
+
+## Tres patrones en el SDK
+
+### 1. Aplicación dirigida por decoradores
+
+`vl.enforce(metrics, policy=…)` se ejecuta *dentro* del script de
+entrenamiento, no como una auditoría posterior. Una violación de
+control con `severity=block` detiene la ejecución antes de que el
+modelo se registre:
+
+```python
+import venturalitica as vl
+
+with vl.monitor(name="Loan Default Audit"):
+    metrics = pipeline.run(X_train, y_train)
+
+vl.enforce(metrics, policy="assessment_plan.oscal.yaml", strict=True)
+```
+
+El cumplimiento es una llamada a función, no un ticket de JIRA.
+
+### 2. Contrato de entrada OSCAL-first
+
+`vl pull` recupera el `assessment_plan.oscal.yaml` *antes* de que
+comience el entrenamiento. La política es el contrato de entrada de
+la ejecución — el script de entrenamiento lee sus obligaciones de
+cumplimiento igual que lee su fichero de hiperparámetros:
+
+```bash
+vl pull                                    # descarga el assessment-plan
+python train.py                            # lo lee como entrada
+```
+
+Esto invierte el flujo tradicional "primero el modelo, después la
+auditoría".
+
+### 3. La evidencia como subproducto
+
+`vl.monitor()` recoge evidencia (BOM CycloneDX, huella de hardware,
+integridad de ficheros, traza AST, huella de carbono) mientras corre
+el pipeline. Al terminar, el SDK materializa un documento **OSCAL
+Assessment Results** sin necesidad de una pasada de auditoría
+separada. `vl export-annex-iv` deriva la narrativa del Art. 11 a
+partir de la misma evidencia:
+
+```bash
+vl export-annex-iv --agentic   # narrativa para §1/2/3/5/8/9
+```
+
+La misma ejecución produce el modelo, la evidencia de aseguramiento
+y la documentación cara al regulador.
+
+## Linaje regulatorio
+
+| Marco | Cláusula | Qué exige | Cómo lo responde CbD |
+|---|---|---|---|
+| GDPR | Art. 25 | Data protection by design and by default | Precedente directo — mismo enfoque ex-ante incorporado |
+| EU AI Act | Art. 9 | Gestión del riesgo a lo largo del ciclo de vida | Aplicación dirigida por decoradores en tiempo de entrenamiento |
+| EU AI Act | Art. 15 | Exactitud, robustez y ciberseguridad por diseño | `enforce()` bloquea el despliegue si fallan los umbrales |
+| EU AI Act | Annex IV §3 | Monitoring, functioning and control | `vl.monitor()` + Assessment Results |
+| ISO/IEC 42001 | A.6.2.4 | Evaluación de impacto de IA | OSCAL Assessment Plan antes del entrenamiento |
+| ISO/IEC 42001 | A.8.2 | Calidad de datos | Probes + controles de política en el assessment-plan |
+| ISO/IEC 42001 | A.8.3 | Ciclo de vida del sistema | Evidencia recogida por ejecución, ligada al model registry |
+| NIST AI RMF | Govern 1.7 | Riesgos de IA integrados en la gestión de riesgos | El contrato de cumplimiento es la entrada del entrenamiento |
+
+## Por qué importa para v0.6.0
+
+La v0.6.0 unifica toda la emisión OSCAL en un único sobre
+`assessment-plan` (ver [Migración a v0.6](/venturalitica-sdk/es/migrating/) y el
+[contrato normativo](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/contracts/oscal-assessment-plan-v1.md)).
+Ese sobre único es lo que hace tratable Compliance by Design:
+**un documento** de entrada, **un documento** de salida — ambos en
+el mismo dialecto OSCAL, ambos auditables por `vl-fairness-gate`
+(Rust) y por cualquier otro parser OSCAL del NIST.
+
+## Lecturas adicionales
+
+- Preprint en arXiv: [*Making AI Compliance Evidence Machine-Readable*](https://arxiv.org/abs/2604.13767) (Cilla Ugarte et al., 2026).
+- [Inicio Rápido](/venturalitica-sdk/es/quickstart/)
+- [Migración a v0.6](/venturalitica-sdk/es/migrating/)
+- [Autoría de Políticas](/venturalitica-sdk/es/guides/policy-authoring/)
+- [Dashboard de Caja de Cristal](/venturalitica-sdk/es/guides/dashboard/)
