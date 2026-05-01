@@ -45,6 +45,17 @@ export default defineConfig({
       },
       sidebar: [
         {
+          label: 'Concepts',
+          translations: { es: 'Conceptos', pt: 'Conceitos' },
+          items: [
+            {
+              slug: 'concepts/compliance-by-design',
+              label: 'Compliance by Design',
+              translations: { es: 'Compliance by Design' },
+            },
+          ],
+        },
+        {
           label: 'Getting Started',
           translations: { es: 'Primeros Pasos', pt: 'Introdução' },
           items: [

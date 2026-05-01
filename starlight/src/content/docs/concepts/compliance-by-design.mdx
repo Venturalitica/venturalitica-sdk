@@ -1,0 +1,110 @@
+---
+title: Compliance by Design
+description: The umbrella concept behind Venturalítica — building AI compliance into the training pipeline, not after it.
+sidebar:
+  label: Compliance by Design
+  order: 10
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Why this term?
+
+> Compliance by Design extends to AI the ex-ante, built-in approach
+> that *Privacy by Design* (GDPR Art. 25) introduced for personal data
+> and that *Security by Design* (ENISA, NIST SSDF) standardised for
+> cybersecurity. **Policy is the input contract of the training run,
+> not a post-hoc checklist.**
+
+Compliance by Design is the design philosophy. Compliance-as-Code is
+the technique that delivers it (executable OSCAL policy, decorators,
+deterministic enforcement). AI Assurance is the deliverable the
+regulator audits (Assessment Results, Annex IV technical
+documentation, evidence bundle).
+
+```text
+Compliance by Design (the why)
+    ↓ enabled by
+Compliance-as-Code (the how)
+    ↓ producing
+AI Assurance (the deliverable)
+```
+
+## Three patterns in the SDK
+
+### 1. Decorator-driven enforcement
+
+`vl.enforce(metrics, policy=…)` runs *inside* the training script, not
+as a downstream audit. A control violation with `severity=block` halts
+the run before the model is registered:
+
+```python
+import venturalitica as vl
+
+with vl.monitor(name="Loan Default Audit"):
+    metrics = pipeline.run(X_train, y_train)
+
+vl.enforce(metrics, policy="assessment_plan.oscal.yaml", strict=True)
+```
+
+Compliance is a function call, not a JIRA ticket.
+
+### 2. OSCAL-first input contract
+
+`vl pull` retrieves the `assessment_plan.oscal.yaml` *before* training
+starts. The policy is the input contract of the run — the training
+script reads its compliance obligations the same way it reads its
+hyperparameter file:
+
+```bash
+vl pull                                    # fetches assessment-plan
+python train.py                            # reads it as input
+```
+
+This inverts the traditional "model first, audit later" workflow.
+
+### 3. Evidence as byproduct
+
+`vl.monitor()` collects evidence (CycloneDX BOM, hardware fingerprint,
+file integrity, AST trace, carbon footprint) as the pipeline runs.
+On completion, the SDK materialises an **OSCAL Assessment Results**
+document, no separate audit pass needed. `vl export-annex-iv` derives
+the Art. 11 narrative from the same evidence:
+
+```bash
+vl export-annex-iv --agentic   # narrative for §1/2/3/5/8/9
+```
+
+The same run produces the model, the assurance evidence, and the
+regulator-facing documentation.
+
+## Regulatory lineage
+
+| Framework | Clause | What it asks for | How CbD answers |
+|---|---|---|---|
+| GDPR | Art. 25 | Data protection by design and by default | Direct precedent — same ex-ante built-in approach |
+| EU AI Act | Art. 9 | Risk management throughout the lifecycle | Decorator-driven enforcement at training time |
+| EU AI Act | Art. 15 | Accuracy, robustness, cybersecurity by design | `enforce()` blocks deployment if thresholds fail |
+| EU AI Act | Annex IV §3 | Monitoring, functioning and control | `vl.monitor()` + Assessment Results |
+| ISO/IEC 42001 | A.6.2.4 | AI impact assessment | OSCAL Assessment Plan before training |
+| ISO/IEC 42001 | A.8.2 | Data quality | Probes + policy controls in the assessment-plan |
+| ISO/IEC 42001 | A.8.3 | System lifecycle | Evidence collected per run, attached to model registry |
+| NIST AI RMF | Govern 1.7 | AI risks integrated into risk management | Compliance contract is the training input |
+
+## Why this matters for v0.6.0
+
+v0.6.0 unifies all OSCAL emission into a single `assessment-plan`
+envelope (see [Migrating to v0.6](/venturalitica-sdk/migrating/) and the [normative
+contract](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/contracts/oscal-assessment-plan-v1.md)).
+That single envelope is what makes Compliance by Design tractable:
+**one document** in, **one document** out — both in the same OSCAL
+dialect, both auditable by `vl-fairness-gate` (Rust) and any other
+NIST OSCAL parser.
+
+## Further reading
+
+- arXiv preprint: [*Making AI Compliance Evidence Machine-Readable*](https://arxiv.org/abs/2604.13767) (Cilla Ugarte et al., 2026).
+- [Quickstart](/venturalitica-sdk/quickstart/)
+- [Migrating to v0.6](/venturalitica-sdk/migrating/)
+- [Policy Authoring](/venturalitica-sdk/guides/policy-authoring/)
+- [Glass Box Dashboard](/venturalitica-sdk/guides/dashboard/)

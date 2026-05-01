@@ -8,7 +8,9 @@
 
 > 📄 **Companion to the arXiv preprint** *[Making AI Compliance Evidence Machine-Readable](https://arxiv.org/abs/2604.13767)* (Cilla Ugarte et al., 2026). See [`CITATION.cff`](./CITATION.cff) and the [normative OSCAL contract](./docs/contracts/oscal-assessment-plan-v1.md).
 
-**Frictionless Governance for AI Systems.**
+**Compliance by Design — AI Assurance through Compliance-as-Code.**
+
+Frictionless Governance for AI Systems.
 
 The Venturalítica SDK enables Data Scientists and ML Engineers to integrate compliance and risk management directly into their training workflows. Built on the **OSCAL** (Open Security Controls Assessment Language) standard, it provides semantic policy enforcement with educational audit trails.
 
