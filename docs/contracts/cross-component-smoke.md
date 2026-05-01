@@ -1,6 +1,6 @@
 # Cross-component smoke — paper Listing 1 envelope
 
-The OSCAL `assessment-plan` envelope from the IEEE Computer 2026 paper
+The OSCAL `assessment-plan` envelope from the arXiv preprint (arXiv:2604.13767)
 (Listing 1) is consumed by three components. This document describes how
 to verify they all stay in lock-step against the canonical fixture and
 against each other.
@@ -144,7 +144,7 @@ Add to your release checklist before tagging:
 - Normative spec: `docs/contracts/oscal-assessment-plan-v1.md` at the
   integration-repo root (shared by SaaS, SDK and Proxy).
 - Paper Listing 1: `docs/papers/ieee-computer-2026/main.tex`
-  (root repo, not the SDK submodule).
+  (root repo, not the SDK submodule) — arXiv preprint: https://arxiv.org/abs/2604.13767.
 - Companion CHANGELOG entry: `packages/venturalitica-sdk/CHANGELOG.md`
   v0.6.0.
 - Integration contract enforcement note: project root `CLAUDE.md`,

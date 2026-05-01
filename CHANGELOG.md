@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 Replaces the split `model_policy` / `data_policy` SSP emission with a single
 `assessment-plan` document covering every AssuranceMeasure the SaaS
-declares. Matches the IEEE Computer paper's Listing 1 verbatim.
+declares. Matches Listing 1 of the arXiv preprint *Making AI Compliance Evidence Machine-Readable* (Cilla Ugarte et al., 2026, arXiv:2604.13767) verbatim.
 
 **Breaking changes** (no backward-compat shims):
 - `vl pull` now writes `assessment_plan.oscal.yaml` as the source of

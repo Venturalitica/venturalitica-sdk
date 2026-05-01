@@ -2,7 +2,7 @@
 
 **Status:** normative (non-negotiable).
 **Applies to:** SaaS emitters (`src/app/actions/declare-conformity.ts`, `src/lib/oscal/mapper.ts`, `src/app/api/pull/route.ts`), SDK emit/parse (`packages/venturalitica-sdk/src/venturalitica/cli/sync.py`, `venturalitica/oscal/*`), Rust parser (`vl-fairness-gate/src/oscal/parser.rs`), pathfinder fixtures, policy templates.
-**Source:** IEEE Computer 2026 paper Listing 1 (§5 + §6), root-level `CLAUDE.md` OSCAL Policy Format section.
+**Source:** arXiv preprint *Making AI Compliance Evidence Machine-Readable* ([arXiv:2604.13767](https://arxiv.org/abs/2604.13767)) Listing 1 (§5 + §6), root-level `CLAUDE.md` OSCAL Policy Format section.
 **Invariants:**
 1. Only `assessment-plan` is emitted or round-tripped internally.
 2. The Rust parser still accepts `system-security-plan` for externally-authored policies, but no in-tree code emits it.
