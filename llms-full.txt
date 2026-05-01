@@ -2876,7 +2876,7 @@ Update CI scripts that read OSCAL artefacts to point at `.venturalitica/assessme
 [Section titled “References”](#references)
 
 * Normative spec: [`oscal-assessment-plan-v1.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/contracts/oscal-assessment-plan-v1.md)
-* Cross-component smoke: [`cross-component-smoke.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/contracts/cross-component-smoke.md)
+* Internal cross-component smoke runbook: [`cross-component-smoke.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/docs/development/cross-component-smoke.md)
 * v0.6.0 changelog: [`CHANGELOG.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/CHANGELOG.md)
 * v0.6.0 release notes: [`RELEASE_NOTES.md`](https://github.com/Venturalitica/venturalitica-sdk/blob/main/RELEASE_NOTES.md)
 
