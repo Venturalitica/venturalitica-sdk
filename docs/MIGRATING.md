@@ -78,6 +78,6 @@ Update CI scripts that read OSCAL artefacts to point at
 ## References
 
 - Normative spec: [`docs/contracts/oscal-assessment-plan-v1.md`](./contracts/oscal-assessment-plan-v1.md)
-- Cross-component smoke: [`docs/contracts/cross-component-smoke.md`](./contracts/cross-component-smoke.md)
+- Internal cross-component smoke runbook: [`docs/development/cross-component-smoke.md`](./development/cross-component-smoke.md)
 - v0.6.0 changelog: [`CHANGELOG.md`](../CHANGELOG.md)
 - v0.6.0 release notes: [`RELEASE_NOTES.md`](../RELEASE_NOTES.md)

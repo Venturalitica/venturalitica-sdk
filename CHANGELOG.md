@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.2] - 2026-05-01
+
+### Changed (docs only — no code changes vs 0.6.1)
+- `docs/contracts/oscal-assessment-plan-v1.md` is now implementation-agnostic. The previous draft referenced internal Venturalítica file paths (`vl-fairness-gate/src/oscal/parser.rs`, `pathfinder`, specific SaaS source files); the contract is normative for **any** OSCAL Assessment Plan producer/consumer and should not enumerate specific implementations.
+- The internal cross-component smoke procedure moved from `docs/contracts/cross-component-smoke.md` to `docs/development/cross-component-smoke.md`. It documents the smoke runbook for the Venturalítica SaaS, SDK and Rust proxy and is **not** part of the public contract.
+
+### Why this hotfix
+A user-reported issue against v0.6.1: the normative OSCAL contract spec (`oscal-assessment-plan-v1.md`) was tied to specific internal component paths (`vl-fairness-gate`, internal SaaS source). A normative contract must be implementation-agnostic so that third-party OSCAL parsers can implement it without depending on Venturalítica internals. v0.6.2 generalises the prose; the 16 props, the envelope shape, the canonicalisation rules and every other normative invariant are unchanged.
+
 ## [0.6.1] - 2026-05-01
 
 ### Added
@@ -67,7 +76,7 @@ and forbidden shortcuts.
 - `.pre-commit-config.yaml` added: ruff + standard hygiene hooks (trailing whitespace, EOL, YAML/TOML/large-file checks).
 - CI coverage floor enforced at 70 % in `.github/workflows/ci.yml` (measured baseline: 84 %).
 - Coverage badge in README refreshed to 84 % (brightgreen).
-- Cross-component smoke procedure documented in `docs/contracts/cross-component-smoke.md` (SDK Python ↔ SaaS TS ↔ Proxy Rust against the canonical fixture).
+- Cross-component smoke runbook documented in `docs/development/cross-component-smoke.md` (internal procedure for verifying the canonical fixture against the Venturalítica SaaS, SDK and Rust proxy).
 - Starlight reference/api.mdx (EN+ES) synchronised with the v0.6.0 public API surface (`enforce`, `monitor`, `wrap`, `quickstart`, `PolicyManager`).
 
 ### Concept
