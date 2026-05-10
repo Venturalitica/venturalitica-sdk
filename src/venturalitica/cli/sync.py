@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Optional
 
 import requests
 import typer
@@ -11,7 +12,18 @@ from .common import SAAS_URL, app, console, get_config_path
 
 @app.command()
 @track_command("pull")
-def pull():
+def pull(
+    system: Optional[str] = typer.Option(
+        None,
+        "--system",
+        help=(
+            "AI system slug to pull the assessment-plan for. Required when "
+            "authenticating with a PAT (vl_pat_…); legacy AISystemAPIKey is "
+            "already bound to one system so this can be omitted. Falls back "
+            "to credentials.json default_system when not provided."
+        ),
+    ),
+):
     """
     Pulls assurance policies and objectives from the SaaS.
     """
@@ -27,14 +39,26 @@ def pull():
     with open(creds_path, "r") as f:
         creds = json.load(f)
 
+    is_pat = creds.get("kind") == "pat" or str(creds.get("key", "")).startswith("vl_pat_")
+    target_system = system or creds.get("default_system")
+    if is_pat and not target_system:
+        console.print(
+            "[bold red]PAT pull requires a target system.[/bold red] Pass "
+            "--system <slug> or set a default_system at login time."
+        )
+        raise typer.Exit(code=1)
+
     try:
         # Pull the canonical OSCAL assessment-plan (single dialect — see
         # docs/contracts/oscal-assessment-plan-v1.md). No more split
         # model/data SSPs: one document carries every implemented-
         # requirement tagged with lifecycle_phase + target_type so the
         # SDK can filter locally for each consumer.
+        url = f"{SAAS_URL}/api/pull?format=oscal"
+        if target_system:
+            url += f"&system={target_system}"
         response = requests.get(
-            f"{SAAS_URL}/api/pull?format=oscal",
+            url,
             headers={"Authorization": f"Bearer {creds['key']}"},
         )
         response.raise_for_status()
