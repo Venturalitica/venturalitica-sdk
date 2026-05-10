@@ -39,14 +39,11 @@ def pull(
     with open(creds_path, "r") as f:
         creds = json.load(f)
 
-    is_pat = creds.get("kind") == "pat" or str(creds.get("key", "")).startswith("vl_pat_")
+    # 1-token-1-system tokens carry the target inside their scope; the
+    # SaaS auto-derives it. Multi-system tokens (rare) require explicit
+    # disambiguation — fall through and let the SaaS surface the 400
+    # with the granted scopes for clarity.
     target_system = system or creds.get("default_system")
-    if is_pat and not target_system:
-        console.print(
-            "[bold red]PAT pull requires a target system.[/bold red] Pass "
-            "--system <slug> or set a default_system at login time."
-        )
-        raise typer.Exit(code=1)
 
     try:
         # Pull the canonical OSCAL assessment-plan (single dialect — see
