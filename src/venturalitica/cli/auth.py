@@ -51,21 +51,28 @@ def login_pat(
     org: Optional[str] = typer.Option(
         None,
         "--org",
-        help="Default organization slug. Pull/push commands use this when --system is omitted.",
+        help="Organization slug the token belongs to.",
     ),
-    default_system: Optional[str] = typer.Option(
+    system: Optional[str] = typer.Option(
         None,
-        "--default-system",
-        help="Default AI system slug for push/pull when --system is not provided.",
+        "--system",
+        help=(
+            "AI system slug the token targets. Recorded so push/pull "
+            "have a default target without explicit flags. The SaaS "
+            "auto-derives this from the token's scopes when omitted, "
+            "but stamping it locally lets the SDK fail fast with a "
+            "clear message if the user typos a system name."
+        ),
     ),
 ):
     """
     Stores a Personal Access Token (PAT) for SDK auth. The token is
     sent on every push/pull as ``Authorization: Bearer <key>``.
 
-    Generate a token from the SaaS UI at /profile/tokens. PATs are
-    user+org scoped and carry per-system permissions via scopes; one
-    token can cover any number of AI systems within a single org.
+    Canonical model: one token == one AI system. Generate the token
+    from /profile/tokens in the SaaS UI; the dialog binds it to a
+    single AI system via the `ai:system:<slug>` scope so push and
+    pull can run with no extra flags.
     """
     if not key.startswith("vl_pat_"):
         console.print(
@@ -81,14 +88,17 @@ def login_pat(
     }
     if org:
         payload["org"] = org
-    if default_system:
-        payload["default_system"] = default_system
+    if system:
+        # Stored under both keys so existing readers (sync.py default
+        # fallback) and human-friendly inspection both work.
+        payload["system"] = system
+        payload["default_system"] = system
 
     with open(creds_path, "w") as f:
         json.dump(payload, f)
 
     console.print(
         f"[bold green]✓ PAT stored.[/bold green] Org: {org or '(unset)'}, "
-        f"default system: {default_system or '(none)'}"
+        f"system: {system or '(auto-derived from token scopes)'}"
     )
     console.print(f"Key stored in: {creds_path}")
