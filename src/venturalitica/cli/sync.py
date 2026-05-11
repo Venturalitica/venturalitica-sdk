@@ -91,53 +91,6 @@ def pull(
         with open(".venturalitica/policy.oscal.json", "w") as f:
             json.dump(oscal_doc, f, indent=2)
 
-        # …and emit two backwards-compatible filtered views keyed on
-        # target_type so legacy trainers that still read model_policy /
-        # data_policy paths keep working for one release.
-        def _requirements_by_target(target: str):
-            out = []
-            for req in all_requirements:
-                for p in req.get("props", []) or []:
-                    if p.get("name") == "target_type" and p.get("value") in (
-                        target,
-                        "system_and_dataset" if target == "system" else None,
-                    ):
-                        out.append(req)
-                        break
-            return out
-
-        model_reqs = _requirements_by_target("system")
-        data_reqs = [
-            req
-            for req in all_requirements
-            if any(
-                p.get("name") == "target_type" and p.get("value") in ("dataset", "system_and_dataset")
-                for p in req.get("props", []) or []
-            )
-        ]
-
-        def _dump_view(path: str, requirements):
-            wrapper = {
-                "assessment-plan": {
-                    **plan,
-                    "control-implementations": [
-                        {
-                            **(impls[0] if impls else {"component-uuid": "derived"}),
-                            "implemented-requirements": requirements,
-                        }
-                    ],
-                }
-            }
-            with open(path, "w") as f:
-                yaml.dump(wrapper, f, sort_keys=False)
-
-        _dump_view("model_policy.oscal.yaml", model_reqs)
-        _dump_view("data_policy.oscal.yaml", data_reqs)
-        console.print(
-            f"  ✓ Filtered views: model_policy.oscal.yaml ({len(model_reqs)}) + "
-            f"data_policy.oscal.yaml ({len(data_reqs)})"
-        )
-
         # Log risk binding status from the new dialect. Each requirement
         # carries a `risk_id` prop that points to the IdentifiedRisk.
         risks_seen = set()
