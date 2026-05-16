@@ -218,7 +218,11 @@ class AssessmentResultsBuilder:
 
         return AssessmentResults(
             metadata=OSCALMetadata(title=title, props=binding_props),
-            import_ap=ImportAP(href=policy_href) if policy_href else None,
+            # NIST OSCAL assessment-results requires import-ap; when no
+            # policy path was provided, emit a fragment-only self-reference
+            # (the SaaS ingester stores the href as opaque metadata and does
+            # not dereference it).
+            import_ap=ImportAP(href=policy_href or "#assessment-plan"),
             results=[oscal_result],
         )
 
