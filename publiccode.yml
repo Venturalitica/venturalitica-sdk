@@ -3,7 +3,7 @@ publiccodeYmlVersion: "0.4"
 name: Venturalitica SDK
 url: "https://github.com/Venturalitica/venturalitica-sdk"
 landingURL: "https://venturalitica.ai"
-softwareVersion: "0.6.4"
+softwareVersion: "0.6.5"
 releaseDate: "2026-05-16"
 
 platforms:

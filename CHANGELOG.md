@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.5] - 2026-05-16
+
+### Fixed
+
+- `venturalitica.assurance.quality.esg_metrics`: the kwargs lookup in `calc_classification_distribution`, `calc_report_coverage`, `calc_chunk_diversity` and `calc_subtitle_diversity` was still keyed on the legacy `input:target` / `input:dimension` names. Under the canonical `input.<slot>` convention shipped in 0.6.4 those lookups silently returned `None` and fell through to the bare `target` / `dimension` kwargs — which works for callers that pass both forms but breaks pipelines that rely on OSCAL-driven binding. Migrated to canonical `input.target` / `input.dimension`.
+- Removed one stale `'input:dimension'` reference from a docstring in `test_quality_metrics.py`.
+
+No API changes; this is a follow-up patch within the 0.6.x line.
+
 ## [0.6.4] - 2026-05-16
 
 ### Breaking changes
