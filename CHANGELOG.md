@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.3] - 2026-05-16
+
+### Changed (wire-compatible hotfix)
+
+- **OSCAL canon migration.** The SDK pull path (`vl pull`) now accepts the canonical NIST OSCAL v1.2.2 **`component-definition`** root as the policy envelope returned by the SaaS, alongside the legacy `assessment-plan` root which keeps working with a deprecation warning. The cached `.venturalitica/policy.oscal.json` reader is symmetric.
+- **Input-binding prop name.** The canonical prefix for input bindings is now **`input.<slot>`** (dot allowed by the NIST `prop.name` regex `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$`). The legacy `input:<slot>` prefix kept failing official schema validation — accepted as a transitional alias in `loader.py` so old policies still load. Helper functions `_is_input_prop` / `_input_slot` collapse the two forms behind the scenes.
+
+### Why this hotfix
+
+A coordinated cross-repo migration in the Venturalítica monorepo replaced the platform's non-canonical OSCAL envelope (`assessment-plan + control-implementations[]`, documented in the IEEE Computer paper "An OSCAL Profile for AI Assurance" Listing 1) with the canonical NIST OSCAL v1.2.2 wire shape. The 16-property AI Assurance profile from Table 1 of the paper is unchanged; only the document wrapper and one prop-name separator changed. See `docs/papers/ieee-computer-2026/ERRATUM.md` for the full corrigendum.
+
+The SaaS side (`venturalitica` repo, commits `8aa5f46a` and the Phase 3 mapper migration) now emits the canonical shape. The Rust fairness gate (`vl-fairness-gate`, commit `24a0334`) accepts the canonical root via SQS. This SDK hotfix closes the loop on the pull path so installed clients continue to work against both the migrated SaaS (canonical) and any unmigrated mirror (legacy).
+
+**Migration guidance** for SDK users:
+- No code changes required. The SDK reads whichever envelope the SaaS happens to return.
+- Re-running `vl pull` after the SaaS upgrade will produce a `policy.oscal.json` with the new shape and the new `input.<slot>` prop names.
+- Custom OSCAL YAML authored locally with `input:<slot>` keeps working; migrate to `input.<slot>` at your convenience for forward-compatibility.
+
 ## [0.6.2] - 2026-05-01
 
 ### Changed (docs only — no code changes vs 0.6.1)

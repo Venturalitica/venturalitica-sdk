@@ -46,11 +46,10 @@ def pull(
     target_system = system or creds.get("default_system")
 
     try:
-        # Pull the canonical OSCAL assessment-plan (single dialect — see
-        # docs/contracts/oscal-assessment-plan-v1.md). No more split
-        # model/data SSPs: one document carries every implemented-
-        # requirement tagged with lifecycle_phase + target_type so the
-        # SDK can filter locally for each consumer.
+        # Pull the canonical NIST OSCAL v1.2.2 `component-definition` document.
+        # See `docs/papers/ieee-computer-2026/ERRATUM.md` (in the
+        # venturalitica monorepo) for the May 2026 migration from the prior
+        # non-canonical `assessment-plan + control-implementations[]` shape.
         url = f"{SAAS_URL}/api/pull?format=oscal"
         if target_system:
             url += f"&system={target_system}"
@@ -61,15 +60,33 @@ def pull(
         response.raise_for_status()
         oscal_doc = response.json()
 
-        plan = oscal_doc.get("assessment-plan")
-        if not plan:
-            raise ValueError(
-                "SaaS did not return an assessment-plan root — expected the "
-                "canonical OSCAL dialect per docs/contracts/oscal-assessment-plan-v1.md. "
-                "Check the SaaS version (>= v0.6.0)."
+        # Accept both canonical (`component-definition`) and legacy
+        # (`assessment-plan`) roots during the transition window. Legacy
+        # carries `control-implementations[]` directly under the root; the
+        # new shape nests them under `components[]`.
+        cd = oscal_doc.get("component-definition")
+        if cd:
+            impls = [
+                impl
+                for component in (cd.get("components") or [])
+                for impl in (component.get("control-implementations") or [])
+            ]
+        else:
+            ap = oscal_doc.get("assessment-plan")
+            if not ap:
+                raise ValueError(
+                    "SaaS did not return a `component-definition` root — "
+                    "expected the canonical NIST OSCAL v1.2.2 envelope. "
+                    "Check that the SaaS is on the May 2026 migration "
+                    "(commit cd62efc2 or later). See "
+                    "`docs/papers/ieee-computer-2026/ERRATUM.md`."
+                )
+            console.print(
+                "  [yellow]⚠ SaaS returned the deprecated `assessment-plan` "
+                "envelope. Upgrade SaaS to the May 2026 migration.[/yellow]"
             )
+            impls = ap.get("control-implementations", []) or []
 
-        impls = plan.get("control-implementations", []) or []
         all_requirements = [
             req
             for impl in impls
@@ -91,15 +108,15 @@ def pull(
         with open(".venturalitica/policy.oscal.json", "w") as f:
             json.dump(oscal_doc, f, indent=2)
 
-        # Log risk binding status from the new dialect. Each requirement
-        # carries a `risk_id` prop that points to the IdentifiedRisk.
+        # Log risk binding status. Each requirement carries a `risk_id`
+        # prop that points to the IdentifiedRisk.
         risks_seen = set()
         for req in all_requirements:
             for p in req.get("props", []) or []:
                 if p.get("name") == "risk_id" and p.get("value"):
                     risks_seen.add(p["value"])
         console.print(
-            f"  Risks referenced by assessment-plan: {len(risks_seen)}"
+            f"  Risks referenced by policy: {len(risks_seen)}"
         )
 
         # Also pull general config for display/verification

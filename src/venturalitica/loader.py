@@ -20,6 +20,27 @@ PROFILE_PROPERTY_NAMES = frozenset({
     "stakeholder_consultation_ref",
 })
 
+# Input-binding prefix. The canonical form is `input.` (dot allowed by the
+# NIST OSCAL `prop.name` regex `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$`). The
+# legacy form `input:` was non-canonical and fails official schema
+# validation. The SDK accepts both during the transition window; the SaaS
+# emitter has migrated to `input.` since the May 2026 OSCAL canon
+# migration. See `docs/papers/ieee-computer-2026/ERRATUM.md`.
+_INPUT_PREFIXES = ("input.", "input:")
+
+
+def _is_input_prop(name: str) -> bool:
+    """Return True if a prop name encodes an input-binding slot."""
+    return any(name.startswith(p) for p in _INPUT_PREFIXES)
+
+
+def _input_slot(name: str) -> str:
+    """Extract the slot name from an `input.<slot>` or `input:<slot>` prop name."""
+    for p in _INPUT_PREFIXES:
+        if name.startswith(p):
+            return name[len(p):]
+    raise ValueError(f"Not an input-binding prop name: {name!r}")
+
 
 class OSCALPolicyLoader:
     def __init__(self, policy_source: Union[str, Path, Dict[str, Any]]):
@@ -150,8 +171,8 @@ class OSCALPolicyLoader:
                 # Map 'metric' to 'metric_key' for compatibility
                 key = "metric_key" if name == "metric" else name
                 direct_props[key] = value
-            elif name.startswith("input:"):
-                role = name.split(":", 1)[1]
+            elif _is_input_prop(name):
+                role = _input_slot(name)
                 if "input_mapping" not in direct_props:
                     direct_props["input_mapping"] = {}
                 direct_props["input_mapping"][role] = value
@@ -209,7 +230,7 @@ class OSCALPolicyLoader:
                         inventory_metadata = dict(metadata)
                         params = {}
                         for k, v in m_def.items():
-                            if k.startswith("input:") or k in ("metric_key", "threshold", "operator"):
+                            if _is_input_prop(k) or k in ("metric_key", "threshold", "operator"):
                                 continue
                             if k in PROFILE_PROPERTY_NAMES or k == "severity":
                                 inventory_metadata[k] = v
@@ -224,9 +245,9 @@ class OSCALPolicyLoader:
                                 threshold=float(m_def.get("threshold", 0.0)),
                                 operator=m_def.get("operator", "=="),
                                 input_mapping={
-                                    k.split(":", 1)[1]: v
+                                    _input_slot(k): v
                                     for k, v in m_def.items()
-                                    if k.startswith("input:")
+                                    if _is_input_prop(k)
                                 },
                                 params=params,
                                 metadata=inventory_metadata,
@@ -248,7 +269,7 @@ class OSCALPolicyLoader:
             catalog_metadata: Dict[str, Any] = {}
             params: Dict[str, Any] = {}
             for k, v in props.items():
-                if k.startswith("input:") or k in ("metric_key", "threshold", "operator"):
+                if _is_input_prop(k) or k in ("metric_key", "threshold", "operator"):
                     continue
                 if k in PROFILE_PROPERTY_NAMES or k == "severity":
                     catalog_metadata[k] = v
@@ -263,9 +284,9 @@ class OSCALPolicyLoader:
                     threshold=float(props.get("threshold", 0.0)),
                     operator=props.get("operator", "=="),
                     input_mapping={
-                        k.split(":", 1)[1]: v
+                        _input_slot(k): v
                         for k, v in props.items()
-                        if k.startswith("input:")
+                        if _is_input_prop(k)
                     },
                     params=params,
                     metadata=catalog_metadata,
