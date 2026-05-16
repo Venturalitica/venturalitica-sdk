@@ -169,7 +169,7 @@ class TestCalcGroupMinPositiveRate:
             calc_group_min_positive_rate(df, dimension="dim")
 
     def test_input_dimension_kwarg(self):
-        """Accepts 'input:dimension' kwarg alias."""
+        """Accepts 'input.dimension' kwarg alias."""
         df = pd.DataFrame(
             {
                 "target": [1, 0, 1, 0],
