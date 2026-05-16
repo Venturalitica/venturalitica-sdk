@@ -1,83 +1,119 @@
-# Migrating to v0.6.0
+# Migrating to v0.6.4
 
-Companion to the arXiv preprint *Making AI Compliance Evidence Machine-Readable* ([Cilla Ugarte et al., 2026](https://arxiv.org/abs/2604.13767)).
+Companion to the IEEE Computer paper *"An OSCAL Profile for AI Assurance"*. Listing 1 of the paper is corrected in `docs/papers/ieee-computer-2026/ERRATUM.md` (venturalitica monorepo) — the substantive 16-property AI Assurance profile is unchanged; only the document wrapper is now canonical NIST OSCAL v1.2.2.
 
 ## Why this version
 
-Single-document OSCAL: every AssuranceMeasure now lives in one
-`assessment-plan` envelope, matching the paper's Listing 1. The split
-emission of `model_policy.oscal.yaml` + `data_policy.oscal.yaml` is
-deprecated; `assessment_plan.oscal.yaml` is the new source of truth.
+The platform produces and consumes **canonical NIST OSCAL v1.2.2** wherever it serialises an OSCAL document:
 
-## Breaking changes
+| Direction | Envelope |
+|---|---|
+| SaaS → SQS → fairness gate (policy descriptor) | **`component-definition`** |
+| SaaS → SDK `vl pull` (policy descriptor) | **`component-definition`** |
+| SDK `vl push` → SaaS `/api/push` (evidence) | **`assessment-results`** |
 
-### 1. `OSCALMapper.toMultiSSP / toSSP / buildSSP` removed
+Both envelopes validate against the official NIST schemas vendored in `venturalitica/packages/oscal-types/schemas/v1.2.2/`. Every emitter calls `validateComponentDefinition` / `validateAssessmentResults` from `@venturalitica/oscal-types` before sending; every consumer calls the same on receipt. Schema-invalid documents never cross a process boundary.
 
-**Before (v0.5):**
+The prior non-canonical envelope (`assessment-plan + control-implementations[]`, used through April 2026) is **no longer accepted** anywhere in the platform.
 
-```python
-mapper = OSCALMapper()
-docs = mapper.toMultiSSP(ai_system)
-ssp = mapper.toSSP(ai_system, target_type="model")
+## Breaking changes (0.6.4)
+
+### 1. Pulled policy envelope is `component-definition`
+
+`vl pull` now requires the SaaS to return:
+
+```yaml
+component-definition:
+  uuid: <uuid-v5>
+  metadata:
+    title: ...
+    last-modified: <iso8601>
+    version: "1"
+    oscal-version: "1.2.2"
+  components:
+    - uuid: <uuid-v5>
+      type: software
+      title: <ai-system-slug> v<version>
+      description: ...
+      control-implementations:
+        - uuid: <uuid-v5>
+          source: "#vl-ai-assurance-profile-2026"
+          description: ...
+          implemented-requirements:
+            - uuid: <uuid-v5>
+              control-id: ...
+              description: ...
+              props: [ ... 16 AI Assurance props ... ]
 ```
 
-**After (v0.6):**
+Legacy `assessment-plan + control-implementations[]` responses raise `ValueError` immediately.
 
-```python
-from venturalitica.oscal import build_assessment_plan
+### 2. Input-binding prop names use `.` (not `:`)
 
-plan = build_assessment_plan(ai_system)
+NIST `prop.name` regex `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$` rejects `:`. The canonical form is `input.<slot>`:
+
+```yaml
+props:
+  - { name: input.target,    value: y_true }
+  - { name: input.prediction, value: y_pred }
+  - { name: input.dimension, value: gender }
 ```
 
-The `OSCALMapper.toAssessmentPlan(ai_system, options?)` method is also
-available if you prefer the class form.
+The SDK loader, `cli/sync.py`, and the quality-metric kwargs (`calc_class_imbalance`, `calc_group_min_positive_rate`, `calc_provenance_completeness`) all read `input.<slot>` only.
 
-### 2. `model_policy.oscal.yaml` / `data_policy.oscal.yaml` deprecated
+### 3. SDK loader root keys
 
-`vl pull` still emits these files for **one release** as filtered views
-of `assessment_plan.oscal.yaml`, but they are no longer authoritative.
-Update any tooling that parses the legacy files to read the unified one
-instead.
+`OSCALPolicyLoader` accepts canonical NIST roots only:
 
-### 3. `system-security-plan` no longer emitted internally
+- `catalog`
+- `profile`
+- `component-definition`
+- `system-security-plan`
 
-The SaaS and SDK no longer produce `system-security-plan` documents.
-The `vl-fairness-gate` (Rust proxy) parser still accepts SSPs from
-external, customer-authored policies for backwards compatibility.
+The non-canonical `assessment-plan + control-implementations[]` root is rejected.
 
-## New features (in scope of the paper)
+### 4. UUIDs in emitted OSCAL are RFC 4122 v5 (not prefixed cuids)
 
-### `vl export-annex-iv --agentic`
-
-Generates the narrative sections of EU AI Act Annex IV (Article 11)
-through a local Ollama model (default `mistral`) or Mistral managed
-(`--provider cloud`). Sections §4 (performance metrics), §6 (POA&M)
-and §7 (standards) remain deterministically derived from OSCAL
-Assessment Results — never overwritten by the LLM.
-
-```bash
-vl export-annex-iv --agentic                     # local Ollama
-vl export-annex-iv --agentic --provider cloud    # Mistral managed
-vl export-annex-iv --agentic --force-regenerate  # bypass cache
-```
-
-The cache lives at `.venturalitica/annex_iv.cache.json` and is keyed on
-`(language, model, run_id, policy_hash)`.
+Every `uuid` field in documents the SaaS emits is a **deterministic UUID v5** derived from the source identifier via a fixed Venturalítica namespace. Same input → same UUID across runs, so external systems can correlate documents over time.
 
 ## Recommended upgrade steps
 
 ```bash
-pip install --upgrade venturalitica==0.6.0
-rm -f .venturalitica/model_policy.oscal.yaml .venturalitica/data_policy.oscal.yaml
-vl pull                       # regenerates assessment_plan.oscal.yaml
+pip install --upgrade venturalitica==0.6.4
+rm -f .venturalitica/policy.oscal.json     # cached legacy envelope
+rm -f .venturalitica/model_policy.oscal.yaml .venturalitica/data_policy.oscal.yaml  # if any
+vl pull                                    # fetches canonical component-definition
 ```
 
-Update CI scripts that read OSCAL artefacts to point at
-`.venturalitica/assessment_plan.oscal.yaml`.
+Update any tooling that parses local OSCAL artefacts:
+
+- `assessment_plan.oscal.yaml` still exists as the cached file name (preserved for back-compat with shell scripts that look it up by name) but its **contents** are now a `component-definition` envelope.
+- `.venturalitica/policy.oscal.json` is the JSON twin.
+
+## Authoring custom policy YAMLs
+
+If you hand-write `.oscal.yaml` files (instead of pulling from the SaaS), use a canonical NIST root. The simplest shape:
+
+```yaml
+component-definition:
+  metadata:
+    title: My policy
+    version: "1"
+  components:
+    - control-implementations:
+        - implemented-requirements:
+            - control-id: my-control
+              props:
+                - { name: metric_key, value: accuracy_score }
+                - { name: threshold,  value: "0.85" }
+                - { name: operator,   value: ">=" }
+                - { name: input.target,    value: y_true }
+                - { name: input.prediction, value: y_pred }
+```
 
 ## References
 
-- Normative spec: [`docs/contracts/oscal-assessment-plan-v1.md`](./contracts/oscal-assessment-plan-v1.md)
-- Internal cross-component smoke runbook: [`docs/development/cross-component-smoke.md`](./development/cross-component-smoke.md)
-- v0.6.0 changelog: [`CHANGELOG.md`](../CHANGELOG.md)
-- v0.6.0 release notes: [`RELEASE_NOTES.md`](../RELEASE_NOTES.md)
+- Live contract: `CLAUDE.md` *"OSCAL Policy Format (non-negotiable)"* in the venturalitica monorepo.
+- Corrigendum to IEEE Computer Listing 1: `docs/papers/ieee-computer-2026/ERRATUM.md`.
+- Vendored NIST schemas + TS types: `venturalitica/packages/oscal-types/`.
+- Changelog: [`CHANGELOG.md`](../CHANGELOG.md).
