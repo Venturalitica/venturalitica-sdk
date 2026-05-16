@@ -17,7 +17,7 @@ class TraceProbe(BaseProbe):
     """
 
     def __init__(self, run_name: str = "default", label: Optional[str] = None):
-        super().__init__("Audit Trace")
+        super().__init__("trace")
         self.run_name = run_name
         self.label = label
         self.start_time: Optional[datetime] = None

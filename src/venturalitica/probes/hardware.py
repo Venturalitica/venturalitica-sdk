@@ -10,7 +10,7 @@ class HardwareProbe(BaseProbe):
     """
 
     def __init__(self):
-        super().__init__("Hardware Telemetry")
+        super().__init__("hardware")
         self.start_time = 0
         self.peak_memory = 0
 

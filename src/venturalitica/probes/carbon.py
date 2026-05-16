@@ -9,7 +9,7 @@ class CarbonProbe(BaseProbe):
     """
 
     def __init__(self):
-        super().__init__("Green AI")
+        super().__init__("carbon")
         self.tracker = None
 
     def start(self):

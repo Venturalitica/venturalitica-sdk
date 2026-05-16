@@ -14,7 +14,7 @@ class BOMProbe(BaseProbe):
     """
 
     def __init__(self, target_dir: str = "."):
-        super().__init__("Software Supply Chain")
+        super().__init__("bom")
         self.target_dir = target_dir
 
     def start(self):
