@@ -169,17 +169,27 @@ def _generate_oscal_artifacts(
         if policy_path.exists():
             try:
                 with open(policy_path, "r") as f:
-                    ap_doc = json.load(f)
-                ap_root = ap_doc.get("assessment-plan", ap_doc)
-                for p in (ap_root.get("metadata", {}).get("props", []) or []):
+                    policy_doc = json.load(f)
+                # Accept both canonical (`component-definition`) and legacy
+                # (`assessment-plan`) roots. The tenant-binding props
+                # (`ai-system-uuid`, `ai-system-version-uuid`) live on
+                # `metadata.props[]` in both shapes — the SaaS mapper
+                # carries them across the migration. See
+                # `docs/papers/ieee-computer-2026/ERRATUM.md` for context.
+                doc_root = (
+                    policy_doc.get("component-definition")
+                    or policy_doc.get("assessment-plan")
+                    or policy_doc
+                )
+                for p in (doc_root.get("metadata", {}).get("props", []) or []):
                     if p.get("name") == "ai-system-uuid":
                         ai_system_uuid = str(p.get("value", ""))
                     elif p.get("name") == "ai-system-version-uuid":
                         ai_system_version_uuid = str(p.get("value", ""))
             except Exception:
-                # Best-effort — if the AP doc is malformed, fall through
-                # with empty binding props; platform will log a deprecation
-                # warning and use the legacy resolver.
+                # Best-effort — if the policy doc is malformed, fall
+                # through with empty binding props; platform will log a
+                # deprecation warning and use the legacy resolver.
                 pass
 
         # Build OSCAL Assessment Results
