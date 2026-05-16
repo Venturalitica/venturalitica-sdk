@@ -13,7 +13,7 @@ from venturalitica.models import InternalControl, InternalPolicy
 @pytest.fixture
 def mock_policy_file():
     policy_data = {
-        "assessment-plan": {
+        "component-definition": {
             "metadata": {"title": "Test Policy"},
             "local-definitions": {
                 "inventory-items": [
@@ -23,8 +23,8 @@ def mock_policy_file():
                             {"name": "metric_key", "value": "accuracy_score"},
                             {"name": "threshold", "value": "0.8"},
                             {"name": "operator", "value": ">="},
-                            {"name": "input:target", "value": "target"},
-                            {"name": "input:prediction", "value": "prediction"},
+                            {"name": "input.target", "value": "target"},
+                            {"name": "input.prediction", "value": "prediction"},
                         ],
                     },
                     {
@@ -33,23 +33,27 @@ def mock_policy_file():
                             {"name": "metric_key", "value": "disparate_impact"},
                             {"name": "threshold", "value": "0.8"},
                             {"name": "operator", "value": ">"},  # > 0.8 is good
-                            {"name": "input:target", "value": "target"},
-                            {"name": "input:prediction", "value": "prediction"},
-                            {"name": "input:dimension", "value": "sensitive"},
+                            {"name": "input.target", "value": "target"},
+                            {"name": "input.prediction", "value": "prediction"},
+                            {"name": "input.dimension", "value": "sensitive"},
                         ],
                     },
                 ]
             },
-            "control-implementations": [
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "C1",
-                            "description": "High Accuracy",
-                            "props": [{"name": "severity", "value": "high"}],
-                            "links": [{"href": "#m1"}],
-                        },
-                        {"control-id": "C2", "links": [{"href": "#m2"}]},
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "C1",
+                                    "description": "High Accuracy",
+                                    "props": [{"name": "severity", "value": "high"}],
+                                    "links": [{"href": "#m1"}],
+                                },
+                                {"control-id": "C2", "links": [{"href": "#m2"}]},
+                            ]
+                        }
                     ]
                 }
             ],
@@ -226,29 +230,31 @@ def test_evaluate_missing_metric(mock_policy_file):
 def test_core_resolve_col_names_synonyms(tmp_path):
     # This targets core.py resolve_col_names and loader.py branches
     policy_dict = {
-        "assessment-plan": {
-            "reviewed-controls": {
-                "control-implementations": [
-                    {
-                        "implemented-requirements": [
-                            {
-                                "control-id": "AC-1",
-                                "description": "Accuracy check",
-                                "props": [
-                                    {"name": "metric_key", "value": "accuracy_score"},
-                                    {"name": "threshold", "value": "0.5"},
-                                    {"name": "operator", "value": "ge"},
-                                    {"name": "input:target", "value": "class"},
-                                    {
-                                        "name": "input:dimension",
-                                        "value": "gender",
-                                    },  # gender -> Attribute9
-                                ],
-                            }
-                        ]
-                    }
-                ]
-            }
+        "component-definition": {
+            "components": [
+                {
+                    "control-implementations": [
+                        {
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "AC-1",
+                                    "description": "Accuracy check",
+                                    "props": [
+                                        {"name": "metric_key", "value": "accuracy_score"},
+                                        {"name": "threshold", "value": "0.5"},
+                                        {"name": "operator", "value": "ge"},
+                                        {"name": "input.target", "value": "class"},
+                                        {
+                                            "name": "input.dimension",
+                                            "value": "gender",
+                                        },  # gender -> Attribute9
+                                    ],
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     }
 
@@ -277,18 +283,22 @@ def test_core_results_processing():
 
     # Test with a simple dict policy using standard hyphenated keys
     policy_data = {
-        "assessment-plan": {
-            "control-implementations": [
+        "component-definition": {
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "AC-1",
-                            "description": "Accuracy test",
-                            "props": [
-                                {"name": "metric", "value": "accuracy_score"},
-                                {"name": "threshold", "value": "0.5"},
-                                {"name": "operator", "value": "ge"},
-                            ],
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "AC-1",
+                                    "description": "Accuracy test",
+                                    "props": [
+                                        {"name": "metric", "value": "accuracy_score"},
+                                        {"name": "threshold", "value": "0.5"},
+                                        {"name": "operator", "value": "ge"},
+                                    ],
+                                }
+                            ]
                         }
                     ]
                 }
@@ -369,18 +379,22 @@ def test_load_policy_from_dict(monkeypatch):
     monkeypatch.delenv("VENTURALITICA_STRICT", raising=False)
 
     policy_dict = {
-        "assessment-plan": {
-            "control-implementations": [
+        "component-definition": {
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "DD-1",
-                            "description": "Dict-based control",
-                            "props": [
-                                {"name": "metric_key", "value": "accuracy_score"},
-                                {"name": "threshold", "value": "0.7"},
-                                {"name": "operator", "value": "ge"},
-                            ],
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "DD-1",
+                                    "description": "Dict-based control",
+                                    "props": [
+                                        {"name": "metric_key", "value": "accuracy_score"},
+                                        {"name": "threshold", "value": "0.7"},
+                                        {"name": "operator", "value": "ge"},
+                                    ],
+                                }
+                            ]
                         }
                     ]
                 }

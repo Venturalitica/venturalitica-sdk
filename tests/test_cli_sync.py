@@ -1,8 +1,7 @@
-"""CLI sync tests post-OSCAL unification.
+"""CLI sync tests.
 
-The SaaS now returns a single `assessment-plan` root per the canonical
-v1 contract (docs/contracts/oscal-assessment-plan-v1.md). The legacy
-`{model: ssp, data: ssp}` envelope is gone.
+The SaaS returns a canonical NIST OSCAL v1.2.2 `component-definition`
+document on `/api/pull?format=oscal`.
 """
 from __future__ import annotations
 
@@ -38,14 +37,28 @@ def _requirement(uuid: str, *, target_type: str = "system", risk_id: Optional[st
 
 def _make_oscal(requirements):
     return {
-        "assessment-plan": {
-            "uuid": "plan-uuid",
-            "metadata": {"title": "Test Plan", "oscal-version": "1.1.2"},
-            "control-implementations": [
+        "component-definition": {
+            "uuid": "145d61f3-b2d4-51ec-998a-dec9d24c6ab2",
+            "metadata": {
+                "title": "Test Policy",
+                "last-modified": "2026-05-16T10:00:00.000Z",
+                "version": "1",
+                "oscal-version": "1.2.2",
+            },
+            "components": [
                 {
-                    "component-uuid": "comp-1",
+                    "uuid": "18f5d663-07b9-5ef4-9197-41f0195eee10",
+                    "type": "software",
+                    "title": "Test System v1.0",
                     "description": "Test component",
-                    "implemented-requirements": requirements,
+                    "control-implementations": [
+                        {
+                            "uuid": "7f0641a9-923a-5957-b835-4a5d5272a3b0",
+                            "source": "#vl-ai-assurance-profile-2026",
+                            "description": "Test control-implementations",
+                            "implemented-requirements": requirements,
+                        }
+                    ],
                 }
             ],
         }

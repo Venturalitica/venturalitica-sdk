@@ -60,7 +60,7 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 5 for internal research, 20 for regulated data
             - name: severity
               value: high
-            - name: "input:quasi_identifiers"
+            - name: "input.quasi_identifiers"
               value: "age,zip"  # CONFIGURE: domain-specific quasi-identifiers
             - name: note
               value: "Each quasi-identifier combination must appear >= k times"
@@ -92,7 +92,7 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 0.7 means acceptable causal independence
             - name: severity
               value: high
-            - name: "input:protected_attributes"
+            - name: "input.protected_attributes"
               value: "gender,race"  # CONFIGURE: domain-specific protected groups
             - name: note
               value: "Assessment of causal pathways to bias in protected attributes"
@@ -109,7 +109,7 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 0.8 (80% rule), industry-standard 4/5 rule
             - name: severity
               value: high
-            - name: "input:protected_attributes"
+            - name: "input.protected_attributes"
               value: "gender"
             - name: note
               value: "Ratio of favorable outcome rates: min_group / max_group >= threshold"
@@ -126,7 +126,7 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 0.75
             - name: severity
               value: medium
-            - name: "input:protected_attribute"
+            - name: "input.protected_attribute"
               value: "race"
             - name: note
               value: "Predictions independent of counterfactual changes to protected attribute"
@@ -143,11 +143,11 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 0.10 (10% difference acceptable)
             - name: severity
               value: high
-            - name: "input:target"
+            - name: "input.target"
               value: target
-            - name: "input:prediction"
+            - name: "input.prediction"
               value: prediction
-            - name: "input:dimension"
+            - name: "input.dimension"
               value: "gender"
             - name: note
               value: "Positive outcome rate must be similar across protected groups"
@@ -164,11 +164,11 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 0.10
             - name: severity
               value: high
-            - name: "input:target"
+            - name: "input.target"
               value: target
-            - name: "input:prediction"
+            - name: "input.prediction"
               value: prediction
-            - name: "input:dimension"
+            - name: "input.dimension"
               value: "race"
             - name: note
               value: "True positive rate must be similar across groups"
@@ -185,11 +185,11 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 0.8 (80% threshold)
             - name: severity
               value: high
-            - name: "input:target"
+            - name: "input.target"
               value: target
-            - name: "input:prediction"
+            - name: "input.prediction"
               value: prediction
-            - name: "input:dimension"
+            - name: "input.dimension"
               value: "gender"
             - name: note
               value: "Both TPR and FPR must be equalized across groups"
@@ -206,11 +206,11 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 0.85
             - name: severity
               value: medium
-            - name: "input:target"
+            - name: "input.target"
               value: target
-            - name: "input:prediction"
+            - name: "input.prediction"
               value: prediction
-            - name: "input:dimension"
+            - name: "input.dimension"
               value: "age"
             - name: note
               value: "Precision (PPV) must be similar across groups"
@@ -227,9 +227,9 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 0.75 for production, 0.60 for research
             - name: severity
               value: high
-            - name: "input:target"
+            - name: "input.target"
               value: target
-            - name: "input:prediction"
+            - name: "input.prediction"
               value: prediction
             - name: note
               value: "Overall model effectiveness must meet minimum standard before human review"
@@ -246,9 +246,9 @@ assessment-plan:
               value: null  # CONFIGURE: e.g. 0.80
             - name: severity
               value: high
-            - name: "input:target"
+            - name: "input.target"
               value: target
-            - name: "input:prediction"
+            - name: "input.prediction"
               value: prediction
             - name: note
               value: "Minimum acceptable overall correctness threshold"

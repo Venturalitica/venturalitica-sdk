@@ -14,7 +14,7 @@ from venturalitica.models import ComplianceResult
 @pytest.fixture
 def mock_policy():
     policy = {
-        "assessment-plan": {
+        "component-definition": {
             "local-definitions": {
                 "inventory-items": [
                     {
@@ -23,19 +23,23 @@ def mock_policy():
                             {"name": "metric_key", "value": "accuracy_score"},
                             {"name": "threshold", "value": "0.8"},
                             {"name": "operator", "value": ">="},
-                            {"name": "input:target", "value": "target"},
-                            {"name": "input:prediction", "value": "prediction"},
+                            {"name": "input.target", "value": "target"},
+                            {"name": "input.prediction", "value": "prediction"},
                         ],
                     }
                 ]
             },
-            "control-implementations": [
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "C1",
-                            "description": "test",
-                            "links": [{"href": "#m1", "rel": "related"}],
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "C1",
+                                    "description": "test",
+                                    "links": [{"href": "#m1", "rel": "related"}],
+                                }
+                            ]
                         }
                     ]
                 }
@@ -107,7 +111,7 @@ def test_api_results_caching(tmp_path):
     os.chdir(tmp_path)
     policy_path = "risks.oscal.yaml"
     with open(policy_path, "w") as f:
-        yaml.dump({"assessment-plan": {"control-implementations": []}}, f)
+        yaml.dump({"component-definition": {"components": [{"control-implementations": []}]}}, f)
 
     df = pd.DataFrame({"target": [0, 1], "prediction": [0, 1]})
     res = ComplianceResult(
@@ -134,7 +138,7 @@ def test_api_save_results_edge_cases(tmp_path):
     policy_path = "dummy_policy.yaml"
 
     with open(policy_path, "w") as f:
-        yaml.dump({"assessment-plan": {"control-implementations": []}}, f)
+        yaml.dump({"component-definition": {"components": [{"control-implementations": []}]}}, f)
 
     # 1. Test corrupt JSON in results
     with open(results_path, "w") as f:
@@ -188,7 +192,7 @@ def test_monitor_artifact_logging(tmp_path):
 def test_enforce_strict_missing_metric_raises():
     """strict=True should raise ValueError for unknown metric."""
     policy = {
-        "assessment-plan": {
+        "component-definition": {
             "local-definitions": {
                 "inventory-items": [
                     {
@@ -197,18 +201,22 @@ def test_enforce_strict_missing_metric_raises():
                             {"name": "metric_key", "value": "nonexistent_metric"},
                             {"name": "threshold", "value": "0.1"},
                             {"name": "operator", "value": "gt"},
-                            {"name": "input:target", "value": "target"},
+                            {"name": "input.target", "value": "target"},
                         ],
                     }
                 ]
             },
-            "control-implementations": [
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "NM1",
-                            "description": "Unknown metric control",
-                            "links": [{"href": "#x1", "rel": "related"}],
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "NM1",
+                                    "description": "Unknown metric control",
+                                    "links": [{"href": "#x1", "rel": "related"}],
+                                }
+                            ]
                         }
                     ]
                 }
@@ -330,7 +338,7 @@ def test_enforce_metrics_only_path(tmp_path):
     os.chdir(tmp_path)
 
     policy_data = {
-        "assessment-plan": {
+        "component-definition": {
             "local-definitions": {
                 "inventory-items": [
                     {
@@ -343,13 +351,17 @@ def test_enforce_metrics_only_path(tmp_path):
                     }
                 ]
             },
-            "control-implementations": [
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "MO-1",
-                            "description": "Metrics only check",
-                            "links": [{"href": "#m1"}],
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "MO-1",
+                                    "description": "Metrics only check",
+                                    "links": [{"href": "#m1"}],
+                                }
+                            ]
                         }
                     ]
                 }
@@ -380,7 +392,7 @@ def test_enforce_dict_normalization_metrics_key(tmp_path):
 
     policy_path = tmp_path / "policy.yaml"
     with open(policy_path, "w") as f:
-        yaml.dump({"assessment-plan": {"control-implementations": []}}, f)
+        yaml.dump({"component-definition": {"components": [{"control-implementations": []}]}}, f)
 
     res = ComplianceResult(
         control_id="NEW-1",
@@ -417,7 +429,7 @@ def test_enforce_dict_normalization_post_metrics_key(tmp_path):
 
     policy_path = tmp_path / "policy.yaml"
     with open(policy_path, "w") as f:
-        yaml.dump({"assessment-plan": {"control-implementations": []}}, f)
+        yaml.dump({"component-definition": {"components": [{"control-implementations": []}]}}, f)
 
     res = ComplianceResult(
         control_id="NEW-2",
@@ -459,7 +471,7 @@ def test_enforce_dict_normalization_flattened(tmp_path):
 
     policy_path = tmp_path / "policy.yaml"
     with open(policy_path, "w") as f:
-        yaml.dump({"assessment-plan": {"control-implementations": []}}, f)
+        yaml.dump({"component-definition": {"components": [{"control-implementations": []}]}}, f)
 
     res = ComplianceResult(
         control_id="NEW-3",
@@ -494,7 +506,7 @@ def test_enforce_session_save(tmp_path):
     try:
         policy_path = tmp_path / "policy.yaml"
         with open(policy_path, "w") as f:
-            yaml.dump({"assessment-plan": {"control-implementations": []}}, f)
+            yaml.dump({"component-definition": {"components": [{"control-implementations": []}]}}, f)
 
         res = ComplianceResult(
             control_id="S1",
@@ -528,7 +540,7 @@ def test_enforce_strict_reraises_exception(tmp_path):
 
     policy_path = tmp_path / "policy.yaml"
     with open(policy_path, "w") as f:
-        yaml.dump({"assessment-plan": {"control-implementations": []}}, f)
+        yaml.dump({"component-definition": {"components": [{"control-implementations": []}]}}, f)
 
     with patch(
         "venturalitica.api.AssuranceValidator.compute_and_evaluate",
@@ -595,7 +607,7 @@ def test_group_min_positive_rate_triggered():
     )
 
     policy = {
-        "assessment-plan": {
+        "component-definition": {
             "local-definitions": {
                 "inventory-items": [
                     {
@@ -604,19 +616,23 @@ def test_group_min_positive_rate_triggered():
                             {"name": "metric_key", "value": "group_min_positive_rate"},
                             {"name": "threshold", "value": "0.5"},
                             {"name": "operator", "value": "gt"},
-                            {"name": "input:target", "value": "target"},
-                            {"name": "input:dimension", "value": "Attribute9"},
+                            {"name": "input.target", "value": "target"},
+                            {"name": "input.dimension", "value": "Attribute9"},
                         ],
                     }
                 ]
             },
-            "control-implementations": [
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "GB1",
-                            "description": "Group balance check",
-                            "links": [{"href": "#g1", "rel": "related"}],
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "GB1",
+                                    "description": "Group balance check",
+                                    "links": [{"href": "#g1", "rel": "related"}],
+                                }
+                            ]
                         }
                     ]
                 }

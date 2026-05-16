@@ -170,26 +170,18 @@ def _generate_oscal_artifacts(
             try:
                 with open(policy_path, "r") as f:
                     policy_doc = json.load(f)
-                # Accept both canonical (`component-definition`) and legacy
-                # (`assessment-plan`) roots. The tenant-binding props
-                # (`ai-system-uuid`, `ai-system-version-uuid`) live on
-                # `metadata.props[]` in both shapes — the SaaS mapper
-                # carries them across the migration. See
-                # `docs/papers/ieee-computer-2026/ERRATUM.md` for context.
-                doc_root = (
-                    policy_doc.get("component-definition")
-                    or policy_doc.get("assessment-plan")
-                    or policy_doc
-                )
-                for p in (doc_root.get("metadata", {}).get("props", []) or []):
+                # Canonical NIST OSCAL v1.2.2 `component-definition` envelope.
+                # The tenant-binding props (`ai-system-uuid`,
+                # `ai-system-version-uuid`) live on `metadata.props[]`.
+                cd = policy_doc.get("component-definition", policy_doc)
+                for p in (cd.get("metadata", {}).get("props", []) or []):
                     if p.get("name") == "ai-system-uuid":
                         ai_system_uuid = str(p.get("value", ""))
                     elif p.get("name") == "ai-system-version-uuid":
                         ai_system_version_uuid = str(p.get("value", ""))
             except Exception:
                 # Best-effort — if the policy doc is malformed, fall
-                # through with empty binding props; platform will log a
-                # deprecation warning and use the legacy resolver.
+                # through with empty binding props.
                 pass
 
         # Build OSCAL Assessment Results

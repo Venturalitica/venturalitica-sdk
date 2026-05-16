@@ -18,7 +18,7 @@ from venturalitica.api import enforce
 
 def _missing_metric_policy() -> dict:
     return {
-        "assessment-plan": {
+        "component-definition": {
             "local-definitions": {
                 "inventory-items": [
                     {
@@ -27,18 +27,22 @@ def _missing_metric_policy() -> dict:
                             {"name": "metric_key", "value": "nonexistent_metric"},
                             {"name": "threshold", "value": "0.5"},
                             {"name": "operator", "value": "gt"},
-                            {"name": "input:target", "value": "target"},
+                            {"name": "input.target", "value": "target"},
                         ],
                     }
                 ]
             },
-            "control-implementations": [
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "MISS-1",
-                            "description": "Control whose metric is not registered",
-                            "links": [{"href": "#x1", "rel": "related"}],
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "MISS-1",
+                                    "description": "Control whose metric is not registered",
+                                    "links": [{"href": "#x1", "rel": "related"}],
+                                }
+                            ]
                         }
                     ]
                 }

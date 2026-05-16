@@ -68,7 +68,7 @@ def calc_provenance_completeness(df: pd.DataFrame, **kwargs) -> float:
     For ESG datasets: checks if page_number, chunk_number are present for traceability.
     Returns completeness score (0.0 - 1.0).
     """
-    required_fields = kwargs.get("input:fields", ["page_number", "chunk_number"])
+    required_fields = kwargs.get("input.fields", ["page_number", "chunk_number"])
     if isinstance(required_fields, str):
         import ast
 

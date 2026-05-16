@@ -72,9 +72,9 @@ def calc_class_imbalance(df: pd.DataFrame, **kwargs) -> float:
     """Compute class imbalance as the ratio min_class_count / max_class_count.
 
     Returns a value between 0.0 (completely imbalanced) and 1.0 (perfectly balanced).
-    Required kwargs: target OR input:target
+    Required kwargs: target OR input.target
     """
-    target = kwargs.get("target") or kwargs.get("input:target")
+    target = kwargs.get("target") or kwargs.get("input.target")
     if not target:
         raise ValueError("Missing required role 'target' for calc_class_imbalance")
     if target not in df.columns:
@@ -98,11 +98,11 @@ def calc_group_min_positive_rate(df: pd.DataFrame, **kwargs) -> tuple:
     """Compute the minimum positive rate across groups for a given dimension.
 
     Returns a tuple (min_rate, metadata_dict) where metadata contains per-group rates.
-    Required kwargs: target, input:dimension OR dimension
+    Required kwargs: target, input.dimension OR dimension
     Optional kwargs: age_bucket_method='quantiles', age_buckets=3
     """
     target = kwargs.get("target")
-    dim = kwargs.get("input:dimension") or kwargs.get("dimension")
+    dim = kwargs.get("input.dimension") or kwargs.get("dimension")
 
     if not target or not dim:
         raise ValueError(

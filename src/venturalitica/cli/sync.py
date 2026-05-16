@@ -47,9 +47,6 @@ def pull(
 
     try:
         # Pull the canonical NIST OSCAL v1.2.2 `component-definition` document.
-        # See `docs/papers/ieee-computer-2026/ERRATUM.md` (in the
-        # venturalitica monorepo) for the May 2026 migration from the prior
-        # non-canonical `assessment-plan + control-implementations[]` shape.
         url = f"{SAAS_URL}/api/pull?format=oscal"
         if target_system:
             url += f"&system={target_system}"
@@ -60,32 +57,18 @@ def pull(
         response.raise_for_status()
         oscal_doc = response.json()
 
-        # Accept both canonical (`component-definition`) and legacy
-        # (`assessment-plan`) roots during the transition window. Legacy
-        # carries `control-implementations[]` directly under the root; the
-        # new shape nests them under `components[]`.
         cd = oscal_doc.get("component-definition")
-        if cd:
-            impls = [
-                impl
-                for component in (cd.get("components") or [])
-                for impl in (component.get("control-implementations") or [])
-            ]
-        else:
-            ap = oscal_doc.get("assessment-plan")
-            if not ap:
-                raise ValueError(
-                    "SaaS did not return a `component-definition` root — "
-                    "expected the canonical NIST OSCAL v1.2.2 envelope. "
-                    "Check that the SaaS is on the May 2026 migration "
-                    "(commit cd62efc2 or later). See "
-                    "`docs/papers/ieee-computer-2026/ERRATUM.md`."
-                )
-            console.print(
-                "  [yellow]⚠ SaaS returned the deprecated `assessment-plan` "
-                "envelope. Upgrade SaaS to the May 2026 migration.[/yellow]"
+        if not cd:
+            raise ValueError(
+                "SaaS did not return a `component-definition` root — "
+                "expected the canonical NIST OSCAL v1.2.2 envelope."
             )
-            impls = ap.get("control-implementations", []) or []
+
+        impls = [
+            impl
+            for component in (cd.get("components") or [])
+            for impl in (component.get("control-implementations") or [])
+        ]
 
         all_requirements = [
             req
