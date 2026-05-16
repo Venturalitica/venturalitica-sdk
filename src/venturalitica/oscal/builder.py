@@ -200,11 +200,11 @@ class AssessmentResultsBuilder:
         if trace_id:
             binding_props.append(OSCALProp(name="trace-id", value=trace_id))
 
-        # Probe telemetry — emitted one prop per probe with a JSON-encoded
-        # value so the SaaS ingester can surface the full payload (carbon
-        # emissions, hardware telemetry, BOM, handshake attestation, …) on
-        # the AssuranceTrace cockpit. Prop name prefix `probe:` mirrors
-        # the `input:` convention used elsewhere in the contract.
+        # Probe telemetry — one prop per probe with a JSON-encoded value
+        # so the SaaS ingester can surface the full payload (carbon, BOM,
+        # handshake attestation, …) on the AssuranceTrace cockpit. Prop
+        # name prefix `probe.` (NIST regex forbids `:`); mirrors the
+        # `input.` convention used elsewhere in the contract.
         for probe_name, payload in (probe_results or {}).items():
             if not isinstance(payload, dict) or not payload:
                 continue
@@ -213,7 +213,7 @@ class AssessmentResultsBuilder:
             except (TypeError, ValueError):
                 continue
             binding_props.append(
-                OSCALProp(name=f"probe:{probe_name}", value=encoded)
+                OSCALProp(name=f"probe.{probe_name}", value=encoded)
             )
 
         return AssessmentResults(
