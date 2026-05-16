@@ -1,103 +1,103 @@
-# Cross-component smoke — paper Listing 1 envelope
+# Cross-component smoke — canonical NIST OSCAL v1.2.2 envelopes
 
-The OSCAL `assessment-plan` envelope from the arXiv preprint (arXiv:2604.13767)
-(Listing 1) is consumed by three components. This document describes how
-to verify they all stay in lock-step against the canonical fixture and
-against each other.
+The platform produces and consumes canonical NIST OSCAL v1.2.2 documents end-to-end. This document describes how to verify the three components stay in lock-step.
 
 ## Components
 
 | Component | Role | Entry point |
 |---|---|---|
-| SaaS (TypeScript) | Emit | `buildAssessmentPlan()` at `venturalitica/codegen/entities/assurance-measure/_generated/oscal-sidecar.ts` (imported via `@codegen/entities/assurance-measure/_generated/oscal-sidecar`) |
-| SaaS REST API | Transport | `GET /api/pull?format=oscal` (route file: `venturalitica/src/app/api/pull/route.ts`) |
-| SDK Python | Parse + execute | `venturalitica.cli.sync` (`vl pull`) at `packages/venturalitica-sdk/src/venturalitica/cli/sync.py` and `venturalitica.loader` |
-| Proxy Rust (vl-fairness-gate) | Parse + enforce | `parse_oscal_document(doc: &serde_json::Value) -> Result<Vec<ParsedMeasure>>` at `vl-fairness-gate/src/oscal/parser.rs:13` |
+| SaaS (TypeScript) — codegen sidecar | Emit policy | `buildComponentDefinition()` at `venturalitica/codegen/entities/assurance-measure/_generated/oscal-sidecar.ts` |
+| SaaS (TypeScript) — hand-written mapper | Emit policy on pull path | `OSCALMapper.toComponentDefinition()` at `venturalitica/src/lib/oscal/mapper.ts` |
+| SaaS REST API | Transport policy | `GET /api/pull?format=oscal` (`venturalitica/src/app/api/pull/route.ts`) |
+| SaaS REST API | Transport evidence | `POST /api/push` (`venturalitica/src/app/api/push/route.ts`) — ajv-validates `assessment-results` envelopes |
+| SDK Python | Pull + parse policy | `venturalitica.cli.sync` (`vl pull`) and `venturalitica.loader` |
+| SDK Python | Push evidence | `venturalitica.cli.transfer` (`vl push`) — emits `assessment-results` documents |
+| Proxy Rust (vl-fairness-gate) | Parse + enforce policy | `parse_oscal_document(doc: &serde_json::Value) -> Result<Vec<ParsedMeasure>>` at `vl-fairness-gate/src/oscal/parser.rs` |
+
+### Envelopes
+
+| Direction | Envelope | NIST root |
+|---|---|---|
+| SaaS → SQS → gate (policy) | canonical | `component-definition` |
+| SaaS → SDK `vl pull` (policy) | canonical | `component-definition` |
+| SDK `vl push` → SaaS `/api/push` (evidence) | canonical | `assessment-results` |
 
 ### Function signatures
 
-- TS emit (`oscal-sidecar.ts`):
+- **TS emit (sidecar)** in `oscal-sidecar.ts` (generated):
   ```typescript
-  export function buildAssessmentPlan(input: {
+  export function buildComponentDefinition(input: {
     aiSystemVersionId: string;
     orgSlug: string;
     aiSystemSlug: string;
+    aiSystemVersion?: string;
+    timestamp?: Date;
+    profileRef?: string;
     rows: OscalRow[];
   }): Record<string, unknown>
   ```
-  Invoked from `venturalitica/src/app/actions/declare-conformity.ts:316`
-  inside `dispatchProxyConfig()`; the resulting envelope is attached as
-  `payload.policies` on the `proxy_config` SQS task.
+  Invoked from `venturalitica/src/app/actions/declare-conformity.ts` inside `dispatchProxyConfig()`. The result is validated via `validateComponentDefinition()` from `@venturalitica/oscal-types` BEFORE being attached as `payload.policies` on the SQS task.
 
-- Rust parse (`parser.rs:13`):
+- **TS emit (pull-path mapper)** in `mapper.ts`:
+  ```typescript
+  static toComponentDefinition(aiSystem: any, options?: OSCALExportOptions): {
+    'component-definition': { ... }
+  }
+  ```
+  Called by `AISystemDataService.formatAsOSCAL` to serve `/api/pull?format=oscal`. Validates via ajv before returning.
+
+- **Rust parse** (`parser.rs`):
   ```rust
   pub fn parse_oscal_document(doc: &serde_json::Value) -> Result<Vec<ParsedMeasure>>
   ```
-  Accepts only `assessment-plan` or legacy `system-security-plan` roots
-  (see `CLAUDE.md` "OSCAL Policy Format (non-negotiable)").
+  Accepts `component-definition` (canonical) or `system-security-plan` (FedRAMP-style) only.
 
-- SDK parse (`sync.py:36-56`): `vl pull` issues
-  `GET {SAAS_URL}/api/pull?format=oscal`, asserts the response carries an
-  `assessment-plan` root, flattens every `control-implementations[].
-  implemented-requirements[]` into `all_requirements`, and writes the
-  full document to `assessment_plan.oscal.yaml` and
-  `.venturalitica/policy.oscal.json` (the path consumed by `monitor()`
-  and `annex-iv`).
+- **SDK pull** (`sync.py`): `vl pull` issues `GET {SAAS_URL}/api/pull?format=oscal`, asserts the response carries a `component-definition` root, flattens every `components[].control-implementations[].implemented-requirements[]` into `all_requirements`, and writes the full document to `assessment_plan.oscal.yaml` (kept as the cached filename for shell-script back-compat — its contents are now a `component-definition`) and `.venturalitica/policy.oscal.json` (the JSON twin consumed by `monitor()` and `annex-iv`).
 
 ## Single source of truth
 
-`packages/venturalitica-sdk/tests/fixtures/oscal/assessment-plan.canonical.json`
-is shared verbatim across all three components:
+Canonical NIST OSCAL v1.2.2 JSON Schemas, vendored once at `venturalitica/packages/oscal-types/schemas/v1.2.2/`:
 
-- Python: read by `tests/test_oscal_roundtrip.py` (13 test functions →
-  20 collected cases after parametrization — root shape, mandatory
-  props, symbolic operators, severity/enforcement-mode vocabulary,
-  traceability props, input bindings, JSON+YAML roundtrip, SSP-leakage
-  guard).
-- Rust: embedded via
-  `include_str!("../../../packages/venturalitica-sdk/tests/fixtures/oscal/assessment-plan.canonical.json")`
-  in `vl-fairness-gate/src/oscal/parser.rs:229` (test
-  `test_parse_canonical_assessment_plan_fixture`).
-- SaaS: covered by the unit suite under
-  `venturalitica/src/lib/oscal/assurance-measure-sidecar.test.ts`,
-  which round-trips through `buildAssessmentPlan()`.
+- `oscal_component-definition_schema.json`
+- `oscal_assessment-results_schema.json`
+- `oscal_assessment-plan_schema.json` (for `import-ap` cross-refs)
+- `oscal_complete_schema.json`
 
-## Cross-component matrix
+Every emitter calls `validateComponentDefinition` / `validateAssessmentResults` from `@venturalitica/oscal-types/validate` (ajv-backed). Every consumer (`/api/push`) calls the same on receipt. Round-trip tests at:
 
-|              | SDK Python | SaaS TS | Proxy Rust |
-|--------------|------------|---------|------------|
-| Emit         | n/a        | `buildAssessmentPlan()` | n/a |
-| Parse        | `vl pull` + `loader` | round-trip in unit test | `parse_oscal_document` |
+- TS: `venturalitica/src/lib/oscal/assurance-measure-sidecar.test.ts`, `venturalitica/src/lib/oscal/mapper.test.ts`, `venturalitica/src/lib/oscal/assessment-results.fixture.test.ts`.
+- Rust: `vl-fairness-gate/src/oscal/parser.rs::test_parse_oscal_component_definition`.
+- Python: `packages/venturalitica-sdk/tests/test_loader.py`, `tests/test_cli_sync.py`, `tests/test_smoke_core_api.py`.
 
 ## Smoke procedure (manual)
 
-### Smoke 1 — canonical fixture parses everywhere
+### Smoke 1 — unit-test stack passes on each component
 
 ```bash
 # SDK Python
 cd packages/venturalitica-sdk
-VENTURALITICA_NO_ANALYTICS=1 uv run pytest tests/test_oscal_roundtrip.py -q
-# Expected: 20 cases pass (13 functions, parametrized to 20)
+.venv/bin/pytest -q tests/test_loader.py tests/test_cli_sync.py tests/test_smoke_core_api.py
+# Expected: 28 passed
 ```
 
 ```bash
 # Proxy Rust
 cd vl-fairness-gate
 cargo test oscal::parser
-# Expected: tests/parser.rs::test_parse_canonical_assessment_plan_fixture passes
+# Expected: 4 passed (test_parse_oscal_ssp, test_parse_oscal_component_definition,
+# test_unknown_root_errors_with_helpful_message, test_legacy_assessment_plan_root_is_rejected)
 ```
 
 ```bash
-# SaaS TS — covered by the SaaS unit suite
+# SaaS TS
 cd venturalitica
-npm run test:unit -- oscal
-# Expected: src/lib/oscal/assurance-measure-sidecar.test.ts passes
+npx vitest run src/lib/oscal/ src/app/api/push/
+# Expected: 63 passed
 ```
 
-### Smoke 2 — SaaS-emitted plan parses in SDK and Rust (live)
+### Smoke 2 — SaaS-emitted policy parses end-to-end (live)
 
-This requires the SaaS dev stack running locally
-(`docker-compose.dev.yml`).
+Requires the dev stack running (`docker-compose.dev.yml`).
 
 ```bash
 # 1. Bring up the stack
@@ -113,39 +113,25 @@ test -f .venturalitica/policy.oscal.json && echo "SDK parse OK"
 # 3. From Rust, parse the same response
 curl -s -H "Authorization: Bearer $(jq -r .key /tmp/sdk-e2e/.venturalitica/credentials.json)" \
      "http://localhost:3000/api/pull?format=oscal" \
-     > /tmp/saas_emitted_assessment_plan.json
-cd /home/morganrcu/proyectos/venturalitica-integration/vl-fairness-gate
-SMOKE_FIXTURE=/tmp/saas_emitted_assessment_plan.json \
-  cargo test smoke_saas_emitted_plan -- --include-ignored
-```
+     > /tmp/saas_emitted_component_definition.json
 
-If/when the smoke is fully automated in CI, see Task F1 (SaaS smoke
-script: `venturalitica/scripts/smoke-emit-oscal.ts`) and Task F2 (Rust
-integration test) of the v0.6.0 stabilization plan.
+# 4. Verify it's canonical
+jq 'keys[0]' /tmp/saas_emitted_component_definition.json   # → "component-definition"
+```
 
 ## Drift detection
 
 Add to your release checklist before tagging:
 
-- [ ] `pytest tests/test_oscal_roundtrip.py` — green (20 cases).
-- [ ] `cargo test oscal::parser` in `vl-fairness-gate` — green
-      (canonical-fixture test included).
-- [ ] `npm run test:unit -- oscal` in `venturalitica` — green
-      (`assurance-measure-sidecar.test.ts`).
-- [ ] `git diff` over
-      `tests/fixtures/oscal/assessment-plan.canonical.json` — only
-      intentional, additive changes since the previous release tag.
-- [ ] Verify `parse_oscal_document` still rejects any root other than
-      `assessment-plan` (`vl-fairness-gate/src/oscal/parser.rs`) — no
-      third root has been introduced.
+- [ ] `pytest -q tests/test_loader.py tests/test_cli_sync.py tests/test_smoke_core_api.py` — green (28+ tests).
+- [ ] `cargo test oscal::parser` in `vl-fairness-gate` — green (4+ tests).
+- [ ] `npx vitest run src/lib/oscal/ src/app/api/push/` in `venturalitica` — green (63+ tests).
+- [ ] `git diff` over `venturalitica/packages/oscal-types/schemas/v1.2.2/` — empty (vendored NIST schemas are pinned; bump requires a coordinated cross-repo change).
+- [ ] Verify `parse_oscal_document` rejects unknown roots (`vl-fairness-gate/src/oscal/parser.rs::test_unknown_root_errors_with_helpful_message`).
 
 ## References
 
-- Normative spec: `docs/contracts/oscal-assessment-plan-v1.md` at the
-  integration-repo root (shared by SaaS, SDK and Proxy).
-- Paper Listing 1: `docs/papers/ieee-computer-2026/main.tex`
-  (root repo, not the SDK submodule) — arXiv preprint: https://arxiv.org/abs/2604.13767.
-- Companion CHANGELOG entry: `packages/venturalitica-sdk/CHANGELOG.md`
-  v0.6.0.
-- Integration contract enforcement note: project root `CLAUDE.md`,
-  section "OSCAL Policy Format (non-negotiable)".
+- Live contract: `CLAUDE.md` *"OSCAL Policy Format (non-negotiable)"* in the venturalitica monorepo root.
+- Corrigendum to IEEE Computer Listing 1: `docs/papers/ieee-computer-2026/ERRATUM.md`.
+- Vendored NIST schemas + TS types + ajv validators + UUID v5 helpers: `venturalitica/packages/oscal-types/`.
+- Companion CHANGELOG entry: `packages/venturalitica-sdk/CHANGELOG.md` v0.6.4.
