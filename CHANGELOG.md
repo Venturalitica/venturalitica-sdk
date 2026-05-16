@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.6] - 2026-05-16
+
+### Fixed
+
+- `venturalitica.probes`: probe names use NIST-safe slugs (`carbon`, `hardware`, `bom`, `integrity`, `handshake`, `trace`, `artifact`) instead of human labels (`"Green AI"`, `"Hardware Telemetry"`, etc.) that contained spaces and `&`. The OSCAL `assessment-results.metadata.props[].name` field is constrained by the NIST `TokenDatatype` pattern `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$` — spaces and `&` violate it, so every push including probe telemetry was rejected by local ajv validation.
+- `venturalitica.oscal.builder`: probe metadata prop prefix changed from `probe:<name>` to `probe.<name>` (same NIST regex constraint — `:` is not allowed).
+- `venturalitica.oscal.builder`: assessment-results now always emits `import-ap` (required by NIST schema). When no policy path is provided, falls back to a fragment-only self-reference `#assessment-plan`.
+
 ## [0.6.5] - 2026-05-16
 
 ### Fixed
