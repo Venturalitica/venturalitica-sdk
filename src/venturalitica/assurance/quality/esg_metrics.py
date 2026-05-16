@@ -14,7 +14,7 @@ def calc_classification_distribution(df: pd.DataFrame, **kwargs) -> tuple:
     For ESG datasets: measures balance across Environmental, Social, Governance categories.
     Returns tuple: (diversity_score, {category: percentage})
     """
-    target = kwargs.get("target") or kwargs.get("input:target")
+    target = kwargs.get("target") or kwargs.get("input.target")
     if not target:
         raise ValueError(
             "Missing required role 'target' for calc_classification_distribution"
@@ -47,7 +47,7 @@ def calc_report_coverage(df: pd.DataFrame, **kwargs) -> float:
     For ESG datasets: measures how many unique sustainability reports are represented.
     Returns coverage ratio (0.0 - 1.0).
     """
-    target = kwargs.get("target") or kwargs.get("input:target")
+    target = kwargs.get("target") or kwargs.get("input.target")
     if not target:
         raise ValueError("Missing required role 'target' for calc_report_coverage")
     if target not in df.columns:
@@ -93,8 +93,8 @@ def calc_chunk_diversity(df: pd.DataFrame, **kwargs) -> tuple:
     For ESG datasets: measures if reports have sufficient chunk coverage.
     Returns tuple: (avg_chunks_per_report, {report: chunk_count}).
     """
-    target = kwargs.get("target") or kwargs.get("input:target")
-    dim = kwargs.get("input:dimension") or kwargs.get("dimension")
+    target = kwargs.get("target") or kwargs.get("input.target")
+    dim = kwargs.get("input.dimension") or kwargs.get("dimension")
 
     if not target or not dim:
         raise ValueError(
@@ -117,8 +117,8 @@ def calc_subtitle_diversity(df: pd.DataFrame, **kwargs) -> float:
     For ESG datasets: measures topical coverage within reports.
     Returns diversity score (0.0 - 1.0) as avg_subtitles / expected_max.
     """
-    target = kwargs.get("target") or kwargs.get("input:target")
-    dim = kwargs.get("input:dimension") or kwargs.get("dimension")
+    target = kwargs.get("target") or kwargs.get("input.target")
+    dim = kwargs.get("input.dimension") or kwargs.get("dimension")
 
     if not target or not dim:
         raise ValueError(
