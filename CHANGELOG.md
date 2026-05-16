@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.4] - 2026-05-16
+
+### Breaking changes
+
+- **Dropped legacy `assessment-plan` envelope support.** `vl pull` now requires the canonical NIST OSCAL v1.2.2 `component-definition` envelope from the SaaS; the legacy `assessment-plan + control-implementations[]` root is no longer accepted. If you hit `SaaS did not return a 'component-definition' root`, upgrade the SaaS to the May 2026 OSCAL canon migration (commit `cd62efc2` or later).
+- **Dropped legacy `input:<slot>` prop-name prefix.** The SDK loader (`loader.py`) accepts only the canonical `input.<slot>` form. Custom OSCAL YAML that still uses `input:<slot>` must be migrated. NIST OSCAL `prop.name` regex `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$` rejects `:`, so this is also the only form that validates against the official schema.
+- **Removed cross-language `test_oscal_roundtrip.py` + fixture** (`tests/fixtures/oscal/assessment-plan.canonical.json`). The contract is now codified by ajv validation on every SaaS emit/consume site and by the TypeScript characterization tests in the venturalitica monorepo.
+
+### Why this release
+
+Closes the cleanup pass of the OSCAL canon migration. The 0.6.3 hotfix shipped wire-compatible transition shims for both envelopes and both prop-name prefixes; this release drops the transition shims now that no active client depends on them. The 16-property AI Assurance profile (Table 1 of the IEEE Computer paper) is unchanged.
+
 ## [0.6.3] - 2026-05-16
 
 ### Changed (wire-compatible hotfix)

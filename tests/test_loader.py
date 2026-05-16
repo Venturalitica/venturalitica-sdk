@@ -76,19 +76,24 @@ def test_loader_catalog_recursive():
 
 
 def test_loader_direct_props():
+    # Canonical NIST OSCAL v1.2.2 `component-definition` envelope.
     data = {
-        "assessment-plan": {
-            "control-implementations": [
+        "component-definition": {
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "C1",
-                            "props": [
-                                {"name": "metric_key", "value": "precision_score"},
-                                {"name": "threshold", "value": "0.9"},
-                                {"name": "operator", "value": ">="},
-                                {"name": "input:target", "value": "y_true"},
-                            ],
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "C1",
+                                    "props": [
+                                        {"name": "metric_key", "value": "precision_score"},
+                                        {"name": "threshold", "value": "0.9"},
+                                        {"name": "operator", "value": ">="},
+                                        {"name": "input.target", "value": "y_true"},
+                                    ],
+                                }
+                            ]
                         }
                     ]
                 }
@@ -103,24 +108,30 @@ def test_loader_direct_props():
         assert len(policy.controls) == 1
         assert policy.controls[0].metric_key == "precision_score"
         assert policy.controls[0].input_mapping["target"] == "y_true"
-        assert policy.controls[0].input_mapping["target"] == "y_true"
     finally:
         os.unlink(path)
 
 
 def test_loader_hybrid_inventory():
+    # Canonical: inventory-items belong inside `local-definitions`.
     data = {
-        "assessment-plan": {
-            "inventory-items": [  # Directly at root of AP
+        "component-definition": {
+            "local-definitions": {
+                "inventory-items": [
+                    {
+                        "uuid": "m1",
+                        "props": [{"name": "metric_key", "value": "recall_score"}],
+                    }
+                ],
+            },
+            "components": [
                 {
-                    "uuid": "m1",
-                    "props": [{"name": "metric_key", "value": "recall_score"}],
-                }
-            ],
-            "control-implementations": [
-                {
-                    "implemented-requirements": [
-                        {"control-id": "C1", "links": [{"href": "#m1"}]}
+                    "control-implementations": [
+                        {
+                            "implemented-requirements": [
+                                {"control-id": "C1", "links": [{"href": "#m1"}]}
+                            ]
+                        }
                     ]
                 }
             ],

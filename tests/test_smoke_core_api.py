@@ -37,7 +37,7 @@ def tmp_work_dir(tmp_path):
 def sample_policy_file(tmp_path):
     """Create a sample OSCAL policy file for testing."""
     policy = {
-        "assessment-plan": {
+        "component-definition": {
             "metadata": {
                 "title": "Smoke Test Policy",
                 "version": "1.0.0",
@@ -50,8 +50,8 @@ def sample_policy_file(tmp_path):
                             {"name": "metric_key", "value": "accuracy_score"},
                             {"name": "threshold", "value": "0.75"},
                             {"name": "operator", "value": ">="},
-                            {"name": "input:target", "value": "actual"},
-                            {"name": "input:prediction", "value": "predicted"},
+                            {"name": "input.target", "value": "actual"},
+                            {"name": "input.prediction", "value": "predicted"},
                         ],
                     },
                     {
@@ -64,20 +64,24 @@ def sample_policy_file(tmp_path):
                     },
                 ]
             },
-            "control-implementations": [
+            "components": [
                 {
-                    "implemented-requirements": [
+                    "control-implementations": [
                         {
-                            "control-id": "AI-ACC-001",
-                            "description": "Model accuracy must be >= 0.75",
-                            "links": [{"href": "#metric-accuracy", "rel": "related"}],
-                        },
-                        {
-                            "control-id": "AI-PREC-001",
-                            "description": "Model precision must be >= 0.70",
-                            "links": [{"href": "#metric-precision", "rel": "related"}],
-                        },
-                    ]
+                            "implemented-requirements": [
+                                {
+                                    "control-id": "AI-ACC-001",
+                                    "description": "Model accuracy must be >= 0.75",
+                                    "links": [{"href": "#metric-accuracy", "rel": "related"}],
+                                },
+                                {
+                                    "control-id": "AI-PREC-001",
+                                    "description": "Model precision must be >= 0.70",
+                                    "links": [{"href": "#metric-precision", "rel": "related"}],
+                                },
+                            ]
+                        }
+                    ],
                 }
             ],
         }
@@ -283,7 +287,7 @@ class TestEnforceSmokeTests:
     def test_enforce_multiple_policies(self, tmp_path, sample_dataframe):
         """Enforce should handle multiple policy files."""
         policy1 = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {
                     "inventory-items": [
                         {
@@ -296,22 +300,26 @@ class TestEnforceSmokeTests:
                         }
                     ]
                 },
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "C1",
-                                "description": "Basic accuracy",
-                                "links": [{"href": "#m1", "rel": "related"}],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "C1",
+                                        "description": "Basic accuracy",
+                                        "links": [{"href": "#m1", "rel": "related"}],
+                                    }
+                                ]
                             }
-                        ]
+                        ],
                     }
                 ],
             }
         }
 
         policy2 = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {
                     "inventory-items": [
                         {
@@ -324,15 +332,19 @@ class TestEnforceSmokeTests:
                         }
                     ]
                 },
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "C2",
-                                "description": "Basic precision",
-                                "links": [{"href": "#m2", "rel": "related"}],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "C2",
+                                        "description": "Basic precision",
+                                        "links": [{"href": "#m2", "rel": "related"}],
+                                    }
+                                ]
                             }
-                        ]
+                        ],
                     }
                 ],
             }
@@ -368,7 +380,7 @@ class TestEnforceSmokeTests:
         policy_path.write_text(
             yaml.dump(
                 {
-                    "assessment-plan": {
+                    "component-definition": {
                         "local-definitions": {
                             "inventory-items": [
                                 {
@@ -381,15 +393,19 @@ class TestEnforceSmokeTests:
                                 }
                             ]
                         },
-                        "control-implementations": [
+                        "components": [
                             {
-                                "implemented-requirements": [
+                                "control-implementations": [
                                     {
-                                        "control-id": "C1",
-                                        "description": "Test",
-                                        "links": [{"href": "#m1", "rel": "related"}],
+                                        "implemented-requirements": [
+                                            {
+                                                "control-id": "C1",
+                                                "description": "Test",
+                                                "links": [{"href": "#m1", "rel": "related"}],
+                                            }
+                                        ]
                                     }
-                                ]
+                                ],
                             }
                         ],
                     }
@@ -426,7 +442,7 @@ class TestEnforceSmokeTests:
         df = sample_dataframe.rename(columns={"actual": "target", "predicted": "prediction"})
 
         policy = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {
                     "inventory-items": [
                         {
@@ -435,21 +451,25 @@ class TestEnforceSmokeTests:
                                 {"name": "metric_key", "value": "accuracy_score"},
                                 {"name": "threshold", "value": "0.50"},
                                 {"name": "operator", "value": ">="},
-                                {"name": "input:target", "value": "target"},
-                                {"name": "input:prediction", "value": "prediction"},
+                                {"name": "input.target", "value": "target"},
+                                {"name": "input.prediction", "value": "prediction"},
                             ],
                         }
                     ]
                 },
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "C1",
-                                "description": "Test",
-                                "links": [{"href": "#m1", "rel": "related"}],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "C1",
+                                        "description": "Test",
+                                        "links": [{"href": "#m1", "rel": "related"}],
+                                    }
+                                ]
                             }
-                        ]
+                        ],
                     }
                 ],
             }

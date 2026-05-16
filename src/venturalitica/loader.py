@@ -20,26 +20,22 @@ PROFILE_PROPERTY_NAMES = frozenset({
     "stakeholder_consultation_ref",
 })
 
-# Input-binding prefix. The canonical form is `input.` (dot allowed by the
-# NIST OSCAL `prop.name` regex `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$`). The
-# legacy form `input:` was non-canonical and fails official schema
-# validation. The SDK accepts both during the transition window; the SaaS
-# emitter has migrated to `input.` since the May 2026 OSCAL canon
-# migration. See `docs/papers/ieee-computer-2026/ERRATUM.md`.
-_INPUT_PREFIXES = ("input.", "input:")
+# Input-binding prefix. Canonical NIST OSCAL `prop.name` form is
+# `input.<slot>` — the dot is allowed by the regex
+# `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$`.
+_INPUT_PREFIX = "input."
 
 
 def _is_input_prop(name: str) -> bool:
     """Return True if a prop name encodes an input-binding slot."""
-    return any(name.startswith(p) for p in _INPUT_PREFIXES)
+    return name.startswith(_INPUT_PREFIX)
 
 
 def _input_slot(name: str) -> str:
-    """Extract the slot name from an `input.<slot>` or `input:<slot>` prop name."""
-    for p in _INPUT_PREFIXES:
-        if name.startswith(p):
-            return name[len(p):]
-    raise ValueError(f"Not an input-binding prop name: {name!r}")
+    """Extract the slot name from an `input.<slot>` prop name."""
+    if not name.startswith(_INPUT_PREFIX):
+        raise ValueError(f"Not an input-binding prop name: {name!r}")
+    return name[len(_INPUT_PREFIX):]
 
 
 class OSCALPolicyLoader:
@@ -66,12 +62,11 @@ class OSCALPolicyLoader:
             with open(self.policy_path, "r") as f:
                 data = yaml.safe_load(f) or {}
 
-        # Determine root object
+        # Determine root object — canonical NIST OSCAL roots only.
         root_key = next(
             (
                 k
                 for k in [
-                    "assessment-plan",
                     "catalog",
                     "profile",
                     "component-definition",
@@ -88,7 +83,8 @@ class OSCALPolicyLoader:
             return self._parse_flat_list(data)
         else:
             raise ValueError(
-                "Unsupported OSCAL format or missing root element (system-security-plan, assessment-plan, catalog, etc.)"
+                "Unsupported OSCAL format or missing root element "
+                "(component-definition, catalog, profile, system-security-plan)."
             )
 
     def _parse_generic_oscal(self, obj: Dict[str, Any]) -> InternalPolicy:
@@ -121,19 +117,18 @@ class OSCALPolicyLoader:
             }
             inventory[item_uuid] = props
 
-        # 2. Process Control Implementations (handles both standard and simplified locations)
+        # 2. Process Control Implementations from the canonical NIST locations:
+        #    - `component-definition.components[].control-implementations[]` (array)
+        #    - `system-security-plan.control-implementation` (singular)
         control_impls = []
-        # Standard location for Assessment Plan
-        reviewed = obj.get("reviewed-controls", {})
-        if isinstance(reviewed, dict):
-            control_impls.extend(reviewed.get("control-implementations", []))
 
-        # Root location (hybrid or simplified)
-        root_impls = obj.get("control-implementations", [])
-        if isinstance(root_impls, list):
-            control_impls.extend(root_impls)
+        # `component-definition` envelope (the canonical Venturalitica policy
+        # transport since the May 2026 OSCAL migration).
+        for component in obj.get("components", []) or []:
+            if isinstance(component, dict):
+                control_impls.extend(component.get("control-implementations", []) or [])
 
-        # [ISO 23894] Singular support for System Security Plan
+        # `system-security-plan` envelope (FedRAMP-style).
         singular_impl = obj.get("control-implementation", {})
         if isinstance(singular_impl, dict):
             control_impls.append(singular_impl)

@@ -36,15 +36,19 @@ class TestCoreErrorHandling:
     def test_assurance_validator_with_invalid_control(self):
         """Validator should handle controls with missing required fields."""
         policy_data = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {"inventory-items": []},
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "INVALID",
-                                # Missing description
-                                "links": [],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "INVALID",
+                                        # Missing description
+                                        "links": [],
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -66,7 +70,7 @@ class TestCoreErrorHandling:
     def test_assurance_validator_strict_mode_with_missing_columns(self):
         """Validator in strict mode should error on missing columns."""
         policy = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {
                     "inventory-items": [
                         {
@@ -75,19 +79,23 @@ class TestCoreErrorHandling:
                                 {"name": "metric_key", "value": "accuracy_score"},
                                 {"name": "threshold", "value": "0.8"},
                                 {"name": "operator", "value": ">="},
-                                {"name": "input:target", "value": "actual"},
-                                {"name": "input:prediction", "value": "predicted"},
+                                {"name": "input.target", "value": "actual"},
+                                {"name": "input.prediction", "value": "predicted"},
                             ],
                         }
                     ]
                 },
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "C1",
-                                "description": "Test",
-                                "links": [{"href": "#m1", "rel": "related"}],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "C1",
+                                        "description": "Test",
+                                        "links": [{"href": "#m1", "rel": "related"}],
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -112,7 +120,7 @@ class TestCoreErrorHandling:
     def test_enforce_with_empty_dataframe(self):
         """Enforce should handle empty DataFrames gracefully."""
         policy = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {
                     "inventory-items": [
                         {
@@ -125,13 +133,17 @@ class TestCoreErrorHandling:
                         }
                     ]
                 },
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "C1",
-                                "description": "Test",
-                                "links": [{"href": "#m1", "rel": "related"}],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "C1",
+                                        "description": "Test",
+                                        "links": [{"href": "#m1", "rel": "related"}],
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -223,7 +235,7 @@ class TestIntegrationPaths:
         os.chdir(tmp_path)
 
         policy = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {
                     "inventory-items": [
                         {
@@ -236,13 +248,17 @@ class TestIntegrationPaths:
                         }
                     ]
                 },
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "C1",
-                                "description": "Test",
-                                "links": [{"href": "#m1", "rel": "related"}],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "C1",
+                                        "description": "Test",
+                                        "links": [{"href": "#m1", "rel": "related"}],
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -297,7 +313,7 @@ class TestAPIBoundaryConditions:
     def test_enforce_with_nan_metrics(self):
         """Enforce should handle NaN values in metrics gracefully."""
         policy = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {
                     "inventory-items": [
                         {
@@ -310,13 +326,17 @@ class TestAPIBoundaryConditions:
                         }
                     ]
                 },
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "C1",
-                                "description": "Test",
-                                "links": [{"href": "#m1", "rel": "related"}],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "C1",
+                                        "description": "Test",
+                                        "links": [{"href": "#m1", "rel": "related"}],
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -339,7 +359,7 @@ class TestAPIBoundaryConditions:
     def test_enforce_with_negative_metrics(self):
         """Enforce should handle negative metric values."""
         policy = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {
                     "inventory-items": [
                         {
@@ -352,13 +372,17 @@ class TestAPIBoundaryConditions:
                         }
                     ]
                 },
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "C1",
-                                "description": "Test",
-                                "links": [{"href": "#m1", "rel": "related"}],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "C1",
+                                        "description": "Test",
+                                        "links": [{"href": "#m1", "rel": "related"}],
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -387,7 +411,7 @@ class TestAPIBoundaryConditions:
             json.dump(existing_results, f)
 
         policy = {
-            "assessment-plan": {
+            "component-definition": {
                 "local-definitions": {
                     "inventory-items": [
                         {
@@ -400,13 +424,17 @@ class TestAPIBoundaryConditions:
                         }
                     ]
                 },
-                "control-implementations": [
+                "components": [
                     {
-                        "implemented-requirements": [
+                        "control-implementations": [
                             {
-                                "control-id": "NEW",
-                                "description": "Test",
-                                "links": [{"href": "#m1", "rel": "related"}],
+                                "implemented-requirements": [
+                                    {
+                                        "control-id": "NEW",
+                                        "description": "Test",
+                                        "links": [{"href": "#m1", "rel": "related"}],
+                                    }
+                                ]
                             }
                         ]
                     }

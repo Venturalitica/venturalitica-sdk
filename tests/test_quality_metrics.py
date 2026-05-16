@@ -179,7 +179,7 @@ class TestCalcGroupMinPositiveRate:
         rate, meta = calc_group_min_positive_rate(
             df,
             target="target",
-            **{"input:dimension": "dim"},
+            **{"input.dimension": "dim"},
         )
         assert isinstance(rate, float)
 
@@ -300,14 +300,14 @@ class TestCalcProvenanceCompleteness:
             }
         )
         result = calc_provenance_completeness(
-            df, **{"input:fields": "['page_number', 'chunk_number']"}
+            df, **{"input.fields": "['page_number', 'chunk_number']"}
         )
         assert result == 1.0
 
     def test_string_single_field(self):
         """Single string field (not a list repr)."""
         df = pd.DataFrame({"page_number": [1, 2, None]})
-        result = calc_provenance_completeness(df, **{"input:fields": "page_number"})
+        result = calc_provenance_completeness(df, **{"input.fields": "page_number"})
         assert pytest.approx(result, abs=0.01) == 0.6667
 
     def test_all_complete(self):

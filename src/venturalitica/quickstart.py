@@ -11,47 +11,52 @@ import pandas as pd
 from . import enforce, monitor
 from .models import ComplianceResult
 
-# Embedded OSCAL policy for loan scenario (no file dependency)
+# Embedded OSCAL policy for loan scenario (no file dependency).
+# Canonical NIST OSCAL v1.2.2 `component-definition` envelope.
 LOAN_POLICY_DICT = {
-    'assessment-plan': {
+    'component-definition': {
         'metadata': {
             'title': 'Credit Risk Assessment Policy (German Credit)',
             'version': '1.1'
         },
-        'control-implementations': [
+        'components': [
             {
-                'description': 'Credit Scoring Fairness (v2)',
-                'implemented-requirements': [
+                'control-implementations': [
                     {
-                        'control-id': 'credit-data-imbalance',
-                        'description': 'Data Quality: Minority class representation >= 20%',
-                        'props': [
-                            {'name': 'metric_key', 'value': 'class_imbalance'},
-                            {'name': 'threshold', 'value': '0.2'},
-                            {'name': 'operator', 'value': 'gt'},
-                            {'name': 'input:target', 'value': 'target'}
-                        ]
-                    },
-                    {
-                        'control-id': 'credit-data-bias',
-                        'description': 'Disparate impact ratio follows the Four-Fifths Rule',
-                        'props': [
-                            {'name': 'metric_key', 'value': 'disparate_impact'},
-                            {'name': 'threshold', 'value': '0.8'},
-                            {'name': 'operator', 'value': 'gt'},
-                            {'name': 'input:target', 'value': 'target'},
-                            {'name': 'input:dimension', 'value': 'gender'}
-                        ]
-                    },
-                    {
-                        'control-id': 'credit-age-disparate',
-                        'description': 'Age disparate impact ratio > 0.5',
-                        'props': [
-                            {'name': 'metric_key', 'value': 'disparate_impact'},
-                            {'name': 'threshold', 'value': '0.5'},
-                            {'name': 'operator', 'value': 'gt'},
-                            {'name': 'input:target', 'value': 'target'},
-                            {'name': 'input:dimension', 'value': 'age'}
+                        'description': 'Credit Scoring Fairness (v2)',
+                        'implemented-requirements': [
+                            {
+                                'control-id': 'credit-data-imbalance',
+                                'description': 'Data Quality: Minority class representation >= 20%',
+                                'props': [
+                                    {'name': 'metric_key', 'value': 'class_imbalance'},
+                                    {'name': 'threshold', 'value': '0.2'},
+                                    {'name': 'operator', 'value': 'gt'},
+                                    {'name': 'input.target', 'value': 'target'}
+                                ]
+                            },
+                            {
+                                'control-id': 'credit-data-bias',
+                                'description': 'Disparate impact ratio follows the Four-Fifths Rule',
+                                'props': [
+                                    {'name': 'metric_key', 'value': 'disparate_impact'},
+                                    {'name': 'threshold', 'value': '0.8'},
+                                    {'name': 'operator', 'value': 'gt'},
+                                    {'name': 'input.target', 'value': 'target'},
+                                    {'name': 'input.dimension', 'value': 'gender'}
+                                ]
+                            },
+                            {
+                                'control-id': 'credit-age-disparate',
+                                'description': 'Age disparate impact ratio > 0.5',
+                                'props': [
+                                    {'name': 'metric_key', 'value': 'disparate_impact'},
+                                    {'name': 'threshold', 'value': '0.5'},
+                                    {'name': 'operator', 'value': 'gt'},
+                                    {'name': 'input.target', 'value': 'target'},
+                                    {'name': 'input.dimension', 'value': 'age'}
+                                ]
+                            }
                         ]
                     }
                 ]
