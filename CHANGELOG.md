@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.9] - 2026-05-17
+
+### Changed (config-driven catalogues)
+
+- `venturalitica.metrics.METRIC_METADATA` is now loaded from
+  `src/venturalitica/metrics/catalog.yaml` at import time instead of
+  being declared as a literal Python dict in `metadata.py`. Adding a
+  new metric is a single YAML stanza — no Python edits required.
+  Public surface (`from venturalitica.metrics import METRIC_METADATA`)
+  is unchanged; `scale` is still returned as a tuple, `ideal_value`
+  as the original number / string. The 32-metric catalogue ships
+  inside the wheel (`venturalitica/metrics/catalog.yaml`).
+
 ## [0.6.8] - 2026-05-17
 
 ### Changed (canonical OSCAL compliance)
