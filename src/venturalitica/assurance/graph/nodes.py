@@ -12,17 +12,17 @@ from dotenv import load_dotenv
 
 try:
     from langchain_core.prompts import ChatPromptTemplate
-    from langchain_mistralai import ChatMistralAI
-    from langchain_ollama import ChatOllama
 except ImportError:
     raise ImportError(
-        "langchain packages are required for the compliance graph. "
+        "langchain_core is required for the compliance graph. "
         "Install with: pip install venturalitica[agentic]"
     )
 
 
 from venturalitica.assurance.graph.parser import ASTCodeScanner
 from venturalitica.assurance.graph.state import ComplianceState, SectionDraft
+from venturalitica.llm import ProviderError, resolve_provider
+from venturalitica.llm.providers import OllamaProvider
 from venturalitica.scanner import BOMScanner
 
 # Initialize Env
@@ -33,69 +33,22 @@ class NodeFactory:
     _lock = threading.Lock()
 
     def __init__(self, model_name: str, provider: str = "auto", api_key: str = None):
-        # Initialize LLM
-        mistral_key = api_key or os.getenv("MISTRAL_API_KEY")
-        # Logical Provider Selection
-        if provider == "transformers":
-            # Default to ALIA 40B GGUF for efficient local execution
-            repo_id = "BSC-LT/ALIA-40b-instruct-2512-GGUF"
-            filename = "ALIA-40b-instruct-2512-Q8_0.gguf"
-            print(
-                f"🏠 Loading Local Spanish Model (ALIA 40B GGUF): {repo_id}/{filename}"
-            )
-            try:
-                from huggingface_hub import hf_hub_download
-                from langchain_community.chat_models import ChatLlamaCpp
+        """Initialise the agentic compliance graph nodes.
 
-                # Ensure model is downloaded and get local path
-                model_path = hf_hub_download(repo_id=repo_id, filename=filename)
-
-                self.llm = ChatLlamaCpp(
-                    model_path=model_path,
-                    temperature=0.1,
-                    max_tokens=4096,
-                    top_p=1,
-                    n_ctx=16384,
-                    n_gpu_layers=-1,
-                    n_batch=512,
-                    verbose=False,
-                )
-            except Exception as e:
-                print(f"❌ Error loading ALIA GGUF model: {str(e)}")
-                print("🏠 Falling back to local Ollama (mistral)...")
-                self.llm = ChatOllama(model="mistral", temperature=0.1)
-
-        elif provider == "cloud" or (
-            provider == "auto"
-            and os.getenv("VENTURALITICA_LLM_PRO", "false").lower() == "true"
-            and mistral_key
-        ):
-            # Standardize on Magistral for PRO/Cloud
-            target_model = "magistral-medium-latest"
-            if mistral_key:
-                print(f"🌟 Using High-Power Magistral LLM (Mistral AI): {target_model}")
-                try:
-                    self.llm = ChatMistralAI(
-                        api_key=mistral_key,
-                        model=target_model,
-                        temperature=0.1,
-                        max_retries=3,
-                        timeout=180,
-                    )
-                except Exception as e:
-                    print(f"  ⚠️ Cloud Connection Failed: {e}. Falling back to Local.")
-                    self.llm = ChatOllama(model="mistral", temperature=0.1)
-            else:
-                print("⚠️ Cloud Provider requested but MISTRAL_API_KEY missing.")
-                print("🏠 Falling back to Local Ollama (mistral)...")
-                self.llm = ChatOllama(model="mistral", temperature=0.1)
-        else:
-            # Default: OLLAMA
-            target_model = (
-                model_name if model_name and "/" not in model_name else "mistral"
-            )
-            print(f"🏠 Using Local LLM (Ollama): {target_model}")
-            self.llm = ChatOllama(model=target_model, temperature=0.1)
+        Provider selection is delegated to `venturalitica.llm.resolve_provider`
+        — see that module for the catalogue and alias map. If the chosen
+        provider raises a `ProviderError` (missing API key, GGUF download
+        failed, Ollama daemon down…), we fall back to a vanilla Ollama
+        provider so the rest of the pipeline keeps running.
+        """
+        chosen = resolve_provider(provider, api_key=api_key, model_hint=model_name)
+        print(f"🤖 LLM provider: {chosen.card.short_label()}")
+        try:
+            self.llm = chosen.create_chat_model()
+        except ProviderError as exc:
+            print(f"⚠️ {chosen.card.short_label()} unavailable: {exc}")
+            print("🏠 Falling back to local Ollama (mistral)...")
+            self.llm = OllamaProvider().create_chat_model()
 
     def _load_prompts(self, lang: str = "en"):
         """Loads prompt templates from YAML files based on language."""

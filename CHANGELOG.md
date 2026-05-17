@@ -22,11 +22,57 @@ All notable changes to this project will be documented in this file.
 - `dashboard/views/policy_editor.py`: the form-based editor now refuses to overwrite a canonical NIST `component-definition` policy with the legacy `assessment-plan` shape it still emits — guards against silent corruption of policies authored against the post-2026-05 OSCAL canon. The reader also detects and lists controls from both envelopes so users see what's loaded.
 - `[project.optional-dependencies].dashboard` bumped `streamlit>=1.53.0 → >=1.57.0` (current latest).
 
+### Added (LLM provider layer — clean architecture)
+
+- New `venturalitica.llm` package extracts everything LLM-related out of
+  `assurance.graph.nodes.NodeFactory` (which dropped from 154 lines of
+  if/elif provider logic to a 15-line thin client). Public surface:
+  `resolve_provider`, `normalize_provider_name`, `list_providers`,
+  `LLMProvider`, `ModelCard`, `ProviderError`, `DEFAULT_CARDS` plus the
+  per-provider classes (`AliaProvider`, `HypernovaProvider`,
+  `MistralCloudProvider`, `OllamaProvider`).
+- One file per provider under `llm/providers/`. Adding a new backend
+  (DeepSeek, vLLM, OpenAI-compatible router…) is a single file + one
+  registry entry.
+- Declarative `ModelCard` dataclass carries provider, repo, filename,
+  languages, license, size, and runtime hints — the dashboard, CLI help
+  and tests all introspect the same catalogue.
+- Optional deps (`huggingface_hub`, `langchain_*`) bound at module level
+  inside try/except so the base SDK install imports the package cleanly
+  and tests can mock the symbols by their module path.
+
+### Added (model bumps via the new catalogue)
+
+- **ALIA** default upgraded from `BSC-LT/ALIA-40b-instruct-2512-GGUF` Q8_0
+  (40 GB) to `mradermacher/ALIA-40b-instruct-2601-GGUF` Q4_K_M (22.9 GB).
+  Newer instruction-tune with long-context + SFT + alignment stages,
+  community-quanted at Q4_K_M for ~2× lower RAM at ~1% perplexity cost.
+- **Hypernova** added as a new local-GGUF provider:
+  `MultiverseComputingCAI/Hypernova-60B-2602-GGUF` (31.87 GB). Multiverse
+  Computing's quantum-inspired CompactifAI compression of OpenAI
+  gpt-oss-120b down to 60B params (Apache 2.0). Aliases:
+  `hypernova`/`multiverse`/`compactifai-local`.
+- Back-compat: `provider="transformers"` still resolves to ALIA. New
+  aliases (`bsc`, `multiverse`, `compactifai-local`, `local`, `mistral`)
+  are first-class.
+- All four providers respect `VENTURALITICA_<PROVIDER>_REPO` /
+  `VENTURALITICA_<PROVIDER>_FILE` env overrides without code changes.
+
 ### Tests
 
 - New regression covering `evaluate(metrics=)` non-strict audit semantics and `strict=True` fail-fast (`tests/test_enforcement_semantics.py`).
 - New AR observation contract test that asserts profile-prop propagation including the multi-valued `lifecycle-phase` case (`tests/test_oscal_output.py::test_observations_carry_ai_assurance_profile_props`).
 - New CLI test that `vl ui` emits installation guidance when the `[dashboard]` extra isn't present (`tests/test_cli.py::test_cli_ui_missing_dashboard_extra_emits_install_guidance`).
+- New LLM-package suites (`tests/test_llm_{registry,catalog,providers}.py`,
+  50 tests) covering alias normalization, registry auto-selection,
+  ModelCard immutability + env overrides, GGUF download/load error paths
+  for both Alia and Hypernova, Mistral API-key handling, and Ollama
+  HF-vs-Ollama tag heuristics. Coverage of `llm/` package: 99%.
+- New `vl login-pat` tests in `tests/test_cli.py` covering happy path,
+  org-only, bare-key, and invalid-prefix rejection. `cli/auth.py`
+  coverage jumped from 56% to 100%.
+- Module-level coverage post-session: every refactored file ≥86%
+  (most 100%). Total SDK coverage: 84% → 85% (737 tests pass).
 
 ## [0.6.7] - 2026-05-17
 

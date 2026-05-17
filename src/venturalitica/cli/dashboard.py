@@ -1,4 +1,4 @@
-"""`vl ui` — launch the local Streamlit compliance dashboard.
+r"""`vl ui` — launch the local Streamlit compliance dashboard.
 
 The dashboard ships behind the optional `\[dashboard]` extra to keep the base
 SDK install lightweight. This entry point fails loudly with installation
@@ -26,7 +26,7 @@ def ui(
         False, "--headless", help="Skip opening a browser tab (useful in CI/Docker)."
     ),
 ):
-    """Launches the Venturalítica Local Compliance Dashboard.
+    r"""Launches the Venturalítica Local Compliance Dashboard.
 
     Requires the optional \[dashboard] extra. Install with:
 
@@ -41,10 +41,12 @@ def ui(
         console.print(
             "[bold red]Dashboard dependency missing.[/bold red]\n"
             "[yellow]The Streamlit dashboard ships behind the optional "
-            "\[dashboard] extra. Install it with:[/yellow]\n\n"
-            "    pip install 'venturalitica\[dashboard]'\n\n"
+            r"\[dashboard] extra. Install it with:[/yellow]"
+            "\n\n"
+            r"    pip install 'venturalitica\[dashboard]'"
+            "\n\n"
             "[dim]Or, with uv:[/dim]\n"
-            "    uv add 'venturalitica\[dashboard]'"
+            r"    uv add 'venturalitica\[dashboard]'"
         )
         raise typer.Exit(code=1)
 
