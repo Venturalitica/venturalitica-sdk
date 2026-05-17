@@ -275,7 +275,7 @@ def enforce(
                     data, mapping, strict=strict, phase=phase
                 )
             elif metrics is not None:
-                results = validator.evaluate(metrics, phase=phase)
+                results = validator.evaluate(metrics, phase=phase, strict=strict)
 
             if results:
                 all_results.extend(results)

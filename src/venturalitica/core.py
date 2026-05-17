@@ -237,11 +237,17 @@ class AssuranceValidator:
         self,
         metrics: Dict[str, float],
         phase: Optional[str] = None,
+        strict: bool = False,
     ) -> List[ComplianceResult]:
         """Evaluates pre-computed metrics against controls.
 
-        Filters by `lifecycle_phase` when `phase` is provided; controls declaring
-        `enforcement_mode: block` that fail raise ComplianceBlockError.
+        Filters by `lifecycle_phase` when `phase` is provided. Controls declaring
+        `enforcement_mode: block` that fail raise ComplianceBlockError, which is
+        caught and logged when `strict=False` so the rest of the policy continues
+        to be evaluated — mirroring `compute_and_evaluate(data=)` behavior so
+        both entry points behave identically.
+
+        Set `strict=True` to fail-fast on the first `block`-mode violation.
         """
         results = []
         for ctrl in self.policy.controls:
@@ -251,20 +257,37 @@ class AssuranceValidator:
             if actual is None:
                 continue
 
-            passed = self._check_condition(actual, ctrl.operator, ctrl.threshold)
-            result = ComplianceResult(
-                control_id=ctrl.id,
-                description=ctrl.description,
-                metric_key=ctrl.metric_key,
-                threshold=ctrl.threshold,
-                actual_value=actual,
-                operator=ctrl.operator,
-                passed=passed,
-                severity=ctrl.severity,
-                metadata=dict(ctrl.metadata or {}),
-            )
-            results.append(result)
-            self._apply_enforcement_mode(ctrl, result)
+            try:
+                passed = self._check_condition(actual, ctrl.operator, ctrl.threshold)
+                result = ComplianceResult(
+                    control_id=ctrl.id,
+                    description=ctrl.description,
+                    metric_key=ctrl.metric_key,
+                    threshold=ctrl.threshold,
+                    actual_value=actual,
+                    operator=ctrl.operator,
+                    passed=passed,
+                    severity=ctrl.severity,
+                    metadata=dict(ctrl.metadata or {}),
+                )
+                results.append(result)
+                self._apply_enforcement_mode(ctrl, result)
+            except ComplianceBlockError:
+                # Already recorded above; surface only in strict mode so the
+                # caller can fail-fast. Default behaviour collects every result.
+                if strict:
+                    raise
+                continue
+            except (ValueError, TypeError, KeyError) as e:
+                if strict:
+                    raise
+                print(f"    [Skip] Control '{ctrl.id}' ({ctrl.metric_key}) skipped: {e}")
+                continue
+            except Exception as e:
+                if strict:
+                    raise
+                print(f"⚠ [Venturalitica] Error evaluating {ctrl.metric_key}: {e}")
+                continue
         return results
 
     @staticmethod

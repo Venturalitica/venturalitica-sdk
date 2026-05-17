@@ -95,6 +95,41 @@ class AssessmentResultsBuilder:
             if cr.severity:
                 obs_props.append(OSCALProp(name="severity", value=cr.severity))
 
+            # AI Assurance profile properties (Table 1 of the IEEE Computer
+            # paper "An OSCAL Profile for AI Assurance"). Propagated to EVERY
+            # observation (not only risks-on-failure) so audit consumers see
+            # the same provenance metadata for passed and failed controls.
+            # Names use NIST OSCAL `prop.name` convention (kebab-case, dot for
+            # nested input slots — matches the regex
+            # `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$`).
+            _PROFILE_PROPS = (
+                "lifecycle_phase",
+                "enforcement_mode",
+                "evaluation_method",
+                "evaluation_window",
+                "target_type",
+                "risk_id",
+                "treatment_id",
+                "policy_id",
+                "objective_id",
+                "risk_acceptance_criteria",
+                "threshold_justification",
+                "stakeholder_consultation_ref",
+            )
+            for key in _PROFILE_PROPS:
+                value = (cr.metadata or {}).get(key)
+                if value is None:
+                    continue
+                facet_name = key.replace("_", "-")
+                # `lifecycle_phase` MAY repeat (e.g. ["training","validation"]);
+                # emit one prop per phase so each tag is independently
+                # queryable downstream.
+                if isinstance(value, list):
+                    for v in value:
+                        obs_props.append(OSCALProp(name=facet_name, value=str(v)))
+                else:
+                    obs_props.append(OSCALProp(name=facet_name, value=str(value)))
+
             obs = OSCALObservation(
                 title=f"Evaluation of {cr.control_id}",
                 description=(

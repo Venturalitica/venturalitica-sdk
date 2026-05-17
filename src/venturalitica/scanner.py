@@ -5,7 +5,16 @@ from typing import Optional, Set
 
 from cyclonedx.model.bom import Bom
 from cyclonedx.model.component import Component, ComponentType
-from cyclonedx.output.json import JsonV1Dot5
+from cyclonedx.output.json import JsonV1Dot6
+from cyclonedx.schema import SchemaVersion
+from packageurl import PackageURL
+
+# CycloneDX schema version emitted by this scanner. Bump when migrating
+# the output class (e.g. JsonV1Dot6 → JsonV1Dot7). The SaaS bom-ingestion
+# service (bom-ingestion.service.ts) reads the standard CycloneDX schema
+# keys (`components[]`, `dependencies[]`, `formulation[]`) and is forward
+# compatible across 1.5 → 1.6 → 1.7.
+CYCLONEDX_SCHEMA_VERSION = SchemaVersion.V1_6
 
 # Known ML Model classes to detect
 KNOWN_MODELS: Set[str] = {
@@ -28,13 +37,18 @@ class BOMScanner:
     def scan(self) -> str:
         """
         Orchestrates the scanning process and returns the BOM as a JSON string.
+
+        Emits CycloneDX v1.6 — adds ML-BOM `formulation` support and the
+        full `vulnerabilities[]` schema vs. v1.5. The SaaS ingester
+        (`bom-ingestion.service.ts`) is forward-compatible across 1.5/1.6/1.7;
+        we pick the highest version with a stable cyclonedx-python-lib emitter.
         """
         self._scan_requirements()
         self._scan_pyproject()
         self._scan_imports()
         self._scan_models()
 
-        output = JsonV1Dot5(self.bom).output_as_string()
+        output = JsonV1Dot6(self.bom).output_as_string()
         return output
 
     def _scan_imports(self) -> None:
@@ -261,20 +275,91 @@ class BOMScanner:
         version: Optional[str],
         type: ComponentType,
         description: Optional[str] = None,
-        licenses: Optional[list] = None
+        licenses: Optional[list] = None,
     ) -> None:
-        """Helper to add a component to the BOM."""
+        """Add a CycloneDX 1.6 component to the BOM.
+
+        Adds three things over the bare `Component(name, version, type)`
+        construction the previous version emitted:
+
+        - **PURL** (`pkg:pypi/<name>@<version>` for libraries) — Package URL
+          spec is the canonical CycloneDX identifier. The SaaS ingester's
+          `bom-ref` lookup and the OSCAL ML-BOM `formulation[].inputs[].ref`
+          edges both resolve via PURL when present.
+        - **`bom-ref`** mirrored from the PURL (or `<name>@<version>` for
+          ML models without a PyPI mapping) so the graph remains stable
+          across rescans.
+        - **License enrichment from installed metadata** — for libraries
+          we already resolved via `importlib.metadata`, we copy the
+          declared `License-Expression` / `License` metadata field into
+          the component so the SoA / DORA Art.28(9) inventory has SPDX
+          ids without a second pass.
+        """
         from cyclonedx.model.license import DisjunctiveLicense
+
+        purl: Optional[PackageURL] = None
+        if type == ComponentType.LIBRARY and name:
+            # PyPI is the assumed registry for Python library components.
+            # `version` is optional in PackageURL — emit a name-only PURL
+            # when the version is unknown (still better than no identifier).
+            try:
+                purl = PackageURL(type="pypi", name=name, version=version)
+            except Exception:
+                purl = None
+
+        bom_ref: Optional[str] = None
+        if purl is not None:
+            bom_ref = str(purl)
+        elif name:
+            bom_ref = f"{name}@{version}" if version else name
 
         component = Component(
             name=name,
             version=version,
             type=type,
-            description=description
+            description=description,
+            purl=purl,
+            bom_ref=bom_ref,
         )
+
+        # Enrich library components with installed-package licenses when the
+        # caller didn't pass them explicitly. Cheap because importlib.metadata
+        # caches metadata access.
+        if type == ComponentType.LIBRARY and not licenses:
+            license_from_metadata = self._lookup_license(name)
+            if license_from_metadata:
+                licenses = [license_from_metadata]
 
         if licenses:
             for lic_name in licenses:
                 component.licenses.add(DisjunctiveLicense(name=lic_name))
-                
+
         self.bom.components.add(component)
+
+    @staticmethod
+    def _lookup_license(dist_name: str) -> Optional[str]:
+        """Best-effort SPDX-ish license lookup via importlib.metadata.
+
+        PEP 639 introduced `License-Expression`; older packages still ship
+        `License` (free-form). We prefer the SPDX expression, fall back to
+        the legacy field, return `None` when neither is set rather than
+        emitting an empty license slot.
+        """
+        try:
+            import importlib.metadata as _md
+        except ImportError:  # pragma: no cover — Python <3.8 unsupported
+            return None
+        try:
+            meta = _md.metadata(dist_name)
+        except _md.PackageNotFoundError:
+            return None
+        except Exception:
+            return None
+        # PEP 639 first
+        expr = meta.get("License-Expression")
+        if expr and expr.strip():
+            return expr.strip()
+        legacy = meta.get("License")
+        if legacy and legacy.strip() and legacy.strip().upper() != "UNKNOWN":
+            return legacy.strip()
+        return None

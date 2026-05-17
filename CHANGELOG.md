@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.8] - 2026-05-17
+
+### Changed (canonical OSCAL compliance)
+
+- `venturalitica.oscal.models.OSCAL_VERSION`: bumped **1.1.2 → 1.2.2** so emitted assessment-results / POA&M validate against the vendored NIST OSCAL v1.2.2 schemas the Venturalítica SaaS ajv pipeline enforces. OSCAL 1.2.2 (NIST release 2026-04-30) is the current latest stable; deltas vs 1.1.2 are additive for the AssessmentResults / POA&M subsets the SDK serializes.
+- `venturalitica.oscal.builder.AssessmentResultsBuilder`: observations now carry the **AI Assurance profile properties** (Table 1 of the IEEE Computer paper — `lifecycle-phase`, `enforcement-mode`, `evaluation-method`, `evaluation-window`, `target-type`, `risk-id`, `treatment-id`, `policy-id`, `objective-id`, `risk-acceptance-criteria`, `threshold-justification`, `stakeholder-consultation-ref`) for **every** result, not just for failed controls via `risks[]`. Auditors now see the same provenance metadata on passed and failed controls. `lifecycle-phase` repeats one prop per value when a control declares multiple phases.
+
+### Fixed
+
+- `venturalitica.core.AssuranceValidator.evaluate(metrics=)` was the only entry point that raised `ComplianceBlockError` on the first `enforcement_mode: block` failure, aborting the rest of the policy. `compute_and_evaluate(data=)` already swallowed the error and continued. This release unifies both paths: the metrics-mode evaluator now catches the error and continues by default (audit-mode), and a new `strict=True` keyword restores the previous fail-fast behaviour for callers that want a deploy-gate. `venturalitica.api.enforce()` propagates its existing `strict` flag.
+
+### Changed (dashboard)
+
+- `vl ui` no longer crashes with an opaque `FileNotFoundError: 'streamlit'` when the optional `[dashboard]` extra isn't installed. Added an `importlib.util.find_spec` preflight that prints `pip install 'venturalitica[dashboard]'` guidance and exits 1.
+- `vl ui` now accepts `--port`, `--host`, and `--headless` flags (passthrough to Streamlit) and launches via `<python> -m streamlit run …` so it works in any venv / uv / conda environment without requiring the `streamlit` binary on `PATH`.
+- `dashboard/main.py`: Phase 4 (Technical Report) auto-unlocks when the canonical evidence cache exists at `.venturalitica/results.json` or under any `.venturalitica/runs/<run-id>/results.json`. Previously the gating only checked `<cwd>/results.json`, which the SDK never writes, so users were locked out of the report after a successful run.
+- `dashboard/views/policy.py`: the Phase 3 expander now surfaces the AI Assurance profile properties in two compact lines (**Stability** for runtime metadata and **Traceability** for cross-document IDs), matching the CLI's stability output.
+- `dashboard/views/policy_editor.py`: the form-based editor now refuses to overwrite a canonical NIST `component-definition` policy with the legacy `assessment-plan` shape it still emits — guards against silent corruption of policies authored against the post-2026-05 OSCAL canon. The reader also detects and lists controls from both envelopes so users see what's loaded.
+- `[project.optional-dependencies].dashboard` bumped `streamlit>=1.53.0 → >=1.57.0` (current latest).
+
+### Tests
+
+- New regression covering `evaluate(metrics=)` non-strict audit semantics and `strict=True` fail-fast (`tests/test_enforcement_semantics.py`).
+- New AR observation contract test that asserts profile-prop propagation including the multi-valued `lifecycle-phase` case (`tests/test_oscal_output.py::test_observations_carry_ai_assurance_profile_props`).
+- New CLI test that `vl ui` emits installation guidance when the `[dashboard]` extra isn't present (`tests/test_cli.py::test_cli_ui_missing_dashboard_extra_emits_install_guidance`).
+
+## [0.6.7] - 2026-05-17
+
+### Changed
+
+- `venturalitica.scanner.BOMScanner`: SBOM output upgraded from CycloneDX **1.5** to **1.6** (`JsonV1Dot5` → `JsonV1Dot6`). The 1.6 schema adds the ML-BOM `formulation[]` block and the full `vulnerabilities[]` schema the SaaS `bom-ingestion.service.ts` already consumes; no breaking changes for existing 1.5 consumers.
+- `venturalitica.scanner.BOMScanner`: every library component now carries a canonical `pkg:pypi/<name>@<version>` **Package URL** plus a `bom-ref` mirrored from that PURL, so the SaaS `dependencies[]` upsert pipeline gets stable identifiers across rescans (DORA Art.28(9) supply-chain inventory).
+- `venturalitica.scanner.BOMScanner`: library components are enriched with their declared license from `importlib.metadata` (PEP 639 `License-Expression` first, legacy `License` fallback) when the caller doesn't pass one explicitly. SoA inventory now ships with SPDX ids without a second metadata pass.
+- `venturalitica.probes.BOMProbe`: payload envelope adds three additive fields — `_format` (`"CycloneDX"`), `_format_version` (`"1.6"`), and a flat `components[]` projection (`{name, version, type, purl, bom_ref, license}`) for lightweight consumers. Back-compat keys (`component_count`, `bom`, `bom_path`) preserved verbatim.
+
+### Tests
+
+- `tests/test_scanner.py`: added CycloneDX 1.6 schema guard, PyPI-PURL contract on every library component, and license-enrichment regression covering `importlib.metadata`.
+- `tests/test_probes.py`: added `BOMProbe` happy-path test (specVersion 1.6, PURL on every library, projection contract, on-disk BOM byte-identical to envelope) and an error-path test that the probe surfaces a clean `error` payload when the scanner blows up.
+
 ## [0.6.6] - 2026-05-16
 
 ### Fixed
