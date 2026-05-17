@@ -133,6 +133,67 @@ class TestCliLogin:
         call_kwargs = mock_post.call_args
         assert call_kwargs[1]["json"] == {"aiSystemId": "sys-abc"}
 
+    def test_login_pat_stores_canonical_payload(self, tmp_path):
+        """`vl login-pat --key vl_pat_… --org X --system Y` writes a JSON
+        payload that downstream push/pull readers expect."""
+        creds_path = str(tmp_path / "credentials.json")
+        with patch("venturalitica.cli.auth.get_config_path", return_value=creds_path):
+            result = runner.invoke(
+                app,
+                [
+                    "login-pat",
+                    "--key", "vl_pat_synthetic-abc123",
+                    "--org", "venturalitica",
+                    "--system", "spineguard-ai",
+                ],
+            )
+        assert result.exit_code == 0
+        assert "PAT stored" in result.stdout
+        with open(creds_path) as f:
+            saved = json.load(f)
+        assert saved["key"] == "vl_pat_synthetic-abc123"
+        assert saved["kind"] == "pat"
+        assert saved["org"] == "venturalitica"
+        # Stored under both keys so existing readers (sync.py default fallback)
+        # and human-friendly inspection both work.
+        assert saved["system"] == "spineguard-ai"
+        assert saved["default_system"] == "spineguard-ai"
+
+    def test_login_pat_without_system_omits_default_system(self, tmp_path):
+        """When `--system` is omitted, the SaaS auto-derives target from
+        token scopes — we shouldn't stamp a placeholder client-side."""
+        creds_path = str(tmp_path / "credentials.json")
+        with patch("venturalitica.cli.auth.get_config_path", return_value=creds_path):
+            result = runner.invoke(
+                app, ["login-pat", "--key", "vl_pat_only-key", "--org", "venturalitica"]
+            )
+        assert result.exit_code == 0
+        with open(creds_path) as f:
+            saved = json.load(f)
+        assert "system" not in saved
+        assert "default_system" not in saved
+
+    def test_login_pat_without_org_or_system_still_stores_key(self, tmp_path):
+        creds_path = str(tmp_path / "credentials.json")
+        with patch("venturalitica.cli.auth.get_config_path", return_value=creds_path):
+            result = runner.invoke(app, ["login-pat", "--key", "vl_pat_bare"])
+        assert result.exit_code == 0
+        with open(creds_path) as f:
+            saved = json.load(f)
+        assert saved == {"key": "vl_pat_bare", "kind": "pat"}
+
+    def test_login_pat_rejects_invalid_token_prefix(self, tmp_path):
+        """A PAT that doesn't start with `vl_pat_` is a typo — fail fast
+        before writing anything to disk."""
+        creds_path = str(tmp_path / "credentials.json")
+        with patch("venturalitica.cli.auth.get_config_path", return_value=creds_path):
+            result = runner.invoke(app, ["login-pat", "--key", "sk-not-a-pat"])
+        assert result.exit_code == 1
+        assert "Invalid PAT format" in result.stdout
+        # No file should have been written.
+        import os as _os
+        assert not _os.path.exists(creds_path)
+
     def test_login_failure_http_error(self):
         """Login failure (HTTP error) prints error and exits with code 1."""
         with patch(
