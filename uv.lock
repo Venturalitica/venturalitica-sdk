@@ -4670,7 +4670,7 @@ wheels = [
 
 [[package]]
 name = "venturalitica"
-version = "0.6.6"
+version = "0.6.8"
 source = { editable = "." }
 dependencies = [
     { name = "compliance-trestle" },
@@ -4753,7 +4753,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rich", specifier = ">=14.2.0" },
     { name = "scikit-learn", specifier = ">=1.8.0" },
-    { name = "streamlit", marker = "extra == 'dashboard'", specifier = ">=1.53.0" },
+    { name = "streamlit", marker = "extra == 'dashboard'", specifier = ">=1.57.0" },
     { name = "torch", marker = "extra == 'torch'", specifier = ">=2.0.0" },
     { name = "typer", specifier = ">=0.21.0" },
     { name = "ucimlrepo", specifier = ">=0.0.7" },

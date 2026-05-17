@@ -138,7 +138,7 @@ def _standards_from_policy(policy: dict | None) -> list[dict]:
         out = [
             {"standard": "EU AI Act", "articles": ["Art.11", "Annex IV"]},
             {"standard": "ISO/IEC 42001", "clauses": ["A.4.6", "A.8.3"]},
-            {"standard": "NIST OSCAL", "version": "1.1.2"},
+            {"standard": "NIST OSCAL", "version": "1.2.2"},
         ]
     return out
 

@@ -66,44 +66,90 @@ def interpret_rule(metric_key, operator, threshold, is_data=False):
 
 
 def load_policy(target_dir, filename):
+    """Read a policy YAML and surface its controls in the UI format.
+
+    Detects both envelopes:
+      - canonical NIST `component-definition` (post 2026-05 OSCAL migration),
+        in which case `is_canonical=True` is returned and the legacy form
+        editor MUST refuse to write back (see save_policy_file + the banner
+        in render_policy_editor).
+      - legacy `assessment-plan + control-implementations[]` (kept for
+        backward read-only display of policies authored before 0.6.4).
+    """
     path = Path(target_dir) / filename
-    if path.exists():
-        with open(path, "r") as f:
-            data = yaml.safe_load(f) or {}
+    if not path.exists():
+        return {"title": "New Policy", "controls": [], "is_canonical": False}
 
-            # Mapping OSCAL -> UI Format
-            full_controls = []
-            root = data.get("assessment-plan", {})
+    with open(path, "r") as f:
+        data = yaml.safe_load(f) or {}
 
-            # Extract title
-            title = root.get("metadata", {}).get("title", "New Policy")
+    full_controls = []
 
-            # Extract controls
-            impls = root.get("control-implementations", [])
-            for impl in impls:
-                for req in impl.get("implemented-requirements", []):
-                    ctrl = {"id": req.get("control-id"), "description": req.get("description", "")}
-                    # Extract props
-                    for p in req.get("props", []):
-                        if p["name"] in ["metric_key", "operator", "threshold", "severity"]:
-                            # Convert numeric types if needed
-                            val = p["value"]
-                            if p["name"] == "threshold":
-                                try:
-                                    val = float(val)
-                                except (ValueError, TypeError):
-                                    pass
-                            ctrl[p["name"]] = val
-
+    # Canonical NIST OSCAL v1.2.2 envelope (preferred). Walk the
+    # `components[].control-implementations[].implemented-requirements[]`
+    # tree — same path the SDK loader uses.
+    canonical_root = data.get("component-definition")
+    if canonical_root:
+        title = canonical_root.get("metadata", {}).get("title", "Canonical Policy")
+        for component in (canonical_root.get("components") or []):
+            for impl in (component.get("control-implementations") or []):
+                for req in (impl.get("implemented-requirements") or []):
+                    ctrl = _control_from_requirement(req)
                     if "metric_key" in ctrl:
                         full_controls.append(ctrl)
+        return {
+            "title": title,
+            "controls": full_controls,
+            "is_canonical": True,
+        }
 
-            return {"title": title, "controls": full_controls}
+    # Legacy `assessment-plan` envelope (read-only — the SDK loader no
+    # longer accepts this root since 0.6.4).
+    legacy_root = data.get("assessment-plan", {})
+    title = legacy_root.get("metadata", {}).get("title", "New Policy")
+    for impl in (legacy_root.get("control-implementations") or []):
+        for req in (impl.get("implemented-requirements") or []):
+            ctrl = _control_from_requirement(req)
+            if "metric_key" in ctrl:
+                full_controls.append(ctrl)
 
-    return {"title": "New Policy", "controls": []}
+    return {"title": title, "controls": full_controls, "is_canonical": False}
+
+
+def _control_from_requirement(req: dict) -> dict:
+    """Extract the UI-facing control dict from a canonical or legacy
+    implemented-requirement object. Shared by both envelope parsers."""
+    ctrl = {"id": req.get("control-id"), "description": req.get("description", "")}
+    for p in req.get("props", []):
+        if p.get("name") in ("metric_key", "operator", "threshold", "severity"):
+            val = p.get("value")
+            if p["name"] == "threshold":
+                try:
+                    val = float(val)
+                except (ValueError, TypeError):
+                    pass
+            ctrl[p["name"]] = val
+    return ctrl
 
 
 def save_policy_file(target_dir, filename, data):
+    # Hard guard: refuse to overwrite a canonical NIST `component-definition`
+    # policy with the legacy `assessment-plan` envelope this form-builder
+    # still emits. Doing so would silently corrupt the policy — the SDK
+    # loader 0.6.4+ rejects the legacy root, so the next `vl.enforce()` call
+    # would skip every control. The full editor rewrite (D2.1 in the
+    # roadmap) is deferred to a dedicated sprint; until then, canonical
+    # policies must be edited as YAML or re-pulled via `vl pull`.
+    if data.get("is_canonical"):
+        st.error(
+            "🛡️ Refusing to overwrite a canonical `component-definition` "
+            "policy with the legacy `assessment-plan` shape that this form "
+            "currently emits.\n\n"
+            "Edit the YAML directly or run `vl pull` to refresh from the "
+            "Venturalítica SaaS."
+        )
+        return
+
     # Mapping UI Format -> OSCAL
     oscal_data = {
         "assessment-plan": {
@@ -260,8 +306,24 @@ def render_policy_editor(target_dir):
         with col_save:
             st.markdown("### Finalize")
             policy["title"] = st.text_input("Policy Title", value=policy.get("title", "My Policy"))
-            if st.button("💾 Save to File", type="primary", use_container_width=True):
-                save_policy_file(target_dir, filename, policy)
+            if policy.get("is_canonical"):
+                st.warning(
+                    "📖 Read-only — this policy uses the canonical NIST OSCAL "
+                    "`component-definition` envelope. The form editor below "
+                    "still emits the legacy `assessment-plan` shape; saving "
+                    "would corrupt the policy. Edit the YAML directly or "
+                    "run `vl pull` to refresh from the SaaS."
+                )
+                st.button(
+                    "💾 Save to File",
+                    type="primary",
+                    use_container_width=True,
+                    disabled=True,
+                    help="Save disabled while a canonical policy is loaded.",
+                )
+            else:
+                if st.button("💾 Save to File", type="primary", use_container_width=True):
+                    save_policy_file(target_dir, filename, policy)
 
         with col_code:
             st.code(yaml.dump(policy, sort_keys=False), language="yaml")

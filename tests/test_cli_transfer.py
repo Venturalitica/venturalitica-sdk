@@ -19,7 +19,7 @@ def _synthetic_assessment_results() -> dict:
             "uuid": "ar-test-uuid",
             "metadata": {
                 "title": "Synthetic AR",
-                "oscal-version": "1.1.2",
+                "oscal-version": "1.2.2",
                 "version": "1.0",
                 "last-modified": "2026-04-30T00:00:00Z",
             },

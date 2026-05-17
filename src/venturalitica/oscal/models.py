@@ -1,11 +1,19 @@
-"""OSCAL v1.1.2 data models for Assessment Results and Plan of Action & Milestones.
+"""OSCAL v1.2.2 data models for Assessment Results and Plan of Action & Milestones.
 
 These models represent the subset of OSCAL needed to serialize AI Assurance
 evidence as standards-compliant documents. Field names use Python conventions
 internally; serialization to kebab-case OSCAL JSON/YAML is handled by the
 serializer module.
 
-Reference: https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/
+Reference: https://pages.nist.gov/OSCAL-Reference/models/v1.2.2/
+
+Version bump rationale (2026-05-17): the Venturalítica SaaS validates incoming
+OSCAL via ajv against the vendored NIST OSCAL v1.2.2 schemas (see
+`packages/oscal-types/schemas/v1.2.2/` in the platform monorepo). Emitting
+1.1.2 caused validation rejection on `/api/push`. NIST OSCAL 1.2.2 (released
+2026-04-30) is the current latest stable release; the 1.1.2 → 1.2.2 deltas
+are additive — no breaking change affects the AssessmentResults / POA&M
+subsets used by the SDK.
 """
 
 from dataclasses import dataclass, field
@@ -26,7 +34,7 @@ def _now() -> str:
 # Shared
 # ---------------------------------------------------------------------------
 
-OSCAL_VERSION = "1.1.2"
+OSCAL_VERSION = "1.2.2"
 
 
 @dataclass
@@ -226,7 +234,7 @@ class ImportAP:
 class AssessmentResults:
     """Top-level OSCAL Assessment Results document.
 
-    Spec: https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/assessment-results/
+    Spec: https://pages.nist.gov/OSCAL-Reference/models/v1.2.2/assessment-results/
     """
 
     uuid: str = field(default_factory=_uuid)
@@ -258,7 +266,7 @@ class POAMItem:
 class PlanOfActionAndMilestones:
     """Top-level OSCAL POA&M document.
 
-    Spec: https://pages.nist.gov/OSCAL-Reference/models/v1.1.2/plan-of-action-and-milestones/
+    Spec: https://pages.nist.gov/OSCAL-Reference/models/v1.2.2/plan-of-action-and-milestones/
     """
 
     uuid: str = field(default_factory=_uuid)

@@ -176,8 +176,28 @@ def render_dashboard():
     # --- PHASE STATUS (file-existence checks) ---
     has_model_card = os.path.exists(os.path.join(target_dir, "system_description.yaml"))
     has_policy = os.path.exists(os.path.join(target_dir, "model_policy.oscal.yaml"))
-    has_evidence = os.path.exists(os.path.join(target_dir, "results.json")) or any(
-        f.startswith("trace_") for f in os.listdir(target_dir) if os.path.isfile(os.path.join(target_dir, f))
+
+    # Evidence detection: the SDK writes `vl.enforce()` results to BOTH
+    # `<cwd>/.venturalitica/results.json` (canonical cache, since 0.6.0) and
+    # per-run folders under `<cwd>/.venturalitica/runs/<run-id>/results.json`.
+    # The previous check only looked at `<cwd>/results.json`, which is
+    # never written there, so Phase 4 stayed locked even after a successful
+    # enforcement run.
+    _vault_dir = os.path.join(target_dir, ".venturalitica")
+    has_evidence = (
+        os.path.exists(os.path.join(target_dir, "results.json"))
+        or os.path.exists(os.path.join(_vault_dir, "results.json"))
+        or (
+            os.path.isdir(os.path.join(_vault_dir, "runs"))
+            and any(
+                os.path.isfile(os.path.join(_vault_dir, "runs", run, "results.json"))
+                for run in os.listdir(os.path.join(_vault_dir, "runs"))
+            )
+        )
+        or any(
+            f.startswith("trace_") for f in os.listdir(target_dir)
+            if os.path.isfile(os.path.join(target_dir, f))
+        )
     )
     has_doc = os.path.exists(os.path.join(target_dir, "venturalitica_technical_doc.json"))
 

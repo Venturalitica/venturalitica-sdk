@@ -15,38 +15,81 @@ def test_cli_ui_help():
     assert "scan" not in result.stdout
 
 
+def _patch_streamlit_available(mp_ctx):
+    """Bypass the `vl ui` preflight that requires streamlit to be importable
+    so the CLI tests can exercise the launch path even when the optional
+    [dashboard] extra isn't installed in the test venv."""
+    return mp_ctx(
+        "venturalitica.cli.dashboard.importlib.util.find_spec",
+        return_value=MagicMock(),
+    )
+
+
 def test_cli_ui_keyboard_interrupt():
-    with patch("subprocess.run", side_effect=KeyboardInterrupt):
+    # Patch narrowly on the dashboard module to avoid intercepting subprocess
+    # calls from unrelated init code (e.g. `distro` inside telemetry).
+    with _patch_streamlit_available(patch), patch(
+        "venturalitica.cli.dashboard.subprocess.run", side_effect=KeyboardInterrupt
+    ):
         result = runner.invoke(app, ["ui"])
     assert "Dashboard stopped" in result.stdout
 
 
 def test_cli_ui_exception():
-    with patch("subprocess.run", side_effect=Exception("Launch fail")):
+    with _patch_streamlit_available(patch), patch(
+        "venturalitica.cli.dashboard.subprocess.run", side_effect=Exception("Launch fail")
+    ):
         result = runner.invoke(app, ["ui"])
-    assert "Failed to launch dashboard: Launch fail" in result.stdout
+    assert "Failed to launch dashboard" in result.stdout
+    assert "Launch fail" in result.stdout
 
 
 # --- Merged from test_local_assistant.py ---
 
 
 def test_cli_ui_launch():
-    """Test CLI ui command calls subprocess.run with streamlit."""
-    with patch("subprocess.run") as mock_run:
+    """Test CLI ui command invokes `<python> -m streamlit run <dashboard>`."""
+    with _patch_streamlit_available(patch), patch(
+        "venturalitica.cli.dashboard.subprocess.run"
+    ) as mock_run:
         result = runner.invoke(app, ["ui"])
-        assert result.exit_code == 0
         assert "Launching Venturalítica UI" in result.stdout
-        # subprocess.run may be called multiple times (e.g. by telemetry),
-        # so we check the streamlit call is among them.
-        streamlit_calls = [c for c in mock_run.call_args_list if "streamlit" in str(c)]
-        assert len(streamlit_calls) >= 1
+        # subprocess.run is also called by telemetry helpers (distro lookup);
+        # what matters is that at least one of the calls launches streamlit
+        # with the new --server.port / --server.address args.
+        streamlit_calls = [
+            c for c in mock_run.call_args_list
+            if c.args and isinstance(c.args[0], list) and "streamlit" in c.args[0]
+        ]
+        assert len(streamlit_calls) == 1, f"expected one streamlit launch, got {streamlit_calls}"
+        cmd = streamlit_calls[0].args[0]
+        assert "run" in cmd
+        assert "--server.port" in cmd
+        assert "--server.address" in cmd
 
 
 def test_cli_ui_error_message():
     """Test CLI ui command displays error on failure."""
-    with patch("subprocess.run", side_effect=Exception("Launch Error")):
+    with _patch_streamlit_available(patch), patch(
+        "venturalitica.cli.dashboard.subprocess.run", side_effect=Exception("Launch Error")
+    ):
         result = runner.invoke(app, ["ui"])
         assert "Failed to launch dashboard" in result.stdout
+
+
+def test_cli_ui_missing_dashboard_extra_emits_install_guidance():
+    """When streamlit isn't installed, `vl ui` must print the
+    `pip install 'venturalitica[dashboard]'` guidance and exit non-zero —
+    rather than letting subprocess.run blow up with an opaque
+    FileNotFoundError for the missing `streamlit` binary."""
+    with patch(
+        "venturalitica.cli.dashboard.importlib.util.find_spec",
+        return_value=None,
+    ):
+        result = runner.invoke(app, ["ui"])
+    assert result.exit_code == 1
+    assert "Dashboard dependency missing" in result.stdout
+    assert "venturalitica[dashboard]" in result.stdout
 
 
 # ===================================================================

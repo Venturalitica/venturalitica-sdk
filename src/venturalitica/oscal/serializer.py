@@ -1,4 +1,4 @@
-"""Serialize OSCAL data models to JSON and YAML following OSCAL v1.1.2 conventions.
+"""Serialize OSCAL data models to JSON and YAML following OSCAL v1.2.2 conventions.
 
 OSCAL uses kebab-case for JSON/YAML keys. This module handles the conversion
 from Python snake_case dataclass fields to OSCAL kebab-case output.
