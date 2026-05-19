@@ -148,3 +148,57 @@ def test_bom_scanner_models(temp_project):
     }
     assert "RandomForestClassifier" in components
     assert "LogisticRegression" in components
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# CycloneDX 1.6 schema + PURL contracts (regression guards for the
+# bom-ingestion.service.ts upsert pipeline).
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def test_bom_scanner_emits_cyclonedx_1_6(temp_project):
+    """Scanner output must declare specVersion 1.6 so the SaaS ingester
+    can rely on the ML-BOM `formulation[]` block + the full
+    `vulnerabilities[]` schema introduced in CycloneDX 1.6.
+    """
+    scanner = BOMScanner(temp_project)
+    bom = json.loads(scanner.scan())
+    assert bom["bomFormat"] == "CycloneDX"
+    assert bom["specVersion"] == "1.6"
+    assert "serialNumber" in bom
+
+
+def test_bom_scanner_library_components_have_pypi_purl(temp_project):
+    """Every library component must carry a `pkg:pypi/<name>@<version>`
+    Package URL — the SaaS `bom-ingestion.service` uses PURL as the
+    canonical `bom-ref` lookup key when wiring `dependencies[]` edges.
+    """
+    scanner = BOMScanner(temp_project)
+    bom = json.loads(scanner.scan())
+    libraries = [c for c in bom["components"] if c.get("type") == "library"]
+    assert libraries, "expected at least one library component"
+    for comp in libraries:
+        purl = comp.get("purl")
+        assert purl is not None, f"component {comp['name']!r} missing purl"
+        assert purl.startswith("pkg:pypi/"), (
+            f"component {comp['name']!r} has non-PyPI purl: {purl}"
+        )
+        # bom-ref aligned to PURL so dependency graphs stay stable across
+        # repeat scans (the SaaS upserts ManagedItems by bom-ref/PURL).
+        assert comp.get("bom-ref") == purl
+
+
+def test_bom_scanner_license_enrichment(tmp_path):
+    """When a declared dependency happens to be installed in the current
+    Python environment, the scanner enriches the component with its
+    declared license — so the SaaS SoA inventory has SPDX ids without
+    a second metadata pass.
+    """
+    # `pytest` is a guaranteed-installed dep of this SDK's test env.
+    (tmp_path / "requirements.txt").write_text("pytest==9.0.3\n")
+    scanner = BOMScanner(str(tmp_path))
+    bom = json.loads(scanner.scan())
+    pytest_components = [c for c in bom["components"] if c.get("name") == "pytest"]
+    assert pytest_components, "pytest component missing"
+    licenses = pytest_components[0].get("licenses") or []
+    assert licenses, "expected license enrichment from importlib.metadata"

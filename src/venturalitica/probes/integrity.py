@@ -14,7 +14,7 @@ class IntegrityProbe(BaseProbe):
     """
 
     def __init__(self):
-        super().__init__("Security & Integrity")
+        super().__init__("integrity")
 
     def _generate_fingerprint(self) -> Dict[str, Any]:
         info = {

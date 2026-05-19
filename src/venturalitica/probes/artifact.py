@@ -12,7 +12,7 @@ class ArtifactProbe(BaseProbe):
     def __init__(
         self, inputs: Optional[List[Any]] = None, outputs: Optional[List[Any]] = None
     ):
-        super().__init__("Data & Artifacts")
+        super().__init__("artifact")
         self.inputs = self._normalize_artifacts(inputs or [])
         self.outputs = self._normalize_artifacts(outputs or [])
         self._start_snapshots: Dict[str, Any] = {}

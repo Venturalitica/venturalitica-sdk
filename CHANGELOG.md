@@ -2,6 +2,146 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.10] - 2026-05-19
+
+### Added (Annex IV grounding + provider-agnostic agentic writer)
+
+- `cli.annex_iv.build_annex_iv_doc()` — new public helper that encapsulates
+  the full Annex IV build pipeline (policy load, assessment-results load,
+  system description load, agentic narrative, document assembly). Used by both
+  `export-annex-iv` and `push` so the document is always produced consistently.
+- `cli.annex_iv._load_system_description()` — reads a *System Identity Card*
+  (`system_description.yaml` / `shared_data/annex_iv1.yaml`) before invoking
+  the agentic writer. Passes the card as a grounding block in every section
+  prompt so the LLM cannot hallucinate a different product, sector, or provider.
+- `cli.annex_iv._format_system_description()` — renders the identity card as a
+  compact block (≤3 k tokens) suitable for LLM context injection.
+- `cli.annex_iv._system_description_fingerprint()` — mixes the identity card
+  into the agentic cache key so editing `annex_iv1.yaml` invalidates cached
+  prose automatically.
+- `cli.transfer` — `push` now auto-generates Annex IV via `build_annex_iv_doc()`
+  when the bundle does not already contain an `annex_iv` section.
+
+### Changed
+
+- `cli.annex_iv._build_llm()` now delegates to `venturalitica.llm.resolve_provider()`
+  instead of hard-coding Ollama / Mistral branches. All provider aliases
+  (`alia`, `hypernova`, `cloud`, `ollama`, `auto`, …) are supported.
+- `cli.annex_iv._cache_fingerprint()` now includes `provider` in the hash so
+  switching LLM backend invalidates the cache.
+- Section prompts tightened: injected `System Identity Card (DO NOT contradict)`
+  header, `potential_misuses` grounding for §5, explicit `provider_name`
+  instruction for §8, and `instructions_for_use` spine for §9.
+- OSCAL context block in prompts updated to handle canonical
+  `component-definition` root (0.6.8+) in addition to `assessment-plan`.
+
+## [0.6.9] - 2026-05-17
+
+### Changed (config-driven catalogues)
+
+- `venturalitica.metrics.METRIC_METADATA` is now loaded from
+  `src/venturalitica/metrics/catalog.yaml` at import time instead of
+  being declared as a literal Python dict in `metadata.py`. Adding a
+  new metric is a single YAML stanza — no Python edits required.
+  Public surface (`from venturalitica.metrics import METRIC_METADATA`)
+  is unchanged; `scale` is still returned as a tuple, `ideal_value`
+  as the original number / string. The 32-metric catalogue ships
+  inside the wheel (`venturalitica/metrics/catalog.yaml`).
+
+## [0.6.8] - 2026-05-17
+
+### Changed (canonical OSCAL compliance)
+
+- `venturalitica.oscal.models.OSCAL_VERSION`: bumped **1.1.2 → 1.2.2** so emitted assessment-results / POA&M validate against the vendored NIST OSCAL v1.2.2 schemas the Venturalítica SaaS ajv pipeline enforces. OSCAL 1.2.2 (NIST release 2026-04-30) is the current latest stable; deltas vs 1.1.2 are additive for the AssessmentResults / POA&M subsets the SDK serializes.
+- `venturalitica.oscal.builder.AssessmentResultsBuilder`: observations now carry the **AI Assurance profile properties** (Table 1 of the IEEE Computer paper — `lifecycle-phase`, `enforcement-mode`, `evaluation-method`, `evaluation-window`, `target-type`, `risk-id`, `treatment-id`, `policy-id`, `objective-id`, `risk-acceptance-criteria`, `threshold-justification`, `stakeholder-consultation-ref`) for **every** result, not just for failed controls via `risks[]`. Auditors now see the same provenance metadata on passed and failed controls. `lifecycle-phase` repeats one prop per value when a control declares multiple phases.
+
+### Fixed
+
+- `venturalitica.core.AssuranceValidator.evaluate(metrics=)` was the only entry point that raised `ComplianceBlockError` on the first `enforcement_mode: block` failure, aborting the rest of the policy. `compute_and_evaluate(data=)` already swallowed the error and continued. This release unifies both paths: the metrics-mode evaluator now catches the error and continues by default (audit-mode), and a new `strict=True` keyword restores the previous fail-fast behaviour for callers that want a deploy-gate. `venturalitica.api.enforce()` propagates its existing `strict` flag.
+
+### Changed (dashboard)
+
+- `vl ui` no longer crashes with an opaque `FileNotFoundError: 'streamlit'` when the optional `[dashboard]` extra isn't installed. Added an `importlib.util.find_spec` preflight that prints `pip install 'venturalitica[dashboard]'` guidance and exits 1.
+- `vl ui` now accepts `--port`, `--host`, and `--headless` flags (passthrough to Streamlit) and launches via `<python> -m streamlit run …` so it works in any venv / uv / conda environment without requiring the `streamlit` binary on `PATH`.
+- `dashboard/main.py`: Phase 4 (Technical Report) auto-unlocks when the canonical evidence cache exists at `.venturalitica/results.json` or under any `.venturalitica/runs/<run-id>/results.json`. Previously the gating only checked `<cwd>/results.json`, which the SDK never writes, so users were locked out of the report after a successful run.
+- `dashboard/views/policy.py`: the Phase 3 expander now surfaces the AI Assurance profile properties in two compact lines (**Stability** for runtime metadata and **Traceability** for cross-document IDs), matching the CLI's stability output.
+- `dashboard/views/policy_editor.py`: the form-based editor now refuses to overwrite a canonical NIST `component-definition` policy with the legacy `assessment-plan` shape it still emits — guards against silent corruption of policies authored against the post-2026-05 OSCAL canon. The reader also detects and lists controls from both envelopes so users see what's loaded.
+- `[project.optional-dependencies].dashboard` bumped `streamlit>=1.53.0 → >=1.57.0` (current latest).
+
+### Added (LLM provider layer — clean architecture)
+
+- New `venturalitica.llm` package extracts everything LLM-related out of
+  `assurance.graph.nodes.NodeFactory` (which dropped from 154 lines of
+  if/elif provider logic to a 15-line thin client). Public surface:
+  `resolve_provider`, `normalize_provider_name`, `list_providers`,
+  `LLMProvider`, `ModelCard`, `ProviderError`, `DEFAULT_CARDS` plus the
+  per-provider classes (`AliaProvider`, `HypernovaProvider`,
+  `MistralCloudProvider`, `OllamaProvider`).
+- One file per provider under `llm/providers/`. Adding a new backend
+  (DeepSeek, vLLM, OpenAI-compatible router…) is a single file + one
+  registry entry.
+- Declarative `ModelCard` dataclass carries provider, repo, filename,
+  languages, license, size, and runtime hints — the dashboard, CLI help
+  and tests all introspect the same catalogue.
+- Optional deps (`huggingface_hub`, `langchain_*`) bound at module level
+  inside try/except so the base SDK install imports the package cleanly
+  and tests can mock the symbols by their module path.
+
+### Added (model bumps via the new catalogue)
+
+- **ALIA** default upgraded from `BSC-LT/ALIA-40b-instruct-2512-GGUF` Q8_0
+  (40 GB) to `mradermacher/ALIA-40b-instruct-2601-GGUF` Q4_K_M (22.9 GB).
+  Newer instruction-tune with long-context + SFT + alignment stages,
+  community-quanted at Q4_K_M for ~2× lower RAM at ~1% perplexity cost.
+- **Hypernova** added as a new local-GGUF provider:
+  `MultiverseComputingCAI/Hypernova-60B-2602-GGUF` (31.87 GB). Multiverse
+  Computing's quantum-inspired CompactifAI compression of OpenAI
+  gpt-oss-120b down to 60B params (Apache 2.0). Aliases:
+  `hypernova`/`multiverse`/`compactifai-local`.
+- Back-compat: `provider="transformers"` still resolves to ALIA. New
+  aliases (`bsc`, `multiverse`, `compactifai-local`, `local`, `mistral`)
+  are first-class.
+- All four providers respect `VENTURALITICA_<PROVIDER>_REPO` /
+  `VENTURALITICA_<PROVIDER>_FILE` env overrides without code changes.
+
+### Tests
+
+- New regression covering `evaluate(metrics=)` non-strict audit semantics and `strict=True` fail-fast (`tests/test_enforcement_semantics.py`).
+- New AR observation contract test that asserts profile-prop propagation including the multi-valued `lifecycle-phase` case (`tests/test_oscal_output.py::test_observations_carry_ai_assurance_profile_props`).
+- New CLI test that `vl ui` emits installation guidance when the `[dashboard]` extra isn't present (`tests/test_cli.py::test_cli_ui_missing_dashboard_extra_emits_install_guidance`).
+- New LLM-package suites (`tests/test_llm_{registry,catalog,providers}.py`,
+  50 tests) covering alias normalization, registry auto-selection,
+  ModelCard immutability + env overrides, GGUF download/load error paths
+  for both Alia and Hypernova, Mistral API-key handling, and Ollama
+  HF-vs-Ollama tag heuristics. Coverage of `llm/` package: 99%.
+- New `vl login-pat` tests in `tests/test_cli.py` covering happy path,
+  org-only, bare-key, and invalid-prefix rejection. `cli/auth.py`
+  coverage jumped from 56% to 100%.
+- Module-level coverage post-session: every refactored file ≥86%
+  (most 100%). Total SDK coverage: 84% → 85% (737 tests pass).
+
+## [0.6.7] - 2026-05-17
+
+### Changed
+
+- `venturalitica.scanner.BOMScanner`: SBOM output upgraded from CycloneDX **1.5** to **1.6** (`JsonV1Dot5` → `JsonV1Dot6`). The 1.6 schema adds the ML-BOM `formulation[]` block and the full `vulnerabilities[]` schema the SaaS `bom-ingestion.service.ts` already consumes; no breaking changes for existing 1.5 consumers.
+- `venturalitica.scanner.BOMScanner`: every library component now carries a canonical `pkg:pypi/<name>@<version>` **Package URL** plus a `bom-ref` mirrored from that PURL, so the SaaS `dependencies[]` upsert pipeline gets stable identifiers across rescans (DORA Art.28(9) supply-chain inventory).
+- `venturalitica.scanner.BOMScanner`: library components are enriched with their declared license from `importlib.metadata` (PEP 639 `License-Expression` first, legacy `License` fallback) when the caller doesn't pass one explicitly. SoA inventory now ships with SPDX ids without a second metadata pass.
+- `venturalitica.probes.BOMProbe`: payload envelope adds three additive fields — `_format` (`"CycloneDX"`), `_format_version` (`"1.6"`), and a flat `components[]` projection (`{name, version, type, purl, bom_ref, license}`) for lightweight consumers. Back-compat keys (`component_count`, `bom`, `bom_path`) preserved verbatim.
+
+### Tests
+
+- `tests/test_scanner.py`: added CycloneDX 1.6 schema guard, PyPI-PURL contract on every library component, and license-enrichment regression covering `importlib.metadata`.
+- `tests/test_probes.py`: added `BOMProbe` happy-path test (specVersion 1.6, PURL on every library, projection contract, on-disk BOM byte-identical to envelope) and an error-path test that the probe surfaces a clean `error` payload when the scanner blows up.
+
+## [0.6.6] - 2026-05-16
+
+### Fixed
+
+- `venturalitica.probes`: probe names use NIST-safe slugs (`carbon`, `hardware`, `bom`, `integrity`, `handshake`, `trace`, `artifact`) instead of human labels (`"Green AI"`, `"Hardware Telemetry"`, etc.) that contained spaces and `&`. The OSCAL `assessment-results.metadata.props[].name` field is constrained by the NIST `TokenDatatype` pattern `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$` — spaces and `&` violate it, so every push including probe telemetry was rejected by local ajv validation.
+- `venturalitica.oscal.builder`: probe metadata prop prefix changed from `probe:<name>` to `probe.<name>` (same NIST regex constraint — `:` is not allowed).
+- `venturalitica.oscal.builder`: assessment-results now always emits `import-ap` (required by NIST schema). When no policy path is provided, falls back to a fragment-only self-reference `#assessment-plan`.
+
 ## [0.6.5] - 2026-05-16
 
 ### Fixed
