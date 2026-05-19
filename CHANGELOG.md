@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.7.0] - 2026-05-19
+## [0.6.10] - 2026-05-19
 
 ### Added (Annex IV grounding + provider-agnostic agentic writer)
 
