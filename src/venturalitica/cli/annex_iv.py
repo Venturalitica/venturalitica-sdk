@@ -47,6 +47,16 @@ POLICY_PATH_CANDIDATES = [
     VL_DIR / "assessment-plan.oscal.json",
     Path("model_policy.oscal.yaml"),
 ]
+
+# Annex IV §1 grounding — the system identity card (intended purpose,
+# hardware, interaction, instructions, foreseeable misuse). Loaded from the
+# first path that exists. Without this the agentic writer hallucinates
+# generic Annex III narratives (banks, credit risk…) regardless of LLM.
+SYSTEM_DESC_PATH_CANDIDATES = [
+    Path("system_description.yaml"),       # staged by compliance_suite.stage_for_dashboard()
+    Path("shared_data/annex_iv1.yaml"),    # scenario source-of-truth
+    Path("annex_iv1.yaml"),
+]
 ANNEX_OUT_JSON = VL_DIR / "annex_iv.json"
 ANNEX_OUT_MD = Path("Annex_IV.md")
 AGENTIC_CACHE = VL_DIR / "annex_iv.cache.json"
@@ -76,6 +86,33 @@ def _load_assessment_results(run_dir: Optional[Path]) -> dict | None:
         return None
     ar_path = run_dir / "assessment-results.oscal.json"
     return _load_json(ar_path) if ar_path.exists() else None
+
+
+def _load_system_description() -> dict | None:
+    """Load the Annex IV §1 system identity card (intended purpose,
+    hardware, interaction, instructions, misuse). Tries each candidate
+    path in order; returns `None` if nothing is present so the agentic
+    writer can still run (with generic fallback prose).
+
+    YAML keys mirror the `venturalitica.models.SystemDescription` dataclass:
+    `name`, `version`, `provider_name`, `intended_purpose`,
+    `interaction_description`, `software_dependencies`,
+    `market_placement_form`, `hardware_description`, `external_features`,
+    `ui_description`, `instructions_for_use`, `potential_misuses`.
+    """
+    try:
+        import yaml  # local import — only needed on the agentic path
+    except ImportError:
+        return None
+    for path in SYSTEM_DESC_PATH_CANDIDATES:
+        if path.exists():
+            try:
+                data = yaml.safe_load(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if isinstance(data, dict) and data.get("name"):
+                return data
+    return None
 
 
 def _load_poam(run_dir: Optional[Path]) -> dict | None:
@@ -200,8 +237,37 @@ def _policy_fingerprint(policy: dict | None) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
-def _cache_fingerprint(*, language: str, model: str, run_id: str | None, policy: dict | None) -> str:
-    parts = [language or "-", model or "-", run_id or "-", _policy_fingerprint(policy)]
+def _system_description_fingerprint(sd: dict | None) -> str:
+    """Mix the system description into the cache key so editing the
+    identity card (intended purpose, hardware, misuse…) invalidates the
+    narrative — otherwise the SDK would happily serve stale prose
+    describing a previous product line."""
+    if not isinstance(sd, dict) or not sd:
+        return "none"
+    try:
+        payload = json.dumps(sd, sort_keys=True, ensure_ascii=False)
+    except (TypeError, ValueError):
+        payload = str(sd)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
+def _cache_fingerprint(
+    *,
+    language: str,
+    model: str,
+    run_id: str | None,
+    policy: dict | None,
+    system_description: dict | None = None,
+    provider: str = "auto",
+) -> str:
+    parts = [
+        language or "-",
+        model or "-",
+        run_id or "-",
+        provider or "-",
+        _policy_fingerprint(policy),
+        _system_description_fingerprint(system_description),
+    ]
     return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()[:24]
 
 
@@ -211,6 +277,8 @@ def _load_agentic_cache(
     model: str,
     run_id: str | None,
     policy: dict | None,
+    system_description: dict | None = None,
+    provider: str = "auto",
 ) -> dict | None:
     if not AGENTIC_CACHE.exists():
         return None
@@ -223,11 +291,19 @@ def _load_agentic_cache(
     meta = cached.get("meta") or {}
     if meta.get("language") != language or meta.get("model") != model:
         return None
-    # Fingerprint-aware reuse (bumps cache on any (lang,model,run,policy)
-    # drift). Pre-warmed caches without a fingerprint are honoured once
-    # but stamped `status=prewarmed` so operators know to regenerate when
-    # they have a GPU available.
-    expected = _cache_fingerprint(language=language, model=model, run_id=run_id, policy=policy)
+    # Fingerprint-aware reuse — bumps cache on drift in any of language,
+    # model, run_id, provider, policy, or system_description. Pre-warmed
+    # caches without a fingerprint are honoured once but stamped
+    # `status=prewarmed` so operators know to regenerate when they have
+    # a GPU available.
+    expected = _cache_fingerprint(
+        language=language,
+        model=model,
+        run_id=run_id,
+        policy=policy,
+        system_description=system_description,
+        provider=provider,
+    )
     stored = meta.get("fingerprint")
     if stored and stored != expected:
         return None
@@ -245,6 +321,8 @@ def _save_agentic_cache(
     model: str,
     run_id: str | None,
     policy: dict | None,
+    system_description: dict | None = None,
+    provider: str = "auto",
 ) -> None:
     payload = {
         "narrative": narrative,
@@ -253,9 +331,16 @@ def _save_agentic_cache(
             "language": language,
             "model": model,
             "run_id": run_id,
+            "provider": provider,
             "policy_hash": _policy_fingerprint(policy),
+            "system_description_hash": _system_description_fingerprint(system_description),
             "fingerprint": _cache_fingerprint(
-                language=language, model=model, run_id=run_id, policy=policy
+                language=language,
+                model=model,
+                run_id=run_id,
+                policy=policy,
+                system_description=system_description,
+                provider=provider,
             ),
         },
     }
@@ -276,62 +361,96 @@ SECTION_PROMPTS: dict[str, tuple[str, str]] = {
     "system_description": (
         "§1 General description of the AI system (EU AI Act Annex IV §1)",
         "Write the general description: intended purpose, deployment context, "
-        "modality (classification/regression/generation), target users. "
-        "Ground in a European high-risk Annex III system unless context says otherwise.",
+        "modality, target users. Use the System Identity Card verbatim where it "
+        "covers a field — do NOT invent a different product, sector, or use case.",
     ),
     "development_process": (
         "§2 Development process (EU AI Act Annex IV §2)",
         "Describe the development process: data sources, training methodology, "
-        "hyperparameters, validation split, tooling (ZenML / MLflow / sklearn / etc.). "
-        "Anchor each claim in what the OSCAL assessment-plan references.",
+        "validation split, tooling, software dependencies. Anchor each claim in "
+        "the System Identity Card `software_dependencies` field and the OSCAL "
+        "assessment-plan references. Do NOT invent dataset names or framework "
+        "choices not listed in the identity card.",
     ),
     "monitoring_control": (
         "§3 Monitoring, functioning and control (EU AI Act Annex IV §3, Art.15, Art.72)",
         "Describe post-market monitoring plan, drift detectors, HITL review points, "
-        "feedback loops, KPI dashboards. Reference the proxy guardrails if policy context "
-        "includes OSCAL enforcement_mode properties.",
+        "feedback loops, KPI dashboards. Reference the OSCAL enforcement_mode "
+        "properties (block/warn/monitor) to explain which controls gate deployment "
+        "vs alert only.",
     ),
     "risk_management_summary": (
         "§5 Risk management system (EU AI Act Annex IV §5, Art.9)",
         "Summarise the ISO 23894 / Art.9 risk management lifecycle applied to this system: "
-        "identified risks, treatments, residual risk acceptance rationale, re-assessment cadence.",
+        "identified risks (use the System Identity Card `potential_misuses` field for "
+        "foreseeable misuse), treatments, residual risk acceptance rationale, "
+        "re-assessment cadence.",
     ),
     "conformity_statement": (
         "§8 Declaration of conformity (EU AI Act Annex IV §8, Art.47)",
-        "Write the conformity declaration boilerplate: provider identification, "
-        "AI system reference, applied standards (ISO 42001 + harmonised EN if available), "
-        "declaration that Arts.9-15 obligations are met, signature block placeholder.",
+        "Write the conformity declaration boilerplate. Name the provider exactly as "
+        "given in the System Identity Card `provider_name`. Cite the AI system using "
+        "the `name` and `version` fields. List applied standards (ISO 42001 + any "
+        "harmonised EN referenced in `instructions_for_use`). Declare that Arts.9-15 "
+        "obligations are met, with a signature block placeholder.",
     ),
     "instructions_for_use": (
         "§9 Instructions for use (EU AI Act Art.13, Annex IV §9)",
-        "Write operator-facing instructions: deployment context, interpretation of outputs, "
-        "human oversight obligations, complaint handling channel, "
-        "out-of-scope uses that are NOT permitted.",
+        "Write operator-facing instructions. Pull the `instructions_for_use` field "
+        "from the System Identity Card as the spine of this section. Reference the "
+        "human oversight obligations and the explicit out-of-scope uses listed under "
+        "`potential_misuses` so the document mirrors the manufacturer's intent.",
     ),
 }
 
 
 def _build_llm(provider: str, model: str):
-    """Return a langchain-compatible Chat model, preferring local Ollama."""
-    if provider in ("auto", "ollama"):
-        try:
-            from langchain_ollama import ChatOllama
-        except ImportError as exc:
-            raise RuntimeError(
-                "langchain-ollama not installed — run `pip install venturalitica[agentic]`."
-            ) from exc
-        return ChatOllama(
-            model=model,
-            temperature=0.1,
-            base_url=os.getenv("OLLAMA_HOST", "http://localhost:11434"),
-        )
-    if provider == "cloud":
-        from langchain_mistralai import ChatMistralAI  # type: ignore
-        api_key = os.getenv("MISTRAL_API_KEY")
-        if not api_key:
-            raise RuntimeError("--provider cloud requires MISTRAL_API_KEY.")
-        return ChatMistralAI(api_key=api_key, model=model, temperature=0.1, timeout=120)
-    raise RuntimeError(f"Unsupported provider '{provider}'. Use auto|ollama|cloud.")
+    """Return a langchain-compatible Chat model.
+
+    Delegates to `venturalitica.llm.resolve_provider`, which knows about all
+    the canonical providers (`alia`, `hypernova`, `cloud`, `ollama`) plus
+    their back-compat aliases (`transformers`, `multiverse`, `mistral`, …).
+    `model` is forwarded as `model_hint` so the Ollama backend can pull a
+    non-default tag without changing env vars.
+    """
+    from venturalitica.llm import ProviderError, resolve_provider
+
+    chosen = resolve_provider(
+        provider, api_key=os.getenv("MISTRAL_API_KEY"), model_hint=model
+    )
+    try:
+        return chosen.create_chat_model()
+    except ProviderError as exc:
+        raise RuntimeError(str(exc)) from exc
+
+
+def _format_system_description(sd: dict | None) -> str:
+    """Render the SystemDescription as a compact context block for prompts.
+
+    Keeps the prompt under ~3k tokens even for a verbose identity card by
+    truncating each long-form field to ~600 chars."""
+    if not sd:
+        return "(no System Identity Card on disk — answers will be generic)"
+
+    def _trim(value: object, limit: int = 600) -> str:
+        text = str(value or "").strip()
+        if len(text) <= limit:
+            return text
+        return text[: limit - 1].rsplit(" ", 1)[0] + "…"
+
+    return (
+        f"  - Name: {sd.get('name', '?')} v{sd.get('version', '?')}\n"
+        f"  - Provider: {sd.get('provider_name', '?')}\n"
+        f"  - Intended purpose: {_trim(sd.get('intended_purpose'))}\n"
+        f"  - Interaction: {_trim(sd.get('interaction_description'))}\n"
+        f"  - Software dependencies: {_trim(sd.get('software_dependencies'))}\n"
+        f"  - Market form: {_trim(sd.get('market_placement_form'))}\n"
+        f"  - Hardware: {_trim(sd.get('hardware_description'))}\n"
+        f"  - External features: {_trim(sd.get('external_features'))}\n"
+        f"  - UI: {_trim(sd.get('ui_description'))}\n"
+        f"  - Instructions for use: {_trim(sd.get('instructions_for_use'))}\n"
+        f"  - Foreseeable misuse: {_trim(sd.get('potential_misuses'))}"
+    )
 
 
 def _run_compliance_graph(
@@ -341,6 +460,7 @@ def _run_compliance_graph(
     provider: str,
     policy: dict | None,
     assessment_results: dict | None,
+    system_description: dict | None = None,
 ) -> tuple[dict[str, str], dict]:
     """
     Drive per-section prompts through ChatOllama (default) to fill in the
@@ -357,8 +477,12 @@ def _run_compliance_graph(
 
     # Probe Ollama before kicking off calls so the failure mode is an
     # obvious "start Ollama first" message rather than a 60s timeout
-    # deep inside langchain.
-    if provider in ("auto", "ollama"):
+    # deep inside langchain. Only relevant when the registry actually
+    # resolved to the Ollama backend.
+    from venturalitica.llm import normalize_provider_name
+
+    canonical = normalize_provider_name(provider)
+    if canonical in ("auto", "ollama"):
         try:
             import requests as _requests
             host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
@@ -382,21 +506,54 @@ def _run_compliance_graph(
     llm = _build_llm(provider, model)
 
     # Compact context block — keep the prompt small so a 7B model can
-    # absorb it without running out of context window.
-    context_bits = []
+    # absorb it without running out of context window. The System Identity
+    # Card grounds the LLM in the actual product (intended purpose,
+    # hardware, etc.); without it every provider hallucinates a generic
+    # Annex III banking system regardless of model quality.
+    osc_bits = []
     if policy:
-        plan = policy.get("assessment-plan") or policy
+        plan = policy.get("component-definition") or policy.get("assessment-plan") or policy
         title = (plan.get("metadata") or {}).get("title", "")
         if title:
-            context_bits.append(f"OSCAL assessment plan: {title}")
+            osc_bits.append(f"OSCAL policy title: {title}")
+        components = plan.get("components") or []
         impls = plan.get("control-implementations") or []
-        if impls:
-            context_bits.append(f"Control implementations: {len(impls)} block(s)")
+        if components:
+            osc_bits.append(f"Components: {len(components)}; "
+                            f"control-implementations: "
+                            f"{sum(len(c.get('control-implementations') or []) for c in components)} block(s)")
+        elif impls:
+            osc_bits.append(f"Control implementations: {len(impls)} block(s)")
     if assessment_results:
         ar_root = assessment_results.get("assessment-results", assessment_results)
         results = ar_root.get("results") or []
-        context_bits.append(f"OSCAL assessment-results: {len(results)} result block(s)")
-    context_str = "\n".join(f"- {b}" for b in context_bits) or "- (no OSCAL context available)"
+        if results:
+            findings = results[0].get("findings") or []
+            satisfied = sum(1 for f in findings
+                            if (f.get("target") or {}).get("status", {}).get("state") == "satisfied")
+            osc_bits.append(
+                f"OSCAL assessment-results: {len(findings)} findings "
+                f"({satisfied} satisfied / {len(findings) - satisfied} non-conformity)"
+            )
+    osc_str = "\n".join(f"  - {b}" for b in osc_bits) or "  - (no OSCAL context available)"
+    sd_str = _format_system_description(system_description)
+
+    # Regulator framing: use the SystemDescription's provider/jurisdiction
+    # hints when available; fall back to a generic EU AI Act framing.
+    sd_name = (system_description or {}).get("name") if system_description else None
+    sd_provider = (system_description or {}).get("provider_name") if system_description else None
+    if sd_name and sd_provider:
+        regulator_framing = (
+            f"Subject system: {sd_name}. Provider: {sd_provider}. "
+            f"Document author: senior AI governance writer engaged by the provider. "
+            f"Target regulator: the EU AI Act notified body and the relevant "
+            f"competent national authority for the deployment jurisdiction."
+        )
+    else:
+        regulator_framing = (
+            "Document author: senior AI governance writer. "
+            "Target regulator: EU AI Act notified body."
+        )
 
     narrative: dict[str, str] = {}
     per_section_ms: dict[str, int] = {}
@@ -404,17 +561,18 @@ def _run_compliance_graph(
 
     for field, (header, instruction) in SECTION_PROMPTS.items():
         prompt = (
-            f"You are a senior AI governance writer drafting the EU AI Act Art.11 Annex IV "
-            f"technical documentation for a regulated bank. Target regulator: AESIA (ES) / "
-            f"European Commission. Language: {language}.\n\n"
+            f"{regulator_framing} Language: {language}.\n\n"
             f"Section to draft:\n{header}\n\n"
             f"Instruction:\n{instruction}\n\n"
-            f"OSCAL context available:\n{context_str}\n\n"
+            f"System Identity Card (Annex IV §1 ground truth — DO NOT contradict):\n"
+            f"{sd_str}\n\n"
+            f"OSCAL context available:\n{osc_str}\n\n"
             f"Constraints:\n"
             f"- ≤250 words.\n"
             f"- Markdown; short paragraphs; no bullet TODOs.\n"
             f"- Do NOT invent dataset names, regulator certificates, or employee names.\n"
             f"- Do NOT emit 'TODO', 'placeholder', or similar fillers.\n"
+            f"- Do NOT swap the product, sector, or modality declared in the System Identity Card.\n"
             f"- Write in third person, regulator-facing prose.\n\n"
             f"Draft the section now:"
         )
@@ -479,6 +637,131 @@ def _render_markdown(doc: dict) -> str:
     return "".join(lines)
 
 
+def build_annex_iv_doc(
+    *,
+    run_dir: Optional[Path] = None,
+    language: str = "en",
+    agentic: bool = False,
+    model: str = "mistral",
+    provider: str = "auto",
+    cache: bool = True,
+    force_regenerate: bool = False,
+    sdk_version: Optional[str] = None,
+) -> dict:
+    """Build and return the Annex IV document dict.
+
+    Called by both ``export-annex-iv`` and ``push`` (auto-attach when the
+    bundle does not already contain an ``annex_iv`` key).
+    """
+    VL_DIR.mkdir(exist_ok=True)
+
+    if run_dir is None:
+        run_dir = _latest_run_dir()
+    ar = _load_assessment_results(run_dir)
+    poam = _load_poam(run_dir)
+    policy = _load_policy()
+    system_description = _load_system_description()
+    if system_description and agentic:
+        console.print(
+            f"[cyan]📇[/cyan] Grounding agentic writer with System Identity Card: "
+            f"{system_description.get('name', '?')} "
+            f"v{system_description.get('version', '?')} "
+            f"({system_description.get('provider_name', '?')})"
+        )
+
+    if ar is None:
+        console.print(
+            "[yellow]⚠[/yellow] No OSCAL Assessment Results found under "
+            ".venturalitica/runs/. The document will list empty findings; "
+            "run `vl enforce` or `vl monitor` first to produce evidence."
+        )
+
+    narrative = {
+        "system_description": "TODO: populate the general description of the AI system.",
+        "development_process": "TODO: describe data sources, training pipeline, hyperparameters.",
+        "monitoring_control": "TODO: describe post-market monitoring plan.",
+        "risk_management_summary": (
+            "Derived from OSCAL assessment plan; see `standards_applied` "
+            "for the referenced catalog and `performance_metrics.findings` "
+            "for per-control evaluation outcomes."
+        ),
+        "conformity_statement": "TODO: reference the ConformityAssessment ID from the platform.",
+        "instructions_for_use": "TODO: describe intended deployment context and operator obligations.",
+    }
+
+    resolved_run_id = run_dir.name if run_dir else None
+    agentic_meta: dict = {}
+    if agentic:
+        cached = (
+            _load_agentic_cache(
+                language=language,
+                model=model,
+                run_id=resolved_run_id,
+                policy=policy,
+                system_description=system_description,
+                provider=provider,
+            )
+            if cache and not force_regenerate
+            else None
+        )
+        if cached:
+            narrative.update(cached["narrative"])
+            agentic_meta = {**cached["meta"], "cache_hit": True}
+            console.print(
+                f"[cyan]⚡[/cyan] Agentic narrative loaded from cache "
+                f"(fingerprint={cached['meta'].get('fingerprint','pre-warmed')[:12]}…, "
+                f"{cached['meta'].get('elapsed_seconds', '?')}s of prior generation)."
+            )
+        else:
+            try:
+                narrative_from_graph, agentic_meta = _run_compliance_graph(
+                    language=language,
+                    model=model,
+                    provider=provider,
+                    policy=policy,
+                    assessment_results=ar,
+                    system_description=system_description,
+                )
+                narrative.update(narrative_from_graph)
+                if cache and narrative_from_graph:
+                    _save_agentic_cache(
+                        narrative_from_graph,
+                        agentic_meta,
+                        language=language,
+                        model=model,
+                        run_id=resolved_run_id,
+                        policy=policy,
+                        system_description=system_description,
+                        provider=provider,
+                    )
+                    agentic_meta["cache_hit"] = False
+            except Exception as exc:  # noqa: BLE001
+                console.print(
+                    f"[yellow]⚠[/yellow] Agentic writer failed ({exc.__class__.__name__}: {exc}); "
+                    f"falling back to TODO placeholders so the pipeline stays deterministic."
+                )
+                agentic_meta = {"status": "failed", "error": str(exc)}
+
+    return {
+        "generated_by": "venturalitica-sdk"
+        + (f" + langgraph({model})" if agentic and agentic_meta.get("status") == "ok" else ""),
+        "sdk_version": sdk_version or os.getenv("VL_SDK_VERSION") or "unknown",
+        "language": language,
+        "run_id": run_dir.name if run_dir else None,
+        "agentic": agentic_meta if agentic else {"status": "disabled"},
+        "system_description": narrative["system_description"],
+        "development_process": narrative["development_process"],
+        "monitoring_control": narrative["monitoring_control"],
+        # OSCAL-derived (always deterministic, never overwritten by the LLM).
+        "performance_metrics": _metrics_from_assessment_results(ar),
+        "risk_management_summary": narrative["risk_management_summary"],
+        "lifecycle_changes": _poam_items(poam),
+        "standards_applied": _standards_from_policy(policy),
+        "conformity_statement": narrative["conformity_statement"],
+        "instructions_for_use": narrative["instructions_for_use"],
+    }
+
+
 @app.command("export-annex-iv")
 def export_annex_iv(
     out: str = typer.Option(
@@ -511,7 +794,13 @@ def export_annex_iv(
     provider: str = typer.Option(
         "auto",
         "--provider",
-        help="LLM provider: auto (Ollama by default, Mistral cloud if MISTRAL_API_KEY set) | transformers (ALIA 40B local) | cloud (Mistral managed).",
+        help=(
+            "LLM provider — see `venturalitica.llm` registry for the full "
+            "alias map. Canonical values: auto (Ollama by default, Mistral "
+            "cloud if MISTRAL_API_KEY set) | ollama (local daemon) | alia "
+            "(BSC ALIA-40b GGUF) | hypernova (Multiverse Hypernova-60B GGUF) "
+            "| cloud (Mistral Magistral managed)."
+        ),
     ),
     cache: bool = typer.Option(
         True,
@@ -535,97 +824,17 @@ def export_annex_iv(
     are always populated from Assessment Results — the LLM does not
     overwrite deterministic evidence.
     """
-    VL_DIR.mkdir(exist_ok=True)
-
-    run_dir = (RUNS_DIR / run_id) if run_id else _latest_run_dir()
-    ar = _load_assessment_results(run_dir)
-    poam = _load_poam(run_dir)
-    policy = _load_policy()
-
-    if ar is None and not run_id:
-        console.print(
-            "[yellow]⚠[/yellow] No OSCAL Assessment Results found under "
-            ".venturalitica/runs/. The document will list empty findings; "
-            "run `vl enforce` or `vl monitor` first to produce evidence."
-        )
-
-    # Narrative fields — default to TODO placeholders; --agentic replaces them.
-    narrative = {
-        "system_description": "TODO: populate the general description of the AI system.",
-        "development_process": "TODO: describe data sources, training pipeline, hyperparameters.",
-        "monitoring_control": "TODO: describe post-market monitoring plan.",
-        "risk_management_summary": (
-            "Derived from OSCAL assessment plan; see `standards_applied` "
-            "for the referenced catalog and `performance_metrics.findings` "
-            "for per-control evaluation outcomes."
-        ),
-        "conformity_statement": "TODO: reference the ConformityAssessment ID from the platform.",
-        "instructions_for_use": "TODO: describe intended deployment context and operator obligations.",
-    }
-
-    resolved_run_id = run_dir.name if run_dir else None
-    agentic_meta: dict = {}
-    if agentic:
-        cached = (
-            _load_agentic_cache(language=language, model=model, run_id=resolved_run_id, policy=policy)
-            if cache and not force_regenerate
-            else None
-        )
-        if cached:
-            narrative.update(cached["narrative"])
-            agentic_meta = {**cached["meta"], "cache_hit": True}
-            console.print(
-                f"[cyan]⚡[/cyan] Agentic narrative loaded from cache "
-                f"(fingerprint={cached['meta'].get('fingerprint','pre-warmed')[:12]}…, "
-                f"{cached['meta'].get('elapsed_seconds', '?')}s of prior generation)."
-            )
-        else:
-            try:
-                narrative_from_graph, agentic_meta = _run_compliance_graph(
-                    language=language,
-                    model=model,
-                    provider=provider,
-                    policy=policy,
-                    assessment_results=ar,
-                )
-                narrative.update(narrative_from_graph)
-                if cache and narrative_from_graph:
-                    _save_agentic_cache(
-                        narrative_from_graph,
-                        agentic_meta,
-                        language=language,
-                        model=model,
-                        run_id=resolved_run_id,
-                        policy=policy,
-                    )
-                    agentic_meta["cache_hit"] = False
-            except Exception as exc:  # noqa: BLE001
-                console.print(
-                    f"[yellow]⚠[/yellow] Agentic writer failed ({exc.__class__.__name__}: {exc}); "
-                    f"falling back to TODO placeholders so the pipeline stays deterministic."
-                )
-                agentic_meta = {"status": "failed", "error": str(exc)}
-
-    doc = {
-        "generated_by": "venturalitica-sdk"
-        + (f" + langgraph({model})" if agentic and agentic_meta.get("status") == "ok" else ""),
-        "sdk_version": sdk_version
-        or os.getenv("VL_SDK_VERSION")
-        or "unknown",
-        "language": language,
-        "run_id": run_dir.name if run_dir else None,
-        "agentic": agentic_meta if agentic else {"status": "disabled"},
-        "system_description": narrative["system_description"],
-        "development_process": narrative["development_process"],
-        "monitoring_control": narrative["monitoring_control"],
-        # OSCAL-derived (always deterministic, never overwritten by the LLM).
-        "performance_metrics": _metrics_from_assessment_results(ar),
-        "risk_management_summary": narrative["risk_management_summary"],
-        "lifecycle_changes": _poam_items(poam),
-        "standards_applied": _standards_from_policy(policy),
-        "conformity_statement": narrative["conformity_statement"],
-        "instructions_for_use": narrative["instructions_for_use"],
-    }
+    run_dir = (RUNS_DIR / run_id) if run_id else None
+    doc = build_annex_iv_doc(
+        run_dir=run_dir,
+        language=language,
+        agentic=agentic,
+        model=model,
+        provider=provider,
+        cache=cache,
+        force_regenerate=force_regenerate,
+        sdk_version=sdk_version,
+    )
 
     if out == "stdout":
         console.print_json(data=doc)
