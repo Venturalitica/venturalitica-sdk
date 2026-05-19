@@ -14,7 +14,7 @@ class HandshakeProbe(BaseProbe):
     """
 
     def __init__(self, session_enforced_func: Callable[[], bool]):
-        super().__init__("Handshake Readiness")
+        super().__init__("handshake")
         self.enforced_func = session_enforced_func
         self.was_enforced_at_start = False
 

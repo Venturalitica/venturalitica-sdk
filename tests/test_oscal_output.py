@@ -1,6 +1,6 @@
 """Tests for OSCAL Assessment Results and POA&M generation.
 
-Verifies that the SDK produces valid OSCAL v1.1.2 documents from
+Verifies that the SDK produces valid OSCAL v1.2.2 documents from
 ComplianceResult objects, with correct structure, traceability,
 and conditional POA&M generation.
 """
@@ -210,6 +210,55 @@ class TestAssessmentResultsBuilder:
             assert props.get("operator") == cr.operator
             assert props.get("severity") == cr.severity
 
+    def test_observations_carry_ai_assurance_profile_props(self):
+        """Every observation must echo the AI Assurance profile properties
+        attached to the source policy (Table 1 of the IEEE Computer paper).
+        Without this, auditors only see {control-id, metric-key, value,
+        threshold, operator, severity} for passed controls — losing the
+        `lifecycle_phase`, `enforcement_mode`, `evaluation_method`, `risk_id`
+        provenance that distinguishes a deploy-gate from a monitor-only
+        observation."""
+        from venturalitica.models import ComplianceResult
+
+        results = [
+            ComplianceResult(
+                control_id="ctrl-with-profile",
+                description="control carrying full profile metadata",
+                metric_key="accuracy_score",
+                threshold=0.85,
+                actual_value=0.91,
+                operator="gt",
+                passed=True,
+                severity="high",
+                metadata={
+                    "lifecycle_phase": ["training", "validation"],
+                    "enforcement_mode": "block",
+                    "evaluation_method": "automated",
+                    "risk_id": "RISK-001",
+                    "policy_id": "POL-AI-15",
+                    "objective_id": "OBJ-ACC",
+                },
+            ),
+        ]
+        ar = AssessmentResultsBuilder.build(results)
+        obs = ar.results[0].observations[0]
+        props = [(p.name, p.value) for p in obs.props]
+        names = {n for n, _ in props}
+
+        # base props still present
+        assert "control-id" in names and "metric-key" in names
+
+        # AI Assurance profile props propagated with kebab-case names
+        assert ("enforcement-mode", "block") in props
+        assert ("evaluation-method", "automated") in props
+        assert ("risk-id", "RISK-001") in props
+        assert ("policy-id", "POL-AI-15") in props
+        assert ("objective-id", "OBJ-ACC") in props
+
+        # lifecycle_phase repeats — one prop per phase
+        lifecycle_values = [v for n, v in props if n == "lifecycle-phase"]
+        assert lifecycle_values == ["training", "validation"]
+
     def test_evidence_linked_to_observations(self, passing_results):
         evidence = {"bom.json": "/vault/bom.json", "trace.json": "/vault/trace.json"}
         ar = AssessmentResultsBuilder.build(
@@ -300,7 +349,7 @@ class TestOSCALSerialization:
     def test_oscal_version_in_metadata(self, mixed_results):
         ar = AssessmentResultsBuilder.build(mixed_results)
         parsed = json.loads(to_json(ar))
-        assert parsed["assessment-results"]["metadata"]["oscal-version"] == "1.1.2"
+        assert parsed["assessment-results"]["metadata"]["oscal-version"] == "1.2.2"
 
     def test_no_empty_fields_serialized(self, passing_results):
         ar = AssessmentResultsBuilder.build(passing_results)

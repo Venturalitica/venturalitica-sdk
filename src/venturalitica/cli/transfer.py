@@ -7,6 +7,7 @@ import requests
 import typer
 
 from ..telemetry import track_command
+from .annex_iv import build_annex_iv_doc
 from .common import SAAS_URL, app, console, get_config_path
 
 VL_DIR = Path(".venturalitica")
@@ -79,6 +80,12 @@ def _create_bundle_payload() -> dict:
                     annex_iv["hardware"] = line.split(":", 1)[1].strip()
     if legacy_md and not annex_iv.get("generated_by"):
         annex_iv["generated_by"] = "legacy-annex-md-parser"
+    if not annex_iv:
+        console.print("[cyan]ℹ[/cyan] No Annex IV found — generating from OSCAL evidence...")
+        try:
+            annex_iv = build_annex_iv_doc()
+        except Exception as exc:  # noqa: BLE001
+            console.print(f"[yellow]⚠[/yellow] Could not auto-generate Annex IV: {exc}")
 
     # Intelligent Metrics Extraction
     metrics = []

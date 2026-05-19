@@ -95,6 +95,41 @@ class AssessmentResultsBuilder:
             if cr.severity:
                 obs_props.append(OSCALProp(name="severity", value=cr.severity))
 
+            # AI Assurance profile properties (Table 1 of the IEEE Computer
+            # paper "An OSCAL Profile for AI Assurance"). Propagated to EVERY
+            # observation (not only risks-on-failure) so audit consumers see
+            # the same provenance metadata for passed and failed controls.
+            # Names use NIST OSCAL `prop.name` convention (kebab-case, dot for
+            # nested input slots — matches the regex
+            # `^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$`).
+            _PROFILE_PROPS = (
+                "lifecycle_phase",
+                "enforcement_mode",
+                "evaluation_method",
+                "evaluation_window",
+                "target_type",
+                "risk_id",
+                "treatment_id",
+                "policy_id",
+                "objective_id",
+                "risk_acceptance_criteria",
+                "threshold_justification",
+                "stakeholder_consultation_ref",
+            )
+            for key in _PROFILE_PROPS:
+                value = (cr.metadata or {}).get(key)
+                if value is None:
+                    continue
+                facet_name = key.replace("_", "-")
+                # `lifecycle_phase` MAY repeat (e.g. ["training","validation"]);
+                # emit one prop per phase so each tag is independently
+                # queryable downstream.
+                if isinstance(value, list):
+                    for v in value:
+                        obs_props.append(OSCALProp(name=facet_name, value=str(v)))
+                else:
+                    obs_props.append(OSCALProp(name=facet_name, value=str(value)))
+
             obs = OSCALObservation(
                 title=f"Evaluation of {cr.control_id}",
                 description=(
@@ -200,11 +235,11 @@ class AssessmentResultsBuilder:
         if trace_id:
             binding_props.append(OSCALProp(name="trace-id", value=trace_id))
 
-        # Probe telemetry — emitted one prop per probe with a JSON-encoded
-        # value so the SaaS ingester can surface the full payload (carbon
-        # emissions, hardware telemetry, BOM, handshake attestation, …) on
-        # the AssuranceTrace cockpit. Prop name prefix `probe:` mirrors
-        # the `input:` convention used elsewhere in the contract.
+        # Probe telemetry — one prop per probe with a JSON-encoded value
+        # so the SaaS ingester can surface the full payload (carbon, BOM,
+        # handshake attestation, …) on the AssuranceTrace cockpit. Prop
+        # name prefix `probe.` (NIST regex forbids `:`); mirrors the
+        # `input.` convention used elsewhere in the contract.
         for probe_name, payload in (probe_results or {}).items():
             if not isinstance(payload, dict) or not payload:
                 continue
@@ -213,12 +248,16 @@ class AssessmentResultsBuilder:
             except (TypeError, ValueError):
                 continue
             binding_props.append(
-                OSCALProp(name=f"probe:{probe_name}", value=encoded)
+                OSCALProp(name=f"probe.{probe_name}", value=encoded)
             )
 
         return AssessmentResults(
             metadata=OSCALMetadata(title=title, props=binding_props),
-            import_ap=ImportAP(href=policy_href) if policy_href else None,
+            # NIST OSCAL assessment-results requires import-ap; when no
+            # policy path was provided, emit a fragment-only self-reference
+            # (the SaaS ingester stores the href as opaque metadata and does
+            # not dereference it).
+            import_ap=ImportAP(href=policy_href or "#assessment-plan"),
             results=[oscal_result],
         )
 

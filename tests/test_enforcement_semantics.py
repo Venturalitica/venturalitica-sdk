@@ -43,13 +43,25 @@ def _control(
 
 class TestEnforcementMode:
 
-    def test_block_raises_on_failure(self):
+    def test_block_raises_on_failure_when_strict(self):
+        """`strict=True` restores fail-fast semantics for deploy gates."""
         ctrl = _control("C1", threshold=0.9, metadata={"enforcement_mode": "block"})
         validator = AssuranceValidator(policy=_policy(ctrl))
         with pytest.raises(ComplianceBlockError) as exc:
-            validator.evaluate({"accuracy_score": 0.5})
+            validator.evaluate({"accuracy_score": 0.5}, strict=True)
         assert "C1" in str(exc.value)
         assert "block" in str(exc.value)
+
+    def test_block_records_and_continues_by_default(self):
+        """Default (strict=False) is audit-mode: record the failure, continue,
+        and let the caller decide. Mirrors compute_and_evaluate(data=) so both
+        entry points produce the same result set for a given policy."""
+        ctrl = _control("C1", threshold=0.9, metadata={"enforcement_mode": "block"})
+        validator = AssuranceValidator(policy=_policy(ctrl))
+        results = validator.evaluate({"accuracy_score": 0.5})  # no strict
+        assert len(results) == 1
+        assert results[0].passed is False
+        assert results[0].control_id == "C1"
 
     def test_block_does_not_raise_on_pass(self):
         ctrl = _control("C1", threshold=0.5, metadata={"enforcement_mode": "block"})
@@ -84,13 +96,24 @@ class TestEnforcementMode:
         captured = capsys.readouterr()
         assert "C1" not in captured.err
 
-    def test_block_halts_before_subsequent_controls(self):
-        """When C1 is block and fails, C2 should not be reached."""
+    def test_block_halts_before_subsequent_controls_when_strict(self):
+        """In strict mode, C1 block-failure halts before C2 evaluates."""
         c1 = _control("C1", threshold=0.9, metadata={"enforcement_mode": "block"})
         c2 = _control("C2", threshold=0.5)
         validator = AssuranceValidator(policy=_policy(c1, c2))
         with pytest.raises(ComplianceBlockError):
-            validator.evaluate({"accuracy_score": 0.5})
+            validator.evaluate({"accuracy_score": 0.5}, strict=True)
+
+    def test_block_does_not_halt_subsequent_controls_by_default(self):
+        """In audit (default) mode, C1 block-failure does NOT halt the policy:
+        C2 still evaluates and the caller gets results for every control.
+        Symmetry fix vs compute_and_evaluate(data=) which already behaved so."""
+        c1 = _control("C1", threshold=0.9, metadata={"enforcement_mode": "block"})
+        c2 = _control("C2", threshold=0.5)
+        validator = AssuranceValidator(policy=_policy(c1, c2))
+        results = validator.evaluate({"accuracy_score": 0.5})  # fails C1 (>=0.9), passes C2 (>=0.5)
+        ids_to_passed = {r.control_id: r.passed for r in results}
+        assert ids_to_passed == {"C1": False, "C2": True}  # both evaluated despite C1 block-fail
 
 
 # ---------------------------------------------------------------------------
