@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2026-05-19
+
+### Added (Annex IV grounding + provider-agnostic agentic writer)
+
+- `cli.annex_iv.build_annex_iv_doc()` — new public helper that encapsulates
+  the full Annex IV build pipeline (policy load, assessment-results load,
+  system description load, agentic narrative, document assembly). Used by both
+  `export-annex-iv` and `push` so the document is always produced consistently.
+- `cli.annex_iv._load_system_description()` — reads a *System Identity Card*
+  (`system_description.yaml` / `shared_data/annex_iv1.yaml`) before invoking
+  the agentic writer. Passes the card as a grounding block in every section
+  prompt so the LLM cannot hallucinate a different product, sector, or provider.
+- `cli.annex_iv._format_system_description()` — renders the identity card as a
+  compact block (≤3 k tokens) suitable for LLM context injection.
+- `cli.annex_iv._system_description_fingerprint()` — mixes the identity card
+  into the agentic cache key so editing `annex_iv1.yaml` invalidates cached
+  prose automatically.
+- `cli.transfer` — `push` now auto-generates Annex IV via `build_annex_iv_doc()`
+  when the bundle does not already contain an `annex_iv` section.
+
+### Changed
+
+- `cli.annex_iv._build_llm()` now delegates to `venturalitica.llm.resolve_provider()`
+  instead of hard-coding Ollama / Mistral branches. All provider aliases
+  (`alia`, `hypernova`, `cloud`, `ollama`, `auto`, …) are supported.
+- `cli.annex_iv._cache_fingerprint()` now includes `provider` in the hash so
+  switching LLM backend invalidates the cache.
+- Section prompts tightened: injected `System Identity Card (DO NOT contradict)`
+  header, `potential_misuses` grounding for §5, explicit `provider_name`
+  instruction for §8, and `instructions_for_use` spine for §9.
+- OSCAL context block in prompts updated to handle canonical
+  `component-definition` root (0.6.8+) in addition to `assessment-plan`.
+
 ## [0.6.9] - 2026-05-17
 
 ### Changed (config-driven catalogues)
