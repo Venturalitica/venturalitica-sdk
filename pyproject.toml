@@ -1,6 +1,6 @@
 [project]
 name = "venturalitica"
-version = "0.6.11"
+version = "0.6.12"
 description = "AI assurance that compiles. Turn EU AI Act + ISO 42001 + DORA controls into executable OSCAL policy and enforce it at training time with one decorator."
 requires-python = ">=3.11"
 readme = "README.md"
@@ -64,8 +64,14 @@ torch = [
 green = [
     "codecarbon>=2.3.0",
 ]
+imaging = [
+    "monai>=1.3",
+    "torch",
+    "nibabel",
+    "scipy",
+]
 full = [
-    "venturalitica[agentic,dashboard,metrics,torch,green]",
+    "venturalitica[agentic,dashboard,metrics,torch,green,imaging]",
 ]
 
 [build-system]

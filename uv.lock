@@ -2294,6 +2294,19 @@ wheels = [
 ]
 
 [[package]]
+name = "monai"
+version = "1.5.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "torch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/db/26/cb4a67d7ab99fa848cf9998d9159a2d368b2dacc6f94b983a4ab36cd9005/monai-1.5.2.tar.gz", hash = "sha256:11cba5bfaad85bbb7e95479071769a0e56f1d515646f6ee203f6d475889d3b25", size = 1687099, upload-time = "2026-01-27T13:14:42.616Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/11/36/0e1879b0c942f5f373e171656b4d22db4b50fad696a53e03828b6d00f5da/monai-1.5.2-py3-none-any.whl", hash = "sha256:6c4f75d47a88c1e37521bce4b7cb1540c6f4e5ca1d43910c60f61fc2ef4ddab2", size = 2674844, upload-time = "2026-01-27T13:14:41.049Z" },
+]
+
+[[package]]
 name = "mpmath"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2444,6 +2457,21 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/6a/51/63fe664f3908c97be9d2e4f1158eb633317598cfa6e1fc14af5383f17512/networkx-3.6.1.tar.gz", hash = "sha256:26b7c357accc0c8cde558ad486283728b65b6a95d85ee1cd66bafab4c8168509", size = 2517025, upload-time = "2025-12-08T17:02:39.908Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/c9/b2622292ea83fbb4ec318f5b9ab867d0a28ab43c5717bb85b0a5f6b3b0a4/networkx-3.6.1-py3-none-any.whl", hash = "sha256:d47fbf302e7d9cbbb9e2555a0d267983d2aa476bac30e90dfbe5669bd57f3762", size = 2068504, upload-time = "2025-12-08T17:02:38.159Z" },
+]
+
+[[package]]
+name = "nibabel"
+version = "5.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "importlib-resources", marker = "python_full_version < '3.12'" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a3/01/3d2cc510c616bc8e27be17a063070d9126f69407961594a9ae734ea51121/nibabel-5.4.2.tar.gz", hash = "sha256:d5f4b9076a13178ae7f7acf18c8dbd503ee1c4d5c0c23b85df7be87efcbb49da", size = 4663132, upload-time = "2026-03-11T13:31:52.42Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3b/d7/601b6396b33536811668935faa790112266c70661be94555999be431f86f/nibabel-5.4.2-py3-none-any.whl", hash = "sha256:553482c5f1e1034fc312edf6fb7f32236c0056439845d1c29293b7e8c98d4854", size = 3300985, upload-time = "2026-03-11T13:31:50.028Z" },
 ]
 
 [[package]]
@@ -4670,7 +4698,7 @@ wheels = [
 
 [[package]]
 name = "venturalitica"
-version = "0.6.11"
+version = "0.6.12"
 source = { editable = "." }
 dependencies = [
     { name = "compliance-trestle" },
@@ -4707,11 +4735,20 @@ full = [
     { name = "langchain-ollama" },
     { name = "langgraph" },
     { name = "llama-cpp-python" },
+    { name = "monai" },
+    { name = "nibabel" },
+    { name = "scipy" },
     { name = "streamlit" },
     { name = "torch" },
 ]
 green = [
     { name = "codecarbon" },
+]
+imaging = [
+    { name = "monai" },
+    { name = "nibabel" },
+    { name = "scipy" },
+    { name = "torch" },
 ]
 metrics = [
     { name = "fairlearn" },
@@ -4747,19 +4784,23 @@ requires-dist = [
     { name = "langchain-ollama", marker = "extra == 'agentic'", specifier = ">=1.0.1" },
     { name = "langgraph", marker = "extra == 'agentic'", specifier = ">=1.0.7" },
     { name = "llama-cpp-python", marker = "extra == 'agentic'" },
+    { name = "monai", marker = "extra == 'imaging'", specifier = ">=1.3" },
+    { name = "nibabel", marker = "extra == 'imaging'" },
     { name = "numpy", specifier = ">=2.4.0" },
     { name = "pandas", specifier = ">=2.3.0" },
     { name = "posthog", specifier = ">=3.5.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rich", specifier = ">=14.2.0" },
     { name = "scikit-learn", specifier = ">=1.8.0" },
+    { name = "scipy", marker = "extra == 'imaging'" },
     { name = "streamlit", marker = "extra == 'dashboard'", specifier = ">=1.57.0" },
+    { name = "torch", marker = "extra == 'imaging'" },
     { name = "torch", marker = "extra == 'torch'", specifier = ">=2.0.0" },
     { name = "typer", specifier = ">=0.21.0" },
     { name = "ucimlrepo", specifier = ">=0.0.7" },
-    { name = "venturalitica", extras = ["agentic", "dashboard", "metrics", "torch", "green"], marker = "extra == 'full'" },
+    { name = "venturalitica", extras = ["agentic", "dashboard", "metrics", "torch", "green", "imaging"], marker = "extra == 'full'" },
 ]
-provides-extras = ["agentic", "dashboard", "metrics", "torch", "green", "full"]
+provides-extras = ["agentic", "dashboard", "metrics", "torch", "green", "imaging", "full"]
 
 [package.metadata.requires-dev]
 dev = [
