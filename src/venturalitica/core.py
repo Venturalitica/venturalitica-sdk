@@ -164,9 +164,19 @@ class AssuranceValidator:
                     f"    [Binding] Virtual Role '{role}' bound to Variable '{var}' (Column: '{actual_col}')"
                 )
 
-            # If any virtual variables remain 'MISSING' after auto-binding, consider this a reconciliation failure
+            # The statistical unit (`input.cluster`, e.g. patient_id) is an
+            # OPTIONAL binding used only by power-stats — never a hard metric
+            # requirement. If it can't be resolved to a real column, drop it so
+            # it neither fails reconciliation nor is passed to the metric.
+            if eval_context.get("cluster") == "MISSING":
+                eval_context.pop("cluster", None)
+
+            # If any virtual variables remain 'MISSING' after auto-binding, consider this a reconciliation failure.
+            # `cluster` is excluded above (optional power-stats input).
             unresolved = [
-                r for r in ctrl.input_mapping.keys() if eval_context.get(r) == "MISSING"
+                r
+                for r in ctrl.input_mapping.keys()
+                if r != "cluster" and eval_context.get(r) == "MISSING"
             ]
             if unresolved:
                 msg = f"Control '{ctrl.id}' has unresolved virtual variables: {unresolved}"
@@ -206,6 +216,18 @@ class AssuranceValidator:
                 # (computation-level). Profile properties carry through to AR as facets.
                 combined_metadata = dict(ctrl.metadata or {})
                 combined_metadata.update(meta_data or {})
+
+                # Statistical reliability of `metric_value`: a percentile
+                # bootstrap CI over the SAME in-memory df, recomputing the SAME
+                # calc_fn (cheap, no retraining). Online — never persists a CSV.
+                power = self._compute_power(
+                    data=data,
+                    calc_fn=calc_fn,
+                    eval_context=eval_context,
+                    resolved_params=resolved_params,
+                    metric_value=metric_value,
+                )
+
                 result = ComplianceResult(
                     control_id=ctrl.id,
                     description=ctrl.description,
@@ -216,6 +238,7 @@ class AssuranceValidator:
                     passed=passed,
                     severity=ctrl.severity,
                     metadata=combined_metadata,
+                    power=power,
                 )
                 results.append(result)
                 self._apply_enforcement_mode(ctrl, result)
@@ -232,6 +255,67 @@ class AssuranceValidator:
                 print(f"⚠ [Venturalitica] Error evaluating {metric_key}: {e}")
                 continue
         return results
+
+    @staticmethod
+    def _compute_power(
+        data: pd.DataFrame,
+        calc_fn,
+        eval_context: Dict[str, Any],
+        resolved_params: Dict[str, Any],
+        metric_value: Any,
+    ) -> dict:
+        """Compute the percentile-bootstrap power-stats for one control.
+
+        Reuses the exact call shape of the enforce loop
+        (``calc_fn(df, **eval_context, **resolved_params)``) so the bootstrap
+        measures the same statistic. The statistical unit (``cluster``) and the
+        subgroup column (``dimension``) are read from the resolved binding;
+        ``cluster`` drives a cluster bootstrap (resample whole units), otherwise
+        a row bootstrap is used.
+
+        Escape hatch: ``VENTURALITICA_POWER=0`` skips the computation entirely
+        and leaves ``power={}``. Any failure is swallowed (power is additive
+        evidence; it must never break a gate).
+        """
+        import os
+
+        if os.getenv("VENTURALITICA_POWER") == "0":
+            return {}
+
+        try:
+            from .assurance.power import DEFAULT_SEED, compute_power
+
+            # The kwargs the metric was actually called with.
+            metric_kwargs = {**eval_context, **resolved_params}
+
+            # `dimension`/`cluster` are resolved column names in the binding.
+            dimension = metric_kwargs.get("dimension")
+            cluster = metric_kwargs.get("cluster")
+
+            # Power-only knobs may be declared as control params; pop them so
+            # they never reach the metric callable.
+            n_boot_raw = metric_kwargs.pop("power_n_boot", None)
+            ci_level_raw = metric_kwargs.pop("power_ci_level", None)
+            seed_raw = metric_kwargs.pop("power_seed", metric_kwargs.pop("seed", None))
+
+            kwargs = {
+                "n_boot": int(n_boot_raw) if n_boot_raw is not None else 1000,
+                "ci_level": float(ci_level_raw) if ci_level_raw is not None else 0.95,
+                "seed": int(seed_raw) if seed_raw is not None else DEFAULT_SEED,
+            }
+
+            return compute_power(
+                data,
+                calc_fn,
+                metric_kwargs,
+                value=metric_value,
+                cluster=cluster,
+                dimension=dimension,
+                **kwargs,
+            )
+        except Exception as e:  # pragma: no cover - defensive
+            print(f"    [Power] skipped (computation failed): {e}")
+            return {}
 
     def evaluate(
         self,

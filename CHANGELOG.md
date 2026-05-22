@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.11] - 2026-05-22
+
+### Added (power-stats — statistical reliability per control)
+
+- `assurance.power.compute_power()` — computes a **percentile bootstrap**
+  confidence interval (`B=1000`, `ci_level=0.95`) for a control's metric by
+  recomputing the *same* `calc_*` callable over resamples of the **in-memory
+  dataframe** (online — no CSV persisted). Returns
+  `{n, n_clusters|None, groups, ci_low, ci_high, ci_level, method, n_boot, seed}`.
+  - **Deterministic**: uses `numpy.random.default_rng(seed)` with a fixed seed
+    (default `42`, overridable per control) — never the global RNG; two runs
+    yield byte-identical CIs (feeds `sei.lock`).
+  - **Cluster bootstrap**: when a control declares `input.cluster` (e.g.
+    `patient_id`), whole clusters are resampled as units (avoids
+    pseudoreplication / respects the hierarchy) and `n_clusters` is reported;
+    otherwise a row-level bootstrap is used.
+  - `groups` reports per-subgroup counts (from the metric's `dimension`) so
+    under-populated subgroups are visible. Robust to metrics returning
+    `(value, metadata)` and to NaN/degenerate resamples (dropped/guarded).
+- `ComplianceResult.power: dict` — new field carrying the power-stats; populated
+  on the data/metric path of `enforce`, empty `{}` on the metrics-only path.
+- `enforce` now computes power-stats for every evaluated control on the data
+  path. Escape hatch: `VENTURALITICA_POWER=0` skips the computation.
+
+### Changed
+
+- `core.AssuranceValidator.compute_and_evaluate()` binds an optional
+  `input.cluster` slot (the statistical unit) the same way `input.dimension` is
+  bound; an unresolvable cluster is dropped (does not fail the control, falls
+  back to a row bootstrap) — fully back-compatible with existing controls.
+
 ## [0.6.10] - 2026-05-19
 
 ### Added (Annex IV grounding + provider-agnostic agentic writer)
