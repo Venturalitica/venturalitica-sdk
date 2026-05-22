@@ -33,6 +33,11 @@ class ComplianceResult:
     passed: bool
     severity: str
     metadata: dict = field(default_factory=dict)
+    # Statistical reliability (sampling error) of `actual_value`, computed
+    # online by a percentile bootstrap over the in-memory dataframe. Empty when
+    # the metrics-only path is used (no df) or VENTURALITICA_POWER=0. Schema:
+    # {n, n_clusters|None, groups, ci_low, ci_high, ci_level, method, n_boot, seed}.
+    power: dict = field(default_factory=dict)
 
 @dataclass
 class SystemDescription:
