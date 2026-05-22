@@ -2,6 +2,63 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.12] - 2026-05-22
+
+### Added (native image-segmentation metrics with power-stats)
+
+Segmentation metrics (Dice etc.) become first-class registry metrics that get
+power-stats confidence intervals automatically — instead of being precomputed
+scalars passed to `vl.enforce(metrics={…})` (which the SDK cannot bootstrap).
+
+- **Aggregate metrics over a continuous per-case score** (`assurance.segmentation`,
+  PURE pandas/numpy — no torch). Registered in `METRIC_REGISTRY` so
+  `enforce(data=df)` computes them AND `compute_power` bootstraps a CI
+  (cluster-aware via `input.cluster`) automatically. Each binds a `score`
+  column the same way the existing metrics bind `target`/`dimension`:
+  - `mean_score` — `df[score].mean()` (e.g. `global_dice`). Role: `score`.
+  - `min_group_score` — `groupby(dimension)[score].mean().min()` (robustness,
+    e.g. `min-scanner-dice`). Roles: `score`, `dimension`. Returns per-group
+    means as metadata.
+  - `worst_cell_score` — min over composite-cell means (`worst_subgroup_dice`).
+    Role: `score`; param: `dimensions` (list of columns).
+  - `group_score_gap` — `max - min` of the group means (`elderly_dice_gap`).
+    Roles: `score`, `dimension`.
+  - `max_score` — `df[score].max()` (`max_single_dice` / leakage probe). Role:
+    `score`.
+- **`assurance.imaging` subpackage** (OPTIONAL — needs the `imaging` extra)
+  wrapping `monai.metrics` to compute **per-case** scores from a pair of masks
+  (CPU only, never CUDA): `dice` (`DiceMetric`), `iou` (`MeanIoU`),
+  `hausdorff95` (`HausdorffDistanceMetric(percentile=95)`, `spacing`-aware),
+  `nsd` (`SurfaceDiceMetric`, `tolerance_mm` + `spacing`). On a missing-monai
+  import the helpers raise a clear error pointing to
+  `pip install venturalitica[imaging]`. These BUILD the per-case score column
+  the aggregates above consume (replacing hand-rolled Dice).
+- **Segmentation-fairness metrics** (`assurance.segmentation.fairness`, PURE
+  pandas/numpy — no torch/monai, base install). All operate on a per-case
+  continuous score column + a group `dimension` (NOT on masks) and are
+  registered so `enforce(data=df)` attaches a power-stats CI automatically. A
+  disparity is actionable only when its CI excludes the no-disparity value.
+  - `essp` / `es_dice` / `es_iou` — Equity-Scaled Segmentation Performance
+    (FairSeg, ICLR 2024): `ESSP = I / (1 + Σ_g |I − I_g|)`. Roles: `score`,
+    `dimension`.
+  - `essp_stdev` — ESSP variant using `std_g(I_g)` as the penalty.
+  - `subgroup_disparity` — all disparities at once (`gap`/`ratio`/`std`/`cv`/
+    `worst_group`/`skew`); `measure` param selects the primary. Roles: `score`,
+    `dimension`.
+  - `score_gap`, `score_ratio`, `score_std`, `score_cv`, `score_skew` —
+    individually-named disparities so each is its own OSCAL control. `score_skew`
+    is **DSC Skewness** (FairMedFM, NeurIPS 2024). `worst_group_score` (Rawlsian
+    min group mean) reuses `min_group_score`. Roles: `score`, `dimension`.
+  - Docstrings document the **Dice structure-size bias** caveat (arXiv
+    2509.19778, 2025): cross-check a Dice disparity on a boundary metric
+    (NSD/HD95, less size-biased) by pointing `score` at an NSD/HD column.
+
+### Changed
+
+- `pyproject.toml` — new `[project.optional-dependencies] imaging =
+  ["monai>=1.3", "torch", "nibabel", "scipy"]` (monai/torch stay OUT of the
+  base deps); added to the `full` extra.
+
 ## [0.6.11] - 2026-05-22
 
 ### Added (power-stats — statistical reliability per control)
