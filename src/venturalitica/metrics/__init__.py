@@ -52,6 +52,23 @@ from venturalitica.assurance.quality.metrics import (
     calc_report_coverage,
     calc_subtitle_diversity,
 )
+from venturalitica.assurance.segmentation import (
+    calc_es_dice,
+    calc_es_iou,
+    calc_essp,
+    calc_essp_stdev,
+    calc_group_score_gap,
+    calc_max_score,
+    calc_mean_score,
+    calc_min_group_score,
+    calc_score_cv,
+    calc_score_gap,
+    calc_score_ratio,
+    calc_score_skew,
+    calc_score_std,
+    calc_subgroup_disparity,
+    calc_worst_cell_score,
+)
 
 from .metadata import METRIC_METADATA as METRIC_METADATA
 
@@ -101,4 +118,28 @@ METRIC_REGISTRY = {
     "provenance_completeness": calc_provenance_completeness,
     "chunk_diversity": calc_chunk_diversity,
     "subtitle_diversity": calc_subtitle_diversity,
+    # Segmentation / per-case score aggregates (continuous, power-stats aware).
+    # The per-case score (e.g. Dice) is built by `assurance.imaging` and these
+    # aggregate it so `enforce(data=df)` bootstraps a CI automatically.
+    "mean_score": calc_mean_score,
+    "min_group_score": calc_min_group_score,
+    "worst_cell_score": calc_worst_cell_score,
+    "group_score_gap": calc_group_score_gap,
+    "max_score": calc_max_score,
+    # Segmentation-fairness over a per-case score (torch-free). Each is its own
+    # control: ESSP/ES-Dice (FairSeg) and the subgroup-disparity family
+    # (gap/ratio/std/cv/worst-group/skew). A disparity is actionable only when
+    # its power-stats CI excludes the no-disparity value (0 for gaps/skew).
+    "essp": calc_essp,
+    "es_dice": calc_es_dice,
+    "es_iou": calc_es_iou,
+    "essp_stdev": calc_essp_stdev,
+    "subgroup_disparity": calc_subgroup_disparity,
+    "score_gap": calc_score_gap,
+    "score_ratio": calc_score_ratio,
+    "score_std": calc_score_std,
+    "score_cv": calc_score_cv,
+    "score_skew": calc_score_skew,
+    # `worst_group_score` (Rawlsian min group mean) reuses min_group_score.
+    "worst_group_score": calc_min_group_score,
 }
