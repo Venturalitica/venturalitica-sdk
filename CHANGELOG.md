@@ -2,6 +2,51 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.13] - 2026-08-11
+
+### Added (surface distance and topology get their own names; per-case topology primitives)
+
+Found running batch A of the Cyber Surgery pilot. Two gaps, one of catalogue and
+one of computation.
+
+**Named catalogue entries for surface distance** (issue #943). `nsd` and
+`hausdorff95` already existed in `assurance.imaging`, and they could already be
+gated — the aggregates resolve their column from the bound `score` role, so any
+per-case scalar works. What was missing was the NAME:
+
+- `mean_nsd`, `mean_hd95`, `max_hd95` in `METRIC_REGISTRY`. Same arithmetic as
+  `mean_score`/`max_score`, but with an identity. The compiled OSCAL builds its
+  requirement description as `"<risk> - <metric>"`, so a gate on NSD@tau and one
+  on mean Dice used to be **indistinguishable in the signed bundle**.
+- `max_hd95` is not a synonym of `max_score`: with "lower is better", the worst
+  case is the MAXIMUM. The generic aggregate cannot know that.
+
+**Unit and sense in the catalogue** (`venturalitica.metrics.METRIC_META`, same
+issue). Each named metric declares its unit (`mm`, `fraction`, `components`),
+its direction and its bounds. `check_threshold_orientation()` uses them to catch
+a wrongly oriented threshold — `gte` on HD95 asks for the error to be LARGE —
+and `enforce()` prints it as a `[Warn]`. Advisory only, and silent for metrics
+without declared metadata: we do not opine on families we do not know.
+
+**Per-case topology primitives** (`assurance.imaging.topology`, issue #945).
+This one was a real hole in the computation, not just the catalogue. With
+ankylosis, DISH, a bridging osteophyte or a collapsed disc, a vertebral label
+can jump the disc space and fuse two bones. The added volume is tiny, so Dice
+barely moves and **none of the 51 registry metrics saw it**. It is a structural
+control, not an overlap one:
+
+- `component_counts(volume, labels=None, connectivity=3)` - connected components
+  per label, background excluded.
+- `excess_components(...)` - components beyond one, summed. Zero-based, so the
+  threshold is obvious (`<= 0`) instead of a convention.
+- `euler_characteristic(volume, label)` - chi = b0 - b1 + b2, computed EXACTLY
+  by counting the cells of the cubical complex (V - E + F - C), so it is
+  integer-valued with no tolerance to tune.
+- Registered as `max_excess_components` / `mean_excess_components`.
+
+Pure `scipy.ndimage` - no monai, no torch. `scipy` already ships with the
+`imaging` extra, so these run wherever that extra is installed.
+
 ## [0.6.12] - 2026-05-22
 
 ### Added (native image-segmentation metrics with power-stats)
