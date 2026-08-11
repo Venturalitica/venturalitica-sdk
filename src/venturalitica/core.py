@@ -94,7 +94,7 @@ class AssuranceValidator:
         Controls declaring `enforcement_mode: block` that fail evaluation raise
         ComplianceBlockError immediately, regardless of strict mode.
         """
-        from .metrics import METRIC_REGISTRY
+        from .metrics import METRIC_REGISTRY, check_threshold_orientation
 
         # Use method argument if provided, otherwise fall back to instance setting
         strict = strict if strict is not None else self.strict
@@ -117,6 +117,18 @@ class AssuranceValidator:
                 continue
 
             print(f"  Evaluating Control '{ctrl.id}': {ctrl.description[:50]}...")
+
+            # #943: unidad y sentido del catalogo. Un umbral mal orientado
+            # ('gte' sobre una distancia, que pide que el error sea GRANDE) o
+            # fuera del rango de la metrica se avisa aqui. ADVISORY: no falla la
+            # evaluacion ni en modo estricto, y solo opina de metricas con
+            # metadatos declarados -- preferimos callar antes que un falso
+            # positivo, igual que el half-gate del motor.
+            orientation = check_threshold_orientation(
+                metric_key, ctrl.operator, ctrl.threshold
+            )
+            if orientation:
+                print(f"    [Warn] umbral sospechoso en '{ctrl.id}': {orientation}")
 
             # Policy Binding and Attribute Alignment logs
             eval_context = {}

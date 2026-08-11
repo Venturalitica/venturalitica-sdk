@@ -58,7 +58,12 @@ from venturalitica.assurance.segmentation import (
     calc_essp,
     calc_essp_stdev,
     calc_group_score_gap,
+    calc_max_excess_components,
+    calc_max_hd95,
     calc_max_score,
+    calc_mean_excess_components,
+    calc_mean_hd95,
+    calc_mean_nsd,
     calc_mean_score,
     calc_min_group_score,
     calc_score_cv,
@@ -142,4 +147,26 @@ METRIC_REGISTRY = {
     "score_skew": calc_score_skew,
     # `worst_group_score` (Rawlsian min group mean) reuses min_group_score.
     "worst_group_score": calc_min_group_score,
+    # Surface distance, WITH ITS OWN NAME (#943). Same arithmetic as
+    # mean_score/max_score, but the identity of the gated metric now reaches the
+    # compiled OSCAL and the signed bundle instead of reading "- mean_score".
+    # `METRIC_META` hangs unit and sense off these names.
+    "mean_nsd": calc_mean_nsd,
+    "mean_hd95": calc_mean_hd95,
+    "max_hd95": calc_max_hd95,
+    # Topology (#945) - a STRUCTURAL control, not an overlap one. The per-case
+    # column comes from `assurance.imaging.excess_components`; it is what sees
+    # the leak between fused vertebrae that Dice cannot.
+    "max_excess_components": calc_max_excess_components,
+    "mean_excess_components": calc_mean_excess_components,
 }
+
+from .meta import (  # noqa: E402
+    METRIC_META as METRIC_META,
+)
+from .meta import (  # noqa: E402
+    MetricMeta as MetricMeta,
+)
+from .meta import (  # noqa: E402
+    check_threshold_orientation as check_threshold_orientation,
+)

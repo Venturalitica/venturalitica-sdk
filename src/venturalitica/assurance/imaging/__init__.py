@@ -22,5 +22,24 @@ from .metrics import (
 from .metrics import (
     nsd as nsd,
 )
+from .topology import (
+    component_counts as component_counts,
+)
+from .topology import (
+    euler_characteristic as euler_characteristic,
+)
+from .topology import (
+    excess_components as excess_components,
+)
 
-__all__ = ["dice", "iou", "hausdorff95", "nsd"]
+__all__ = [
+    "dice",
+    "iou",
+    "hausdorff95",
+    "nsd",
+    # Topología por caso (#945): controles ESTRUCTURALES, no de solape. Solo
+    # necesitan scipy, no monai/torch.
+    "component_counts",
+    "excess_components",
+    "euler_characteristic",
+]

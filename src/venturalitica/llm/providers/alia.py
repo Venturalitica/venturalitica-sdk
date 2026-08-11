@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Tuple
 
+from .._gguf import load_gguf_chat_model
 from ..base import ModelCard
 from ..catalog import ALIA_DEFAULT
-from .._gguf import load_gguf_chat_model
 
 
 class AliaProvider:

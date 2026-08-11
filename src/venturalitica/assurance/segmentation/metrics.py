@@ -42,6 +42,12 @@ __all__ = [
     "calc_worst_cell_score",
     "calc_group_score_gap",
     "calc_max_score",
+    # Agregados CON NOMBRE (#943, #945): misma aritmética, identidad propia.
+    "calc_mean_nsd",
+    "calc_mean_hd95",
+    "calc_max_hd95",
+    "calc_max_excess_components",
+    "calc_mean_excess_components",
 ]
 
 
@@ -57,8 +63,7 @@ def _resolve_score_col(df: pd.DataFrame, **kwargs) -> str:
         score = kwargs.get("target")
     if not score or score == "MISSING":
         raise ValueError(
-            "Missing required role 'score' (the per-case score column) "
-            "for the segmentation aggregate metric"
+            "Missing required role 'score' (the per-case score column) for the segmentation aggregate metric"
         )
     if score not in df.columns:
         raise KeyError(f"Score column '{score}' not found in DataFrame")
@@ -68,24 +73,16 @@ def _resolve_score_col(df: pd.DataFrame, **kwargs) -> str:
 def _resolve_dimension(df: pd.DataFrame, **kwargs) -> str:
     dim = kwargs.get("dimension") or kwargs.get("input.dimension")
     if not dim or dim == "MISSING":
-        raise ValueError(
-            "Missing required role 'dimension' (the subgroup column) "
-            "for the grouped segmentation metric"
-        )
+        raise ValueError("Missing required role 'dimension' (the subgroup column) for the grouped segmentation metric")
     if dim not in df.columns:
         raise KeyError(f"Dimension column '{dim}' not found in DataFrame")
     return dim
 
 
-def _resolve_dimensions(
-    df: pd.DataFrame, dimensions: Union[str, List[str], tuple, None]
-) -> List[str]:
+def _resolve_dimensions(df: pd.DataFrame, dimensions: Union[str, List[str], tuple, None]) -> List[str]:
     """Normalize the ``dimensions`` param (list/comma-string) to real columns."""
     if dimensions is None:
-        raise ValueError(
-            "Missing required param 'dimensions' (the composite-cell columns) "
-            "for worst_cell_score"
-        )
+        raise ValueError("Missing required param 'dimensions' (the composite-cell columns) for worst_cell_score")
     if isinstance(dimensions, str):
         cols = [c.strip() for c in dimensions.split(",") if c.strip()]
     elif isinstance(dimensions, (list, tuple)):
@@ -128,16 +125,9 @@ def calc_min_group_score(df: pd.DataFrame, **kwargs) -> tuple:
     """
     score = _resolve_score_col(df, **kwargs)
     dim = _resolve_dimension(df, **kwargs)
-    group_means = (
-        pd.to_numeric(df[score], errors="coerce")
-        .groupby(df[dim])
-        .mean()
-        .dropna()
-    )
+    group_means = pd.to_numeric(df[score], errors="coerce").groupby(df[dim]).mean().dropna()
     if group_means.empty:
-        raise ValueError(
-            f"No groups with finite scores for dimension '{dim}'"
-        )
+        raise ValueError(f"No groups with finite scores for dimension '{dim}'")
     min_value = float(group_means.min())
     return min_value, {"groups": {str(k): float(v) for k, v in group_means.items()}}
 
@@ -154,18 +144,11 @@ def calc_worst_cell_score(df: pd.DataFrame, **kwargs) -> tuple:
     score = _resolve_score_col(df, **kwargs)
     dimensions = _resolve_dimensions(df, kwargs.get("dimensions"))
     keys = [df[c] for c in dimensions]
-    cell_means = (
-        pd.to_numeric(df[score], errors="coerce").groupby(keys).mean().dropna()
-    )
+    cell_means = pd.to_numeric(df[score], errors="coerce").groupby(keys).mean().dropna()
     if cell_means.empty:
-        raise ValueError(
-            f"No composite cells with finite scores for dimensions {dimensions}"
-        )
+        raise ValueError(f"No composite cells with finite scores for dimensions {dimensions}")
     min_value = float(cell_means.min())
-    cells = {
-        ("|".join(map(str, k)) if isinstance(k, tuple) else str(k)): float(v)
-        for k, v in cell_means.items()
-    }
+    cells = {("|".join(map(str, k)) if isinstance(k, tuple) else str(k)): float(v) for k, v in cell_means.items()}
     return min_value, {"cells": cells}
 
 
@@ -180,16 +163,9 @@ def calc_group_score_gap(df: pd.DataFrame, **kwargs) -> tuple:
     """
     score = _resolve_score_col(df, **kwargs)
     dim = _resolve_dimension(df, **kwargs)
-    group_means = (
-        pd.to_numeric(df[score], errors="coerce")
-        .groupby(df[dim])
-        .mean()
-        .dropna()
-    )
+    group_means = pd.to_numeric(df[score], errors="coerce").groupby(df[dim]).mean().dropna()
     if group_means.empty:
-        raise ValueError(
-            f"No groups with finite scores for dimension '{dim}'"
-        )
+        raise ValueError(f"No groups with finite scores for dimension '{dim}'")
     gap = float(group_means.max() - group_means.min())
     meta = {
         "groups": {str(k): float(v) for k, v in group_means.items()},
@@ -212,3 +188,71 @@ def calc_max_score(df: pd.DataFrame, **kwargs) -> float:
     if series.empty:
         raise ValueError(f"Score column '{score}' has no finite values")
     return float(series.max())
+
+
+# ── Agregados CON NOMBRE para distancia de superficie y topología (#943, #945) ──
+#
+# Estos no calculan nada que `calc_mean_score`/`calc_max_score` no supieran ya
+# hacer: agregan la columna por caso que enlaza el rol `score`. Lo que aportan es
+# la IDENTIDAD. El OSCAL compilado construye la descripción del requisito como
+# "<riesgo> — <métrica>", así que con `mean_score` genérico un gate sobre NSD@τ y
+# uno sobre Dice medio salen indistinguibles en el bundle firmado. Con nombre
+# propio, el expediente dice qué se comprobó — y `METRIC_META` puede colgar de
+# ese nombre la unidad y el sentido, que es lo que permite detectar un umbral
+# mal orientado (ver `venturalitica.metrics.check_threshold_orientation`).
+
+
+def calc_mean_nsd(df: pd.DataFrame, **kwargs) -> float:
+    """Normalized Surface Dice medio sobre la cohorte (mayor es mejor, [0,1]).
+
+    La columna por caso la construye :func:`venturalitica.assurance.imaging.nsd`.
+    Rol requerido: ``score``.
+    """
+    return calc_mean_score(df, **kwargs)
+
+
+def calc_mean_hd95(df: pd.DataFrame, **kwargs) -> float:
+    """Distancia de Hausdorff al percentil 95 media, en MILÍMETROS (menor mejor).
+
+    La columna por caso la construye
+    :func:`venturalitica.assurance.imaging.hausdorff95` con su ``spacing``; sin
+    ``spacing`` la distancia sale en vóxeles y el umbral en mm no significa nada.
+    Rol requerido: ``score``.
+    """
+    return calc_mean_score(df, **kwargs)
+
+
+def calc_max_hd95(df: pd.DataFrame, **kwargs) -> float:
+    """Peor caso de HD95 de la cohorte, en milímetros.
+
+    En «menor es mejor» el peor caso es el MÁXIMO — al revés que en un Dice. Un
+    `max_score` genérico no sabe distinguirlo; esta entrada sí, y por eso existe
+    aparte en vez de reutilizar el nombre anónimo.
+
+    Rol requerido: ``score``.
+    """
+    return calc_max_score(df, **kwargs)
+
+
+def calc_max_excess_components(df: pd.DataFrame, **kwargs) -> float:
+    """Peor caso de componentes conexas SOBRANTES (0 = ninguna etiqueta rota).
+
+    Control ESTRUCTURAL, no de solape: la columna por caso la construye
+    :func:`venturalitica.assurance.imaging.excess_components`. Es la métrica que
+    ve la fuga topológica entre vértebras fundidas, que el Dice no ve porque el
+    volumen añadido es diminuto.
+
+    Rol requerido: ``score``.
+    """
+    return calc_max_score(df, **kwargs)
+
+
+def calc_mean_excess_components(df: pd.DataFrame, **kwargs) -> float:
+    """Componentes sobrantes por caso, en media — cuánta fragmentación hay.
+
+    Complementa a :func:`calc_max_excess_components`: el máximo dice si ALGÚN
+    caso está roto, la media dice cuán extendido está el problema.
+
+    Rol requerido: ``score``.
+    """
+    return calc_mean_score(df, **kwargs)

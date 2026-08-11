@@ -44,7 +44,22 @@ from .metrics import (
     calc_group_score_gap as calc_group_score_gap,
 )
 from .metrics import (
+    calc_max_excess_components as calc_max_excess_components,
+)
+from .metrics import (
+    calc_max_hd95 as calc_max_hd95,
+)
+from .metrics import (
     calc_max_score as calc_max_score,
+)
+from .metrics import (
+    calc_mean_excess_components as calc_mean_excess_components,
+)
+from .metrics import (
+    calc_mean_hd95 as calc_mean_hd95,
+)
+from .metrics import (
+    calc_mean_nsd as calc_mean_nsd,
 )
 from .metrics import (
     calc_mean_score as calc_mean_score,
@@ -63,6 +78,12 @@ __all__ = [
     "calc_worst_cell_score",
     "calc_group_score_gap",
     "calc_max_score",
+    # Agregados CON NOMBRE (#943 superficie, #945 topologia).
+    "calc_mean_nsd",
+    "calc_mean_hd95",
+    "calc_max_hd95",
+    "calc_max_excess_components",
+    "calc_mean_excess_components",
     # Segmentation-fairness over a per-case score
     "calc_essp",
     "calc_es_dice",
