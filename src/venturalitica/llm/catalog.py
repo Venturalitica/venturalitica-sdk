@@ -14,7 +14,6 @@ import os
 
 from .base import ModelCard
 
-
 # ---------------------------------------------------------------------------
 # ALIA — Barcelona Supercomputing Center
 #
