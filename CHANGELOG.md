@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-08-12
+
+### Changed (salto de version deliberado: recuperar el `latest` del indice)
+
+**No hay cambios incompatibles.** El salto de 0.6.x a 0.8.0 no describe una reescritura:
+existe para que el resolvedor vuelva a elegir la build mas reciente.
+
+Las versiones de `venturalitica` en TestPyPI **no eran monotonas en el tiempo**:
+
+```
+2026-05-19T08:31:36   0.7.0     <- el semver mas alto
+2026-05-19T08:57:47   0.6.10    <- subida 26 min DESPUES
+2026-07-12T08:55:08   0.6.12    <- la mas reciente de verdad
+```
+
+Como los resolvedores eligen por semver y no por fecha, `latest` era **0.7.0, una build
+del 19 de mayo**. Y 0.7.0 es un **subconjunto estricto**: tiene 35 entradas en
+`METRIC_REGISTRY` frente a las 56 de esta version, y **ni una sola** que esta no tenga.
+Le faltan 21, incluidos los agregados sobre score por caso (`worst_cell_score`,
+`min_group_score`, `group_score_gap`, la familia de disparidad por subgrupo) sobre los
+que se apoyan los manifiestos, y las entradas de superficie y topologia de 0.6.13.
+
+El fallo no era ruidoso: si una metrica no existe, el control no falla por
+incumplimiento sino **por ausencia**, que es un rojo que apunta al sitio equivocado — o
+peor, segun el `enforcement`, pasa desapercibido.
+
+Con 0.8.0 > 0.7.0, `latest` vuelve a ser la build mas reciente en los dos indices.
+
+> Publicar en TestPyPI exige que esto llegue a `staging`: `main` publica solo en PyPI
+> real. Ver Venturalitica/seigarrena#956.
+
+Incluye todo lo de 0.6.13, que se publico en PyPI real pero nunca en TestPyPI.
+
 ## [0.6.13] - 2026-08-11
 
 ### Added (surface distance and topology get their own names; per-case topology primitives)
