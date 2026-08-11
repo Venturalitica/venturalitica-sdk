@@ -1,4 +1,4 @@
-__version__ = "0.6.13"
+__version__ = "0.8.0"
 
 from .api import (
     enforce,
