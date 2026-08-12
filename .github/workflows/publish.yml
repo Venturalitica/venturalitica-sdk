@@ -1,15 +1,49 @@
+# Publica `venturalitica` en un índice PyPI (TestPyPI o PyPI real) usando TRUSTED
+# PUBLISHING (OIDC) — sin tokens de API de larga duración.
+#
+# ⚠️ SOLO se dispara a mano (`workflow_dispatch`). Antes publicaba por RAMA
+#    (`staging`→TestPyPI, `main`→PyPI real), lo que traía dos problemas (seigarrena#960):
+#
+#    1. Fusionar una PR a `main` publicaba EN PRODUCCIÓN como efecto colateral. Subir a
+#       un índice real es IRREVERSIBLE por par (nombre, versión) y debe ser deliberado.
+#    2. Publicar bien exigía pasar por `staging` y luego por `main`, pero `main` fusiona
+#       con SQUASH: el commit nunca es el mismo, así que las dos ramas quedaban
+#       desalineadas en cada release y la siguiente pedía un force-push. `staging` llevó
+#       parada en 0.6.10 tres meses sin que nadie lo notara.
+#
+#    Con el destino como INPUT, el acoplamiento a ramas desaparece: `staging` puede
+#    seguir siendo rama de integración sin disparar publicaciones.
+#
+# El orden NO cambia: se ensaya SIEMPRE contra TestPyPI (`target: testpypi`) y solo
+# después se publica en el índice real. Mismo criterio que `publish-froga-pypi.yml` del
+# monorepo.
+#
+# La compuerta de producción es el `environment:` (revisor requerido en los ajustes del
+# repo): a diferencia de una variable, deja REGISTRO de quién autorizó cada publicación.
 name: Publish
 
 on:
-  push:
-    branches: [main, staging]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Índice destino (ensaya SIEMPRE testpypi antes que pypi)"
+        required: true
+        type: choice
+        options:
+          - testpypi
+          - pypi
+        default: testpypi
 
 concurrency:
-  group: publish-${{ github.ref }}
+  group: publish-${{ inputs.target }}
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   build:
+    name: construir wheel + sdist
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,16 +58,21 @@ jobs:
             echo "::error::sdist too large ($SDIST_SIZE bytes)"
             exit 1
           fi
+      # La coherencia de versión entre los CUATRO ficheros (`__init__.py`, `pyproject.toml`,
+      # `publiccode.yml`, `CHANGELOG.md`) ya la gatea `test_version_consistency` en CI — ese
+      # test cazó un bump a medias en la 0.6.13, así que aquí no hace falta repetir la red.
       - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
 
-  publish-testpypi:
-    if: github.ref == 'refs/heads/staging'
+  publish:
+    name: "publicar (${{ inputs.target }})"
     needs: build
     runs-on: ubuntu-latest
-    environment: testpypi
+    # Compuerta: el entorno `pypi` lleva revisor requerido → publicar en producción exige
+    # una aprobación con nombre y queda registrada.
+    environment: ${{ inputs.target }}
     permissions:
       id-token: write
     steps:
@@ -41,20 +80,43 @@ jobs:
         with:
           name: dist
           path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
+
+      # `skip-existing: true` hace IDEMPOTENTE el reintento (re-ejecutar un run ya
+      # publicado no debe salir rojo). Su peligro conocido —degradar un «400 File already
+      # exists» a WARNING y dejar el job en verde sin haber publicado— lo cubre el paso
+      # siguiente, que comprueba el índice. Las dos juntas o ninguna (seigarrena#957).
+      - name: publish to TestPyPI
+        if: ${{ inputs.target == 'testpypi' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
 
-  publish-pypi:
-    if: github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
+      - name: publish to PyPI
+        if: ${{ inputs.target == 'pypi' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          name: dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
+          skip-existing: true
+
+      # El «success» del publicador NO prueba que se haya publicado. Se comprueba contra
+      # el índice simple, que es lo que usan los resolvedores (el JSON está cacheado por
+      # CDN y miente varios minutos). Mismo aprendizaje que seigarrena#816, donde un
+      # `pg_dump` muerto subía un gzip vacío de 20 B y el chequeo decía «fresco».
+      - name: comprobar que la versión está DE VERDAD en el índice
+        run: |
+          VER=$(ls dist/*.whl | head -1 | sed 's/.*venturalitica-\([^-]*\)-.*/\1/')
+          if [ "${{ inputs.target }}" = "testpypi" ]; then
+            IDX="https://test.pypi.org/simple/venturalitica/"
+          else
+            IDX="https://pypi.org/simple/venturalitica/"
+          fi
+          echo "esperando encontrar venturalitica ${VER} en ${IDX}"
+          for i in $(seq 1 10); do
+            if curl -sf -H 'Cache-Control: no-cache' "$IDX" | grep -q "venturalitica-${VER}[-.]"; then
+              echo "✓ venturalitica ${VER} está en el índice"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::el paso de publicación salió en verde pero venturalitica ${VER} NO está en ${IDX}"
+          exit 1
