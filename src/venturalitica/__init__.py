@@ -3,6 +3,7 @@ __version__ = "0.8.0"
 from .api import (
     enforce,
     monitor,
+    retain,
 )
 from .policy import PolicyManager
 from .quickstart import quickstart
@@ -11,6 +12,7 @@ from .wrappers import wrap
 __all__ = [
     "monitor",
     "enforce",
+    "retain",
     "wrap",
     "quickstart",
     "PolicyManager",
