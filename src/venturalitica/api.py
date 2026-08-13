@@ -44,21 +44,48 @@ def _partition_digest(
     (retained or not), so a result can always be traced back to the exact
     partition it was measured against.
     """
-    hasher = hashlib.sha256()
     if data is not None and hasattr(data, "columns"):
         try:
             import pandas as pd
 
             hashed_rows = pd.util.hash_pandas_object(data, index=True)
-            hasher.update(hashed_rows.values.tobytes())
-            hasher.update(",".join(map(str, data.columns)).encode("utf-8"))
+            payload = hashed_rows.values.tobytes() + ",".join(
+                map(str, data.columns)
+            ).encode("utf-8")
+            return hashlib.sha256(payload).hexdigest()
         except Exception:
-            hasher.update(repr(data).encode("utf-8"))
-    elif metrics is not None:
-        hasher.update(json.dumps(metrics, sort_keys=True, default=str).encode("utf-8"))
-    else:
-        return ""
-    return hasher.hexdigest()
+            # `hash_pandas_object` raises on unhashable cell contents --
+            # object columns holding lists/arrays, not exotic in a
+            # segmentation pipeline (measured: a column of Python lists
+            # raises TypeError). `repr(data)` looks like a safe fallback
+            # but is the opposite: pandas TRUNCATES repr() past ~60 rows,
+            # so two large DataFrames that differ only past the truncation
+            # point produce an IDENTICAL repr and therefore the SAME
+            # digest -- the exact collision this digest exists to rule out
+            # (#977; measured: two 401-row frames differing only at row
+            # 200 give identical repr(), distinct to_csv()). Hash the full
+            # byte content instead -- `to_csv` never truncates.
+            try:
+                digest = hashlib.sha256(
+                    data.to_csv(index=True).encode("utf-8")
+                ).hexdigest()
+                print(
+                    "  ⚠ partition_digest: hash_pandas_object failed on this "
+                    "DataFrame, fell back to a full to_csv() hash"
+                )
+                return digest
+            except Exception:
+                print(
+                    "  ⚠ partition_digest: could not hash this DataFrame at "
+                    "all -- returning an empty digest rather than one that "
+                    "might collide with a different partition"
+                )
+                return ""
+    if metrics is not None:
+        return hashlib.sha256(
+            json.dumps(metrics, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()
+    return ""
 
 
 @contextmanager
@@ -438,8 +465,27 @@ def retain(results: List[ComplianceResult]) -> List[ComplianceResult]:
     (the same control computed against two different partitions) stay
     distinguishable even after this filtering step discards the context
     that produced them.
+
+    Calling this with an empty list is a valid declaration -- "the pipeline
+    retained nothing" -- and is recorded as such (an empty
+    `retained_results.json`), not silently ignored: `_generate_oscal_artifacts`
+    finds no items and produces no AR at all, so `vl push` fails loudly
+    instead of shipping the unfiltered evaluated cache by accident.
     """
     session = GovernanceSession.get_current()
-    if session and results:
-        session.save_results(results, encoder=VenturalíticaJSONEncoder, retained=True)
+    if not session:
+        # No active `monitor()` session -- e.g. called standalone, or after
+        # the `with monitor(...):` block already exited. There is nowhere
+        # to record the retained set, so a later `vl push` would fall back
+        # to whatever got evaluated, unfiltered. That's the exact
+        # contradiction this function exists to prevent, so it must not
+        # fail silently (#977).
+        print(
+            "  ⚠ vl.retain() called with no active monitor() session -- "
+            "nothing was recorded. A later `vl push` will ship everything "
+            "evaluated, unfiltered, unless retain() is called again inside "
+            "an active session."
+        )
+        return results
+    session.save_results(results, encoder=VenturalíticaJSONEncoder, retained=True)
     return results

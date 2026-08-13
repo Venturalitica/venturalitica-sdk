@@ -115,6 +115,13 @@ class AssessmentResultsBuilder:
                 "risk_acceptance_criteria",
                 "threshold_justification",
                 "stakeholder_consultation_ref",
+                # #977: without this, the digest `enforce()` stamps on every
+                # result only reached the AR via the risk-characterization
+                # facets loop below, which runs `if not cr.passed`. The
+                # issue's own example is a control that PASSES misleadingly
+                # (k=41 on the wrong partition) -- exactly the one that
+                # needs the partition mark and previously didn't get it.
+                "partition_digest",
             )
             for key in _PROFILE_PROPS:
                 value = (cr.metadata or {}).get(key)

@@ -4,7 +4,7 @@ import threading
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class GovernanceSession:
@@ -92,6 +92,25 @@ class GovernanceSession:
                         pass
 
             combined = existing + data
+
+            if retained:
+                # `retain()` is a DECLARATION of the authoritative subset,
+                # not an accumulation of new computations the way repeated
+                # `enforce()` calls are. Re-declaring the same control on
+                # the same partition must REPLACE the earlier entry, not
+                # duplicate it -- otherwise the AR ends up with two
+                # observations/findings for one control (#977). Dedupe by
+                # (control_id, partition_digest); last write wins.
+                deduped: Dict[Any, Any] = {}
+                for row in combined:
+                    row_meta = row.get("metadata") or {} if isinstance(row, dict) else {}
+                    key = (
+                        row.get("control_id") if isinstance(row, dict) else id(row),
+                        row_meta.get("partition_digest"),
+                    )
+                    deduped[key] = row
+                combined = list(deduped.values())
+
             with open(target_file, "w") as f:
                 json.dump(combined, f, indent=2, cls=encoder)
         except Exception as e:
