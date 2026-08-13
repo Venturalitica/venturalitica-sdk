@@ -42,11 +42,23 @@ class BOMScanner:
         full `vulnerabilities[]` schema vs. v1.5. The SaaS ingester
         (`bom-ingestion.service.ts`) is forward-compatible across 1.5/1.6/1.7;
         we pick the highest version with a stable cyclonedx-python-lib emitter.
+
+        The output is deterministic for identical inputs: `Bom()` seeds a
+        random `serial_number` and `BomMetaData()` seeds a wall-clock
+        `timestamp`, both via public properties, so a re-scan of unchanged
+        inputs would otherwise diff on every run. Clearing them (both
+        setters accept `None` and the CycloneDX JSON writer simply omits
+        the field when unset) is what lets the BOM be committed to git and
+        found where the engine looks for it — a re-run over unchanged
+        inputs leaves the working tree clean instead of always dirty.
         """
         self._scan_requirements()
         self._scan_pyproject()
         self._scan_imports()
         self._scan_models()
+
+        self.bom.serial_number = None
+        self.bom.metadata.timestamp = None
 
         output = JsonV1Dot6(self.bom).output_as_string()
         return output
