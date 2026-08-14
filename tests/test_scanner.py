@@ -165,7 +165,10 @@ def test_bom_scanner_emits_cyclonedx_1_6(temp_project):
     bom = json.loads(scanner.scan())
     assert bom["bomFormat"] == "CycloneDX"
     assert bom["specVersion"] == "1.6"
-    assert "serialNumber" in bom
+    # `serialNumber` is deliberately absent: a random UUID per scan would
+    # make the document non-deterministic for identical inputs, and a
+    # non-deterministic BOM can't be versioned (see test_bom_determinism.py).
+    assert "serialNumber" not in bom
 
 
 def test_bom_scanner_library_components_have_pypi_purl(temp_project):

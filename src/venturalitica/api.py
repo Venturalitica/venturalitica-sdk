@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import time
@@ -26,6 +27,65 @@ _SESSION_ENFORCED = False
 
 def _is_enforced():
     return _SESSION_ENFORCED
+
+
+def _partition_digest(
+    data: Any = None, metrics: Optional[Dict[str, float]] = None
+) -> str:
+    """Content digest of the partition a batch of results was computed against.
+
+    `enforce()` may run twice against the same logical dataset sliced two
+    different ways (e.g. one row per case, one row per treated vertebra).
+    The two runs can legitimately report very different numbers for the
+    exact same control_id -- k-anonymity read on the per-vertebra table
+    counts vertebrae as individuals, not patients -- and nothing in a bare
+    ComplianceResult says which table produced which number (#977). This
+    digest is that mark: stamped on every result `enforce()` returns
+    (retained or not), so a result can always be traced back to the exact
+    partition it was measured against.
+    """
+    if data is not None and hasattr(data, "columns"):
+        try:
+            import pandas as pd
+
+            hashed_rows = pd.util.hash_pandas_object(data, index=True)
+            payload = hashed_rows.values.tobytes() + ",".join(
+                map(str, data.columns)
+            ).encode("utf-8")
+            return hashlib.sha256(payload).hexdigest()
+        except Exception:
+            # `hash_pandas_object` raises on unhashable cell contents --
+            # object columns holding lists/arrays, not exotic in a
+            # segmentation pipeline (measured: a column of Python lists
+            # raises TypeError). `repr(data)` looks like a safe fallback
+            # but is the opposite: pandas TRUNCATES repr() past ~60 rows,
+            # so two large DataFrames that differ only past the truncation
+            # point produce an IDENTICAL repr and therefore the SAME
+            # digest -- the exact collision this digest exists to rule out
+            # (#977; measured: two 401-row frames differing only at row
+            # 200 give identical repr(), distinct to_csv()). Hash the full
+            # byte content instead -- `to_csv` never truncates.
+            try:
+                digest = hashlib.sha256(
+                    data.to_csv(index=True).encode("utf-8")
+                ).hexdigest()
+                print(
+                    "  ⚠ partition_digest: hash_pandas_object failed on this "
+                    "DataFrame, fell back to a full to_csv() hash"
+                )
+                return digest
+            except Exception:
+                print(
+                    "  ⚠ partition_digest: could not hash this DataFrame at "
+                    "all -- returning an empty digest rather than one that "
+                    "might collide with a different partition"
+                )
+                return ""
+    if metrics is not None:
+        return hashlib.sha256(
+            json.dumps(metrics, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()
+    return ""
 
 
 @contextmanager
@@ -122,7 +182,16 @@ def _generate_oscal_artifacts(
 ) -> None:
     """Generate OSCAL Assessment Results and POA&M from cached results."""
     try:
-        results_path = Path(run_dir) / "results.json"
+        # #977: prefer the RETAINED subset (`vl.retain()`) over the raw
+        # evaluated cache. When a pipeline has explicitly filtered
+        # `enforce()`'s combined output (e.g. down to the controls the
+        # compiled OSCAL profile actually tags for the partition they were
+        # computed against), that filtered set is what `assessment-results
+        # .oscal.json` -- and therefore `vl push` -- must ship. Scripts that
+        # never call `vl.retain()` (the common single-`enforce()`-call case)
+        # keep today's behavior: everything evaluated is what gets pushed.
+        retained_path = Path(run_dir) / "retained_results.json"
+        results_path = retained_path if retained_path.exists() else Path(run_dir) / "results.json"
         if not results_path.exists():
             return
 
@@ -154,8 +223,9 @@ def _generate_oscal_artifacts(
 
         # Collect evidence artifact paths from the run directory
         evidence = {}
+        _cache_files = {"results.json", "retained_results.json"}
         for artifact_file in Path(run_dir).glob("*"):
-            if artifact_file.name != "results.json" and artifact_file.is_file():
+            if artifact_file.name not in _cache_files and artifact_file.is_file():
                 evidence[artifact_file.name] = str(artifact_file)
 
         # Read tenant binding from the AP the SDK pulled earlier. The
@@ -278,6 +348,16 @@ def enforce(
                 results = validator.evaluate(metrics, phase=phase, strict=strict)
 
             if results:
+                # #977: stamp the partition digest on every result BEFORE it
+                # ever reaches the vault, so a result computed on one slice
+                # of the data can never be confused with the same
+                # control_id computed on a different slice (e.g. per-case
+                # vs. per-vertebra). This runs unconditionally -- whether
+                # or not the caller ever calls `vl.retain()`.
+                digest = _partition_digest(data=data, metrics=metrics)
+                for r in results:
+                    r.metadata = dict(r.metadata or {})
+                    r.metadata["partition_digest"] = digest
                 all_results.extend(results)
                 print_summary(results, is_data_only=(prediction is None))
             else:
@@ -329,7 +409,10 @@ def enforce(
             with open(results_path, "w") as f:
                 json.dump(combined, f, indent=2, cls=VenturalíticaJSONEncoder)
 
-            # [GovOps] Save to Session-specific storage
+            # [GovOps] Save to Session-specific storage. This is the raw
+            # EVALUATED cache -- everything this call computed, whether or
+            # not a downstream pipeline will keep it. See `retain()` below
+            # for the authoritative subset that `vl push` actually ships.
             session = GovernanceSession.get_current()
             if session:
                 session.save_results(all_results, encoder=VenturalíticaJSONEncoder)
@@ -355,3 +438,54 @@ def enforce(
         pass
 
     return all_results
+
+
+def retain(results: List[ComplianceResult]) -> List[ComplianceResult]:
+    """Declares `results` as the session's authoritative, push-worthy subset (#977).
+
+    `enforce()` caches every result it evaluates, including ones a
+    downstream pipeline later discards -- e.g. a control evaluated once
+    per case and once per anatomical partition, kept only for the
+    partition the compiled OSCAL profile actually tags it for. That raw
+    cache is fine for the Local Dashboard but not safe to `push`: it can
+    disagree with the caller's own authoritative metrics (its own
+    `metrics.json`), and nothing marks which one governs.
+
+    Call this once, after filtering `enforce()`'s combined output down to
+    what the pipeline actually keeps -- typically the union of two or more
+    `enforce()` calls, filtered by reading each control's partition from
+    the compiled OSCAL. `_generate_oscal_artifacts` reads this retained set
+    instead of the raw evaluated cache whenever one exists for the current
+    session, so `vl push` ships only what was retained. Scripts that call
+    `enforce()` once and never call `retain()` are unaffected: with no
+    retained set, everything evaluated is what gets pushed, same as today.
+
+    Each result already carries `metadata["partition_digest"]`, stamped by
+    `enforce()` at computation time, so two results sharing a control_id
+    (the same control computed against two different partitions) stay
+    distinguishable even after this filtering step discards the context
+    that produced them.
+
+    Calling this with an empty list is a valid declaration -- "the pipeline
+    retained nothing" -- and is recorded as such (an empty
+    `retained_results.json`), not silently ignored: `_generate_oscal_artifacts`
+    finds no items and produces no AR at all, so `vl push` fails loudly
+    instead of shipping the unfiltered evaluated cache by accident.
+    """
+    session = GovernanceSession.get_current()
+    if not session:
+        # No active `monitor()` session -- e.g. called standalone, or after
+        # the `with monitor(...):` block already exited. There is nowhere
+        # to record the retained set, so a later `vl push` would fall back
+        # to whatever got evaluated, unfiltered. That's the exact
+        # contradiction this function exists to prevent, so it must not
+        # fail silently (#977).
+        print(
+            "  ⚠ vl.retain() called with no active monitor() session -- "
+            "nothing was recorded. A later `vl push` will ship everything "
+            "evaluated, unfiltered, unless retain() is called again inside "
+            "an active session."
+        )
+        return results
+    session.save_results(results, encoder=VenturalíticaJSONEncoder, retained=True)
+    return results

@@ -24,6 +24,19 @@ KNOWN_MODELS: Set[str] = {
     "Sequential", "Module", "resnet18", "resnet50"
 }
 
+# CycloneDX property that tags *what* a component describes: the software
+# the client deploys (`SUBJECT_PRODUCT`), or the interpreter that happened
+# to run the measurement (`SUBJECT_MEASUREMENT_ENVIRONMENT`). Without this,
+# a scan resolves `importlib.metadata` against the live interpreter and the
+# BOM silently presents the scanner's own environment as if it were the
+# inventoried product — mdr.soup-inventory (IEC 62304 §8.1.2) is satisfied
+# on the wrong subject. `properties[]` is the CycloneDX-standard slot for
+# vendor metadata: unlike a `bom-ref` naming convention, a consumer that
+# doesn't know this property simply ignores it instead of misparsing it.
+SUBJECT_PROPERTY_NAME = "venturalitica:subject"
+SUBJECT_PRODUCT = "product"
+SUBJECT_MEASUREMENT_ENVIRONMENT = "measurement-environment"
+
 class BOMScanner:
     """
     Scans a directory to generate a CycloneDX Bill of Materials (BOM)
@@ -42,11 +55,23 @@ class BOMScanner:
         full `vulnerabilities[]` schema vs. v1.5. The SaaS ingester
         (`bom-ingestion.service.ts`) is forward-compatible across 1.5/1.6/1.7;
         we pick the highest version with a stable cyclonedx-python-lib emitter.
+
+        The output is deterministic for identical inputs: `Bom()` seeds a
+        random `serial_number` and `BomMetaData()` seeds a wall-clock
+        `timestamp`, both via public properties, so a re-scan of unchanged
+        inputs would otherwise diff on every run. Clearing them (both
+        setters accept `None` and the CycloneDX JSON writer simply omits
+        the field when unset) is what lets the BOM be committed to git and
+        found where the engine looks for it — a re-run over unchanged
+        inputs leaves the working tree clean instead of always dirty.
         """
         self._scan_requirements()
         self._scan_pyproject()
         self._scan_imports()
         self._scan_models()
+
+        self.bom.serial_number = None
+        self.bom.metadata.timestamp = None
 
         output = JsonV1Dot6(self.bom).output_as_string()
         return output
@@ -154,7 +179,10 @@ class BOMScanner:
                 except _md.PackageNotFoundError:
                     continue
                 emitted.add(dist_name)
-                self._add_component(dist_name, version, ComponentType.LIBRARY)
+                self._add_component(
+                    dist_name, version, ComponentType.LIBRARY,
+                    subject=SUBJECT_MEASUREMENT_ENVIRONMENT,
+                )
 
     def _scan_requirements(self) -> None:
         """Parses requirements.txt if present."""
@@ -187,7 +215,24 @@ class BOMScanner:
             self._add_component(name, version, ComponentType.LIBRARY)
 
     def _scan_pyproject(self) -> None:
-        """Scans pyproject.toml (PEP 621) if present."""
+        """Scans pyproject.toml for declared product dependencies.
+
+        Reads both layouts a repository may use — they aren't mutually
+        exclusive, so both are scanned when present:
+
+        - **PEP 621** (`[project]` / `dependencies = [...]`) — version
+          pins come from `_process_requirement_line`, same as
+          requirements.txt.
+        - **Poetry** (`[tool.poetry.dependencies]`) — a map of
+          name→constraint rather than a list of strings. Without this,
+          a Poetry-only repository (the client's, in this piloto) has
+          zero product components: the BOM falls back to whatever
+          `_scan_imports` resolves off the live interpreter, silently
+          presenting the measurement bench as the product.
+
+        All components found here describe the **product** the client
+        declared — never the environment that happened to run the scan.
+        """
         pyproject_path = os.path.join(self.target_dir, "pyproject.toml")
         if not os.path.exists(pyproject_path):
             return
@@ -202,7 +247,7 @@ class BOMScanner:
 
         # Standard PEP 621 dependencies
         project = data.get("project", {})
-        
+
         # Try to get project license for the root component
         license_info = project.get("license")
         root_license = None
@@ -210,23 +255,72 @@ class BOMScanner:
             root_license = license_info.get("text") or license_info.get("file")
         elif isinstance(license_info, str):
             root_license = license_info
-            
+
         if root_license:
             self._add_component(project.get("name", "root"), project.get("version"), ComponentType.LIBRARY, licenses=[root_license])
 
         for dep in project.get("dependencies", []):
             self._add_dependency_str(dep)
-            
+
         # Optional deps
         optional = project.get("optional-dependencies", {})
         for group_deps in optional.values():
             for dep in group_deps:
                 self._add_dependency_str(dep)
 
+        self._scan_poetry_dependencies(data)
+
+    def _scan_poetry_dependencies(self, data: dict) -> None:
+        """Reads `[tool.poetry.dependencies]`, the Poetry dependency layout.
+
+        Shaped differently from PEP 621's list of strings: it's a map of
+        `name -> constraint`, and the `python` key isn't a component at
+        all — it's the interpreter requirement, same role as
+        `requires-python` under `[project]`.
+        """
+        poetry = data.get("tool", {}).get("poetry", {})
+        dependencies = poetry.get("dependencies", {})
+        for name, constraint in dependencies.items():
+            if name.lower() == "python":
+                continue
+            version = self._parse_poetry_constraint(constraint)
+            self._add_component(name, version, ComponentType.LIBRARY)
+
+    @staticmethod
+    def _parse_poetry_constraint(constraint) -> Optional[str]:
+        """Extracts a single version string from a Poetry constraint.
+
+        Poetry constraints come in three shapes:
+
+        - a bare string, possibly with a leading operator:
+          `"2.0.1"`, `"^3.11"`, `"~2.0"`. The pinned number is what
+          matters for the BOM, so the operator is stripped.
+        - a table with a `version` key (plus `extras`, `optional`, ...):
+          `{version = "~2.1", extras = ["gpu"]}`. Same stripping applies
+          to the nested `version`.
+        - a range or union (`">=1.2,<2"`, `"1.0 || 2.0"`): this isn't a
+          pin, and collapsing it to one number would invent a version
+          nobody declared. It's kept verbatim instead — a range showing
+          up as `version` is honest; a fabricated pin isn't.
+        """
+        if isinstance(constraint, dict):
+            constraint = constraint.get("version")
+        if not isinstance(constraint, str):
+            return None
+        constraint = constraint.strip()
+        if not constraint:
+            return None
+        if "," in constraint or "||" in constraint or " " in constraint:
+            return constraint
+        for prefix in ("^", "~=", "~", ">=", "<=", "==", "!=", ">", "<", "="):
+            if constraint.startswith(prefix):
+                return constraint[len(prefix):].strip()
+        return constraint
+
     def _add_dependency_str(self, dep_str: str) -> None:
         """Helper to parse dependency string from pyproject.toml."""
         # Clean string from extras like named[extra]
-        clean_str = dep_str.split("[")[0] 
+        clean_str = dep_str.split("[")[0]
         self._process_requirement_line(clean_str)
 
     def _scan_models(self) -> None:
@@ -276,10 +370,11 @@ class BOMScanner:
         type: ComponentType,
         description: Optional[str] = None,
         licenses: Optional[list] = None,
+        subject: str = SUBJECT_PRODUCT,
     ) -> None:
         """Add a CycloneDX 1.6 component to the BOM.
 
-        Adds three things over the bare `Component(name, version, type)`
+        Adds four things over the bare `Component(name, version, type)`
         construction the previous version emitted:
 
         - **PURL** (`pkg:pypi/<name>@<version>` for libraries) — Package URL
@@ -294,7 +389,32 @@ class BOMScanner:
           declared `License-Expression` / `License` metadata field into
           the component so the SoA / DORA Art.28(9) inventory has SPDX
           ids without a second pass.
+        - **`venturalitica:subject` property** — every component is
+          explicitly tagged `product` or `measurement-environment`
+          (`SUBJECT_PROPERTY_NAME`), not left to imply "product" by
+          the absence of a tag. An explicit tag survives a caller that
+          forgets to opt in; an implicit default doesn't.
+        - **Merge on matching PURL, not a second component.** A declared
+          product dependency and the measurement environment's installed
+          version of the SAME package legitimately land here twice (e.g. a
+          client whose environment satisfies its own pin). Before the
+          `subject` property existed, two `Component`s built from the same
+          name+version were equal, so `self.bom.components` (a `SortedSet`)
+          folded them into one for free. The property makes them unequal --
+          same PURL, different `properties` -- so both now survive, with
+          the SAME `bom-ref` (mirrored from the PURL): a collision the
+          CycloneDX writer resolves by handing ONE of them a random
+          `bom-ref`, non-deterministic across scans. Qualifying the
+          `bom-ref` with the subject would "fix" that but break the
+          contract `bom-ref == purl` (`tests/test_scanner.py`, the SaaS
+          ingester's lookup key). Merging is the honest fix instead: same
+          package, same version, both subjects apply to it at once. When
+          the version DIFFERS (the declared pin doesn't match what's
+          installed -- #971's whole point, e.g. torch 2.0.1 vs. 2.13.0),
+          the PURL differs too, so this lookup finds no match and the two
+          stay separate components, keeping that divergence visible.
         """
+        from cyclonedx.model import Property
         from cyclonedx.model.license import DisjunctiveLicense
 
         purl: Optional[PackageURL] = None
@@ -306,6 +426,22 @@ class BOMScanner:
                 purl = PackageURL(type="pypi", name=name, version=version)
             except Exception:
                 purl = None
+
+        if type == ComponentType.LIBRARY and not licenses:
+            license_from_metadata = self._lookup_license(name)
+            if license_from_metadata:
+                licenses = [license_from_metadata]
+
+        if purl is not None:
+            existing = next(
+                (c for c in self.bom.components if c.purl == purl), None
+            )
+            if existing is not None:
+                if licenses:
+                    for lic_name in licenses:
+                        existing.licenses.add(DisjunctiveLicense(name=lic_name))
+                existing.properties.add(Property(name=SUBJECT_PROPERTY_NAME, value=subject))
+                return
 
         bom_ref: Optional[str] = None
         if purl is not None:
@@ -322,17 +458,11 @@ class BOMScanner:
             bom_ref=bom_ref,
         )
 
-        # Enrich library components with installed-package licenses when the
-        # caller didn't pass them explicitly. Cheap because importlib.metadata
-        # caches metadata access.
-        if type == ComponentType.LIBRARY and not licenses:
-            license_from_metadata = self._lookup_license(name)
-            if license_from_metadata:
-                licenses = [license_from_metadata]
-
         if licenses:
             for lic_name in licenses:
                 component.licenses.add(DisjunctiveLicense(name=lic_name))
+
+        component.properties.add(Property(name=SUBJECT_PROPERTY_NAME, value=subject))
 
         self.bom.components.add(component)
 

@@ -142,6 +142,33 @@ Control descriptions include regulatory context:
   description: "Data Quality: Minority class should represent at least 20% to avoid Class Imbalance"
 ```
 
+### Evaluated vs. Retained
+
+`enforce()` caches **everything** it evaluates, so the Local Dashboard can
+show every control it ever ran. That's the right behavior for a single call
+per run, but some pipelines call `enforce()` more than once against
+different partitions of the same dataset -- e.g. one pass per case and
+another per anatomical sub-unit -- and only keep the controls the compiled
+OSCAL policy actually assigns to each partition. If you do that, call
+`vl.retain()` with the filtered subset before the `monitor()` block ends:
+
+```python
+with vl.monitor("training-run"):
+    by_case = vl.enforce(data=case_df, policy="per-case.oscal.yaml")
+    by_unit = vl.enforce(data=unit_df, policy="per-unit.oscal.yaml")
+
+    # Filter down to what actually applies (e.g. by reading each control's
+    # partition tag from the compiled OSCAL), then declare it authoritative:
+    vl.retain(by_case + [r for r in by_unit if r.control_id in unit_controls])
+```
+
+`vl push` ships whichever exists: the retained subset if `retain()` was
+called, otherwise everything evaluated (the default, single-call behavior).
+This keeps the pushed `assessment-results.oscal.json` from ever disagreeing
+with the pipeline's own authoritative metrics. Every result also carries
+`metadata["partition_digest"]`, a content digest of the data it was computed
+against, so two results sharing a `control_id` stay distinguishable even
+after filtering discards which partition produced which.
 
 ## 🛠️ CLI Tools
 
