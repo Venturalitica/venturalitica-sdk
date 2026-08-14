@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2026-08-14
+
+### Fixed (BOM determinism, product vs. measurement environment, vault retention)
+
+**The BOM is deterministic for identical inputs** (#976). `bom.json` used to
+carry a random `serialNumber` and a wall-clock `metadata.timestamp`, so two
+scans of the same tree produced two different documents. Both are optional
+under CycloneDX and are now omitted: `bom.json` no longer includes
+`serialNumber` or `metadata.timestamp`. This is what makes the BOM
+versionable in git instead of something the vault has to ignore.
+
+**The inventory distinguishes the product from the bench that measured it**
+(#971). Every component now carries a `venturalitica:subject` property, set
+to either `product` (what the pyproject/lockfile declares the client ships)
+or `measurement-environment` (what `importlib.metadata` reports actually
+running). Before this, the BOM only described the measurement environment —
+torch 2.13.0 where the client pins 2.0.1 — and `mdr.soup-inventory` came back
+`Covered` on that, which for a SOUP obligation under Art. 15 is worse than a
+gap: a gap is visible and gets managed, a false `Covered` gets signed and
+archived. When the declared pin matches what's installed, the two
+observations merge into one component instead of duplicating it.
+
+**The vault stores what was retained, not everything evaluated** (#977).
+`enforce()` caches every control it evaluates as it evaluates it, before any
+pipeline-level filtering runs — fine for a single call per run, but a
+pipeline that calls `enforce()` more than once per partition (e.g. once per
+case, once per anatomical sub-unit) could end up with a vaulted
+`assessment-results.oscal.json` that disagreed with its own authoritative
+`metrics.json`. New API: `vl.retain(results)` declares the filtered subset
+that `vl push` should ship; without it, behavior is unchanged (everything
+evaluated goes up, as before). Every retained result also carries a
+`partition_digest`, so two results sharing a `control_id` stay
+distinguishable after filtering. `retain()` fails loud, not open: with no
+active session it warns instead of silently discarding, and `retain([])`
+writes an explicit empty `retained_results.json` rather than leaving the
+vault to fall back to "ship everything."
+
+**No breaking changes** to `enforce()`, `monitor()`, or existing OSCAL
+output shape beyond the two additions above (`venturalitica:subject` on BOM
+components, `partition_digest` on retained results).
+
 ## [0.8.0] - 2026-08-12
 
 ### Changed (salto de version deliberado: recuperar el `latest` del indice)
