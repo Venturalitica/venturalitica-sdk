@@ -129,7 +129,10 @@ def test_bom_probe_emits_cyclonedx_1_6(tmp_path, monkeypatch):
     bom = res["bom"]
     assert bom["bomFormat"] == "CycloneDX"
     assert bom["specVersion"] == "1.6"
-    assert "serialNumber" in bom
+    # `serialNumber` is deliberately absent: a random UUID per scan would
+    # make the document non-deterministic for identical inputs, and a
+    # non-deterministic BOM can't be versioned (see test_bom_determinism.py).
+    assert "serialNumber" not in bom
     assert isinstance(bom["components"], list)
     assert len(bom["components"]) == res["component_count"]
 

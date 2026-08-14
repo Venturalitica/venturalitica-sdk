@@ -4,7 +4,7 @@ import threading
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class GovernanceSession:
@@ -21,6 +21,14 @@ class GovernanceSession:
         self.base_dir = Path(".venturalitica") / "runs" / self.run_id
         self.artifacts_dir = self.base_dir / "artifacts"
         self.results_file = self.base_dir / "results.json"
+        # #977: everything `enforce()` evaluates lands in `results.json` (the
+        # Local Dashboard reads it, so every control shows up, even ones a
+        # downstream pipeline later discards). Only what the caller explicitly
+        # reclaims via `vl.retain()` as authoritative lands here instead --
+        # this is what `_generate_oscal_artifacts` prefers when building the
+        # `assessment-results.oscal.json` that `vl push` ships, so a push can
+        # never contradict the caller's own metrics.
+        self.retained_results_file = self.base_dir / "retained_results.json"
 
         # Ensure directories exist
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
@@ -53,25 +61,57 @@ class GovernanceSession:
             except Exception:
                 pass
 
-    def save_results(self, results: List[Any], encoder=None):
-        """Saves compliance results to the session-specific file."""
+    def save_results(self, results: List[Any], encoder=None, retained: bool = False):
+        """Saves compliance results to the session-specific file.
+
+        Two destinations, same "accumulate across calls" semantics --
+        `enforce()` is typically called more than once inside a single
+        `monitor()` run, and each call's results are meant to add up, not
+        replace the previous ones. `retained=False` (the default, used by
+        every `enforce()` call) accumulates into `results.json` -- the raw,
+        unfiltered "evaluated" cache. `retained=True` (used only by
+        `vl.retain()`) accumulates into `retained_results.json` instead --
+        the "retained" subset a pipeline has explicitly declared
+        authoritative after filtering `enforce()`'s combined output. See
+        `api._generate_oscal_artifacts` for which file wins when both exist.
+        """
+        target_file = self.retained_results_file if retained else self.results_file
         try:
             # results is usually a list of ComplianceResult dataclasses
             data = [
                 asdict(r) if hasattr(r, "__dataclass_fields__") else r for r in results
             ]
 
-            # Read existing if we are calling enforce multiple times in one monitor session
+            # Read existing if we are calling enforce/retain multiple times in one monitor session
             existing = []
-            if self.results_file.exists():
-                with open(self.results_file, "r") as f:
+            if target_file.exists():
+                with open(target_file, "r") as f:
                     try:
                         existing = json.load(f)
                     except Exception:
                         pass
 
             combined = existing + data
-            with open(self.results_file, "w") as f:
+
+            if retained:
+                # `retain()` is a DECLARATION of the authoritative subset,
+                # not an accumulation of new computations the way repeated
+                # `enforce()` calls are. Re-declaring the same control on
+                # the same partition must REPLACE the earlier entry, not
+                # duplicate it -- otherwise the AR ends up with two
+                # observations/findings for one control (#977). Dedupe by
+                # (control_id, partition_digest); last write wins.
+                deduped: Dict[Any, Any] = {}
+                for row in combined:
+                    row_meta = row.get("metadata") or {} if isinstance(row, dict) else {}
+                    key = (
+                        row.get("control_id") if isinstance(row, dict) else id(row),
+                        row_meta.get("partition_digest"),
+                    )
+                    deduped[key] = row
+                combined = list(deduped.values())
+
+            with open(target_file, "w") as f:
                 json.dump(combined, f, indent=2, cls=encoder)
         except Exception as e:
             print(f"  ⚠ Failed to save session results: {e}")

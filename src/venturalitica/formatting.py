@@ -69,9 +69,16 @@ def print_summary(results: List[ComplianceResult], is_data_only: bool):
 
         # [Enhancement] Show stability context if available
         if hasattr(r, "metadata") and r.metadata:
-            # Filter for key stability metrics to keep it clean
-            meta_str = ", ".join([f"{k}={v}" for k, v in r.metadata.items()])
-            print(f"  {'':<22} {C_Y}↳ Stability: {meta_str}{C_0}")
+            # Filter for key stability metrics to keep it clean -- excludes
+            # `partition_digest` (#977): a 64-char sha256 hex string isn't a
+            # stability fact, and dumping it here made every control's
+            # summary line unreadable.
+            display_meta = {
+                k: v for k, v in r.metadata.items() if k != "partition_digest"
+            }
+            if display_meta:
+                meta_str = ", ".join([f"{k}={v}" for k, v in display_meta.items()])
+                print(f"  {'':<22} {C_Y}↳ Stability: {meta_str}{C_0}")
 
     print(f"  {'─' * 96}")
     verdict = (
