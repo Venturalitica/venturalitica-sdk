@@ -394,6 +394,25 @@ class BOMScanner:
           (`SUBJECT_PROPERTY_NAME`), not left to imply "product" by
           the absence of a tag. An explicit tag survives a caller that
           forgets to opt in; an implicit default doesn't.
+        - **Merge on matching PURL, not a second component.** A declared
+          product dependency and the measurement environment's installed
+          version of the SAME package legitimately land here twice (e.g. a
+          client whose environment satisfies its own pin). Before the
+          `subject` property existed, two `Component`s built from the same
+          name+version were equal, so `self.bom.components` (a `SortedSet`)
+          folded them into one for free. The property makes them unequal --
+          same PURL, different `properties` -- so both now survive, with
+          the SAME `bom-ref` (mirrored from the PURL): a collision the
+          CycloneDX writer resolves by handing ONE of them a random
+          `bom-ref`, non-deterministic across scans. Qualifying the
+          `bom-ref` with the subject would "fix" that but break the
+          contract `bom-ref == purl` (`tests/test_scanner.py`, the SaaS
+          ingester's lookup key). Merging is the honest fix instead: same
+          package, same version, both subjects apply to it at once. When
+          the version DIFFERS (the declared pin doesn't match what's
+          installed -- #971's whole point, e.g. torch 2.0.1 vs. 2.13.0),
+          the PURL differs too, so this lookup finds no match and the two
+          stay separate components, keeping that divergence visible.
         """
         from cyclonedx.model import Property
         from cyclonedx.model.license import DisjunctiveLicense
@@ -407,6 +426,22 @@ class BOMScanner:
                 purl = PackageURL(type="pypi", name=name, version=version)
             except Exception:
                 purl = None
+
+        if type == ComponentType.LIBRARY and not licenses:
+            license_from_metadata = self._lookup_license(name)
+            if license_from_metadata:
+                licenses = [license_from_metadata]
+
+        if purl is not None:
+            existing = next(
+                (c for c in self.bom.components if c.purl == purl), None
+            )
+            if existing is not None:
+                if licenses:
+                    for lic_name in licenses:
+                        existing.licenses.add(DisjunctiveLicense(name=lic_name))
+                existing.properties.add(Property(name=SUBJECT_PROPERTY_NAME, value=subject))
+                return
 
         bom_ref: Optional[str] = None
         if purl is not None:
@@ -422,14 +457,6 @@ class BOMScanner:
             purl=purl,
             bom_ref=bom_ref,
         )
-
-        # Enrich library components with installed-package licenses when the
-        # caller didn't pass them explicitly. Cheap because importlib.metadata
-        # caches metadata access.
-        if type == ComponentType.LIBRARY and not licenses:
-            license_from_metadata = self._lookup_license(name)
-            if license_from_metadata:
-                licenses = [license_from_metadata]
 
         if licenses:
             for lic_name in licenses:
