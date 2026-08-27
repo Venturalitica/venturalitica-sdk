@@ -2,6 +2,67 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.2] - 2026-08-27
+
+### Fixed (ML-BOM: el artefacto gobernado y el sujeto del documento)
+
+**El ML-BOM inventaría el artefacto gobernado, no solo las librerías.** Medido sobre una
+corrida real de producto sanitario clase IIb bajo MDR: los BOM de dos etapas distintas
+—adoptar un modelo de terceros y validarlo sobre 55 pacientes— tenían 18 componentes,
+todos `type: "library"`, **idénticos byte a byte** (`sha256 dbc77ee3…`), y el fichero de
+pesos gobernado no aparecía en ninguno.
+
+No era un fallo sino un alcance: el escáner resuelve nombres de paquete vía
+`importlib.metadata`, y un `.pth` no es una distribución de Python. El camino de modelos
+que sí existía detecta *nombres de clase en el AST*, o sea modelos usados en el código, no
+el modelo que el sistema entrega.
+
+Los artefactos que la etapa ya declara en `vl.monitor(inputs=…, outputs=…)` —con su sha256,
+que `ArtifactProbe` venía capturando— entran ahora en el inventario como componentes
+`machine-learning-model` (pesos) o `data` (cohortes), con el digest en `hashes[]`. Cierra
+el hueco de `cl.mdr.soup-inventory` (IEC 62304 §8.1.2) sobre el objeto que de verdad se
+despliega.
+
+**El BOM declara de qué etapa habla** (`metadata.component`). Ese campo, que CycloneDX
+reserva para el sujeto del documento, no se ponía nunca. Sin él, dos etapas del mismo
+entorno de Python *tienen* que producir documentos idénticos: como linaje del Anexo IV §2
+no aportaban nada. Un artefacto que no puede salir distinto no describe nada.
+
+Nada de esto añade vocabulario propio: `machine-learning-model` y `data` son tipos
+CycloneDX desde 1.5, `hashes[]` es el slot estándar del digest y `metadata.component` es el
+sujeto. La propiedad `venturalitica:subject` se conserva y no se solapa: separa producto de
+entorno a nivel de *componente*, mientras `metadata.component` identifica el *documento*.
+
+### Fixed (equidad: `equal_opportunity` devolvía cero)
+
+`calc_equal_opportunity` tenía **dos implementaciones que calculaban métricas distintas**
+según estuviera instalada una dependencia opcional: con `fairlearn` llamaba a
+`equalized_odds_difference` (que combina TPR y FPR, no es equal opportunity), y sin ella
+promediaba el **grupo entero** — filtraba los positivos reales y acto seguido los ignoraba.
+
+Su forma de fallar era la peor posible para una métrica de equidad: sobre el fixture de la
+batería los dos grupos daban 0.5 (medias de grupo, no TPR) y la diferencia salía
+**exactamente 0.0** —«no hay disparidad»— donde el valor correcto es 0.3333. Ahora hay una
+sola implementación: `max(TPR) − min(TPR)` sobre los grupos con al menos un positivo real.
+
+### Added (inventario completo del entorno, opt-in)
+
+`VL_BOM_ENV_COMPLETO=1` delega el inventario del entorno en `cyclonedx-py`, la herramienta
+oficial del proyecto CycloneDX: incluye transitivas (163 componentes frente a 21) y añade
+la taxonomía `cdx:python`. **No es el camino por defecto**, y las dos razones están medidas:
+cuesta 5,78 s por llamada dentro del pipeline del cliente, y sepulta el pin declarado del
+producto entre los componentes del entorno (`requests` pasaba a leerse 2.34.2, lo instalado,
+en vez de 2.31.0, lo declarado). Si la herramienta no está, se degrada al escaneo propio.
+
+`cyclonedx-py poetry` **no** sustituye a `_scan_pyproject`: exige un `poetry.lock` y el caso
+de un `pyproject.toml` de Poetry sin lock —el del piloto sanitario— dejaría de verse.
+
+### Fixed (tests que fijaban el interior de una dependencia)
+
+Cuatro tests de `transfer` importaban `click.exceptions.Exit`. Desde que typer vendoriza su
+propio click (0.27) esa es una clase distinta de la que el CLI lanza, así que se rompían al
+actualizar typer sin que el código cambiara. Ahora fijan `typer.Exit`, el contrato público.
+
 ## [0.8.1] - 2026-08-14
 
 ### Fixed (BOM determinism, product vs. measurement environment, vault retention)
