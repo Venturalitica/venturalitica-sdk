@@ -5,6 +5,7 @@ from typing import Optional, Set
 
 from cyclonedx.model.bom import Bom
 from cyclonedx.model.component import Component, ComponentType
+from cyclonedx.model import HashAlgorithm, HashType
 from cyclonedx.output.json import JsonV1Dot6
 from cyclonedx.schema import SchemaVersion
 from packageurl import PackageURL
@@ -43,9 +44,41 @@ class BOMScanner:
     for Python projects, including dependencies and ML models.
     """
     
+    # Extensiones que identifican un fichero de PESOS. CycloneDX ya tiene el tipo
+    # `machine-learning-model` desde 1.5, así que esto solo decide CUÁL de los tipos
+    # estándar aplica — no inventa vocabulario.
+    _EXT_MODELO = (".pth", ".pt", ".onnx", ".safetensors", ".pkl", ".joblib", ".h5", ".keras", ".ckpt")
+
     def __init__(self, target_dir: str):
         self.target_dir = target_dir
         self.bom = Bom()
+        self._artefactos: list = []
+        self._sujeto: Optional[str] = None
+
+    def declarar_sujeto(self, nombre: str) -> None:
+        """Declara DE QUÉ trata este BOM, en `metadata.component`.
+
+        Es el campo que CycloneDX reserva para el sujeto del documento y estaba sin
+        poner. Su ausencia es la causa exacta de que dos etapas del MISMO entorno de
+        Python produjeran BOM idénticos byte a byte (medido en el piloto de
+        CyberSurgery: `sha256 dbc77ee3…` en adopción y en validación). Sin sujeto, el
+        documento no sabe nombrar su propia etapa, y como linaje del Anexo IV §2 no
+        aporta nada — un artefacto que no puede salir distinto no describe nada.
+        """
+        self._sujeto = nombre
+
+    def declarar_artefactos(self, artefactos: list) -> None:
+        """Artefactos que la etapa declara (`vl.monitor(inputs=…, outputs=…)`).
+
+        El escáner resuelve paquetes de Python con `importlib.metadata`, así que por
+        construcción NO podía ver un fichero de pesos: un `.pth` no es una
+        distribución. Por eso `cl.mdr.soup-inventory` (IEC 62304 §8.1.2) quedaba
+        incompleto sobre el objeto que de verdad se despliega.
+
+        El dato ya existía —`ArtifactProbe` captura estos mismos artefactos con su
+        `fingerprint` sha256— y simplemente no llegaba hasta aquí.
+        """
+        self._artefactos = list(artefactos or [])
 
     def scan(self) -> str:
         """
@@ -69,9 +102,17 @@ class BOMScanner:
         self._scan_pyproject()
         self._scan_imports()
         self._scan_models()
+        self._add_declared_artifacts()
 
         self.bom.serial_number = None
         self.bom.metadata.timestamp = None
+        # `metadata.component` es el sujeto del documento. Se pone DESPUÉS de limpiar
+        # el timestamp para no reintroducir no-determinismo: el nombre lo da quien
+        # declara la etapa, no el reloj.
+        if self._sujeto:
+            self.bom.metadata.component = Component(
+                name=self._sujeto, type=ComponentType.APPLICATION, bom_ref=f"stage:{self._sujeto}"
+            )
 
         output = JsonV1Dot6(self.bom).output_as_string()
         return output
@@ -362,6 +403,44 @@ class BOMScanner:
                 ComponentType.MACHINE_LEARNING_MODEL,
                 description=f"Detected in {os.path.basename(file_path)}"
             )
+
+    def _add_declared_artifacts(self) -> None:
+        """Emite los artefactos declarados como componentes CycloneDX.
+
+        Cada uno lleva su digest en `hashes[]` —el slot estándar— y se clasifica con
+        los tipos que el propio estándar ya define: `machine-learning-model` para un
+        fichero de pesos, `data` para el resto (cohortes, tablas). No se inventa
+        ningún tipo ni ninguna convención de nombres.
+
+        `bom-ref` va cualificado con `artifact:` porque estos componentes NO tienen
+        PURL: no viven en ningún registro de paquetes. El contrato `bom-ref == purl`
+        que fijan los tests solo aplica a las librerías, que sí lo tienen.
+        """
+        from cyclonedx.model import Property
+
+        for art in self._artefactos:
+            nombre = art.get("name")
+            if not nombre:
+                continue
+            huella = art.get("fingerprint")
+            # `MISSING` es lo que devuelve `FileArtifact.get_fingerprint()` cuando el
+            # fichero no está. Anclar eso sería peor que no anclar: un digest inventado.
+            hashes = []
+            if huella and huella != "MISSING" and len(huella) == 64:
+                hashes = [HashType(alg=HashAlgorithm.SHA_256, content=huella)]
+            ruta = (art.get("path") or nombre).lower()
+            tipo = (
+                ComponentType.MACHINE_LEARNING_MODEL
+                if ruta.endswith(self._EXT_MODELO)
+                else ComponentType.DATA
+            )
+            self.bom.components.add(Component(
+                name=nombre,
+                type=tipo,
+                bom_ref=f"artifact:{nombre}",
+                hashes=hashes,
+                properties=[Property(name=SUBJECT_PROPERTY_NAME, value=SUBJECT_PRODUCT)],
+            ))
 
     def _add_component(
         self,
