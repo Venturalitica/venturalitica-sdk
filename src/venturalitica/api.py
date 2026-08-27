@@ -109,11 +109,21 @@ def monitor(
         TraceProbe,
     )
 
+    # Los artefactos declarados viajan a las DOS sondas: `ArtifactProbe` los usa para
+    # el linaje, y `BOMProbe` para el INVENTARIO. Antes solo llegaban a la primera, y
+    # por eso un `.pth` gobernado no aparecía en el ML-BOM aunque el guion lo declarara
+    # (IEC 62304 §8.1.2 / Anexo IV §2(c)). El sujeto es la etapa: sin él, dos fases del
+    # mismo entorno producían BOM idénticos byte a byte.
+    _artefactos_declarados = [
+        a.to_dict() for a in ArtifactProbe(inputs=inputs, outputs=outputs).inputs
+        + ArtifactProbe(inputs=inputs, outputs=outputs).outputs
+    ]
+
     probes = [
         IntegrityProbe(),
         HardwareProbe(),
         CarbonProbe(),
-        BOMProbe(),
+        BOMProbe(artifacts=_artefactos_declarados, subject=label or name),
         ArtifactProbe(inputs=inputs, outputs=outputs),
         HandshakeProbe(_is_enforced),
         TraceProbe(run_name=name, label=label),

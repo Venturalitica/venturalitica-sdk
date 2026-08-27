@@ -75,9 +75,15 @@ class BOMProbe(BaseProbe):
     both the full BOM and a flat projection.
     """
 
-    def __init__(self, target_dir: str = "."):
+    def __init__(self, target_dir: str = ".", artifacts=None, subject=None):
         super().__init__("bom")
         self.target_dir = target_dir
+        # Los artefactos que la etapa DECLARA (`vl.monitor(inputs=…, outputs=…)`) y el
+        # nombre de la etapa. Ya los tenía `ArtifactProbe`; lo que faltaba era que
+        # llegaran al inventario. Sin esto el BOM solo puede contener distribuciones de
+        # Python, y dos etapas del mismo entorno salen idénticas byte a byte.
+        self.artifacts = list(artifacts or [])
+        self.subject = subject
 
     def start(self) -> None:
         # BOM capture is a snapshot, no need for continuous monitoring.
@@ -88,6 +94,14 @@ class BOMProbe(BaseProbe):
             from venturalitica.scanner import BOMScanner
 
             scanner = BOMScanner(self.target_dir)
+
+            if self.subject:
+
+                scanner.declarar_sujeto(self.subject)
+
+            if self.artifacts:
+
+                scanner.declarar_artefactos(self.artifacts)
             bom_str = scanner.scan()
             bom_json = json.loads(bom_str)
 

@@ -43,17 +43,29 @@ def calc_equal_opportunity(df: pd.DataFrame, **kwargs) -> float:
     if any(v in [None, "MISSING"] for v in [target, outcome, dim]):
         raise ValueError("Missing required columns for equal_opportunity_diff")
 
-    if HAS_FAIRLEARN:
-        return flm.equalized_odds_difference(
-            df[target], df[outcome], sensitive_features=df[dim]
-        )
-
-    groups = df.groupby(dim)
+    # UNA sola implementación a propósito. Antes había DOS caminos que calculaban
+    # métricas DISTINTAS y devolvían números distintos según estuviera instalada una
+    # dependencia opcional:
+    #
+    #   · con fairlearn → `equalized_odds_difference`, que NO es equal opportunity:
+    #     equalized odds combina TPR y FPR; equal opportunity es solo la paridad de TPR.
+    #   · sin fairlearn → `grp[outcome].mean()`, la media del GRUPO ENTERO — filtraba
+    #     `pos_grp` y acto seguido lo ignoraba.
+    #
+    # El segundo se midió el 27-ago-2026 y su forma de fallar es la peor posible para
+    # una métrica de equidad: sobre el fixture de la batería daba 0.5 en los DOS grupos
+    # (medias de grupo, no TPR), o sea diferencia **exactamente 0.0** — «no hay
+    # disparidad» — donde el valor correcto es 0.3333 (TPR 2/3 frente a 1/1).
+    # Un cero limpio en equidad se lee como ausencia de sesgo.
+    #
+    # La definición es corta y auditable, así que vive aquí entera en vez de repartida
+    # entre una rama y su respaldo: equal opportunity difference = max(TPR) - min(TPR)
+    # sobre los grupos con al menos un positivo real.
     tprs = []
-    for _, grp in groups:
+    for _, grp in df.groupby(dim):
         pos_grp = grp[grp[target] == 1]
         if len(pos_grp) > 0:
-            tprs.append(grp[outcome].mean())  # Use outcome
+            tprs.append(pos_grp[outcome].mean())
 
     tprs = [t for t in tprs if not np.isnan(t)]
     return max(tprs) - min(tprs) if tprs else 0.0

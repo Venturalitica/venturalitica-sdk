@@ -3,7 +3,11 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from click.exceptions import Exit as ClickExit
+# `typer.Exit` es el contrato PÚBLICO y es lo que el CLI lanza. Antes esto importaba
+# `click.exceptions.Exit`, que desde que typer vendoriza su propio click (0.27) es una
+# CLASE DISTINTA de la que se lanza: el test fijaba un detalle interno de una dependencia
+# de terceros, así que se rompía al actualizarla sin que el código cambiara.
+from typer import Exit as ClickExit
 
 from venturalitica.cli.transfer import _create_bundle_payload, push
 
