@@ -3,9 +3,9 @@ import os
 import sys
 from typing import Optional, Set
 
+from cyclonedx.model import HashAlgorithm, HashType
 from cyclonedx.model.bom import Bom
 from cyclonedx.model.component import Component, ComponentType
-from cyclonedx.model import HashAlgorithm, HashType
 from cyclonedx.output.json import JsonV1Dot6
 from cyclonedx.schema import SchemaVersion
 from packageurl import PackageURL
