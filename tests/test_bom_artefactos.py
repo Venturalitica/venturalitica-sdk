@@ -106,3 +106,21 @@ def test_sin_artefactos_ni_sujeto_el_BOM_sigue_saliendo(tmp_path):
     produciendo su BOM como antes — si no, el arreglo rompería a quien no lo pidió."""
     doc = _doc(BOMScanner(str(tmp_path)))
     assert doc.get("bomFormat") == "CycloneDX"
+
+
+def test_el_inventario_completo_del_entorno_es_OPT_IN(tmp_path, monkeypatch):
+    """La delegación en `cyclonedx-py` existe pero NO es el camino por defecto, y las
+    dos razones están medidas: 5,78 s por llamada dentro del pipeline del cliente, y
+    163 componentes donde el escaneo propio pone 21 — sepultando el pin DECLARADO del
+    producto, que es justo la distinción que #971 estableció.
+
+    Esta sonda fija la puerta, no la herramienta: sin la variable, no se invoca.
+    """
+    monkeypatch.delenv("VL_BOM_ENV_COMPLETO", raising=False)
+    llamadas = []
+
+    sc = BOMScanner(str(tmp_path))
+    sc._scan_environment_with_cyclonedx = lambda: llamadas.append(1) or True  # type: ignore[method-assign]
+    sc.scan()
+
+    assert llamadas == [], "sin `VL_BOM_ENV_COMPLETO=1` NO se paga el subproceso"

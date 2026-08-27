@@ -100,7 +100,23 @@ class BOMScanner:
         """
         self._scan_requirements()
         self._scan_pyproject()
-        self._scan_imports()
+        # El inventario COMPLETO del entorno (transitivas incluidas) se delega en
+        # `cyclonedx-py`, pero es OPT-IN y no el camino por defecto. Los dos motivos están
+        # medidos, no supuestos:
+        #
+        #   · COSTE: 5,78 s por llamada. Esta SDK corre dentro del pipeline del cliente y
+        #     `vl.monitor()` puede invocarse muchas veces; la batería entera pasó de 22 s
+        #     a 271 s con esto activado.
+        #   · SEÑAL: mete 163 componentes donde el escaneo propio pone 21, y el pin
+        #     DECLARADO del producto queda sepultado entre ellos. Medido: `requests`
+        #     pasaba a leerse 2.34.2 (lo instalado) en vez de 2.31.0 (lo declarado), que
+        #     es exactamente la distinción que #971 vino a establecer.
+        #
+        # Quien quiera el inventario transitivo completo —para un análisis de CVE sobre el
+        # entorno, p.ej.— lo pide con `VL_BOM_ENV_COMPLETO=1`.
+        if not (os.environ.get("VL_BOM_ENV_COMPLETO") == "1"
+                and self._scan_environment_with_cyclonedx()):
+            self._scan_imports()
         self._scan_models()
         self._add_declared_artifacts()
 
@@ -116,6 +132,72 @@ class BOMScanner:
 
         output = JsonV1Dot6(self.bom).output_as_string()
         return output
+
+    def _scan_environment_with_cyclonedx(self) -> bool:
+        """Inventaría el entorno de medida delegando en `cyclonedx-py`, la herramienta
+        oficial del proyecto CycloneDX. Devuelve `False` si no está disponible.
+
+        POR QUÉ DELEGAR: `_scan_imports` resuelve los paquetes que el código IMPORTA vía
+        `importlib.metadata`. Es un subconjunto curado y **se pierde las transitivas** —
+        y para un inventario SOUP (IEC 62304 §8.1.2) una dependencia transitiva
+        vulnerable cuenta igual que una directa. Medido sobre este mismo venv:
+
+            _scan_imports              21 componentes
+            cyclonedx-py environment  163 componentes · 159 con licencia · 162 con purl
+
+        Además añade la taxonomía `cdx:python:*`, que es vocabulario estándar y no
+        nuestro.
+
+        POR QUÉ NO SE ADOPTA ENTERO: `cyclonedx-py poetry` EXIGE un `poetry.lock` y no
+        hay bandera que lo evite. El caso que `#971` vino a resolver —un `pyproject.toml`
+        de Poetry SIN lock, que es el del piloto sanitario— dejaría de verse. Así que el
+        parser de pines declarados (`_scan_pyproject`) se QUEDA: hace algo que la
+        herramienta no sabe hacer.
+
+        POR QUÉ SUBPROCESO: `cyclonedx-bom` 7.3.1 solo expone `_internal`; su superficie
+        pública es la CLI. Depender de un módulo que su propio autor marca como privado
+        se rompería sin aviso en cualquier actualización.
+
+        Y por qué es OPCIONAL: esta SDK corre dentro del pipeline del cliente. Si la
+        herramienta no está, se degrada al escaneo propio en vez de fallar — un
+        inventario más pobre es mejor que ninguno.
+        """
+        import json as _json
+        import subprocess
+
+        try:
+            out = subprocess.run(
+                [sys.executable, "-m", "cyclonedx_py", "environment", sys.prefix],
+                capture_output=True, text=True, timeout=120,
+            )
+            if out.returncode != 0 or not out.stdout.strip():
+                return False
+            doc = _json.loads(out.stdout)
+        except Exception:
+            return False
+
+        componentes = doc.get("components") or []
+        if not componentes:
+            return False
+
+        for c in componentes:
+            nombre = c.get("name")
+            if not nombre:
+                continue
+            licencias = None
+            for lic in c.get("licenses") or []:
+                ident = (lic.get("license") or {}).get("id") or (lic.get("license") or {}).get("name")
+                if ident:
+                    licencias = [ident]
+                    break
+            self._add_component(
+                nombre,
+                c.get("version"),
+                ComponentType.LIBRARY,
+                licenses=licencias,
+                subject=SUBJECT_MEASUREMENT_ENVIRONMENT,
+            )
+        return True
 
     def _scan_imports(self) -> None:
         """
