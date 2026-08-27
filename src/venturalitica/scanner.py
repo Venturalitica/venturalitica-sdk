@@ -3,6 +3,7 @@ import os
 import sys
 from typing import Optional, Set
 
+from cyclonedx.model import HashAlgorithm, HashType
 from cyclonedx.model.bom import Bom
 from cyclonedx.model.component import Component, ComponentType
 from cyclonedx.output.json import JsonV1Dot6
@@ -43,9 +44,41 @@ class BOMScanner:
     for Python projects, including dependencies and ML models.
     """
     
+    # Extensiones que identifican un fichero de PESOS. CycloneDX ya tiene el tipo
+    # `machine-learning-model` desde 1.5, así que esto solo decide CUÁL de los tipos
+    # estándar aplica — no inventa vocabulario.
+    _EXT_MODELO = (".pth", ".pt", ".onnx", ".safetensors", ".pkl", ".joblib", ".h5", ".keras", ".ckpt")
+
     def __init__(self, target_dir: str):
         self.target_dir = target_dir
         self.bom = Bom()
+        self._artefactos: list = []
+        self._sujeto: Optional[str] = None
+
+    def declarar_sujeto(self, nombre: str) -> None:
+        """Declara DE QUÉ trata este BOM, en `metadata.component`.
+
+        Es el campo que CycloneDX reserva para el sujeto del documento y estaba sin
+        poner. Su ausencia es la causa exacta de que dos etapas del MISMO entorno de
+        Python produjeran BOM idénticos byte a byte (medido en el piloto de
+        CyberSurgery: `sha256 dbc77ee3…` en adopción y en validación). Sin sujeto, el
+        documento no sabe nombrar su propia etapa, y como linaje del Anexo IV §2 no
+        aporta nada — un artefacto que no puede salir distinto no describe nada.
+        """
+        self._sujeto = nombre
+
+    def declarar_artefactos(self, artefactos: list) -> None:
+        """Artefactos que la etapa declara (`vl.monitor(inputs=…, outputs=…)`).
+
+        El escáner resuelve paquetes de Python con `importlib.metadata`, así que por
+        construcción NO podía ver un fichero de pesos: un `.pth` no es una
+        distribución. Por eso `cl.mdr.soup-inventory` (IEC 62304 §8.1.2) quedaba
+        incompleto sobre el objeto que de verdad se despliega.
+
+        El dato ya existía —`ArtifactProbe` captura estos mismos artefactos con su
+        `fingerprint` sha256— y simplemente no llegaba hasta aquí.
+        """
+        self._artefactos = list(artefactos or [])
 
     def scan(self) -> str:
         """
@@ -67,14 +100,104 @@ class BOMScanner:
         """
         self._scan_requirements()
         self._scan_pyproject()
-        self._scan_imports()
+        # El inventario COMPLETO del entorno (transitivas incluidas) se delega en
+        # `cyclonedx-py`, pero es OPT-IN y no el camino por defecto. Los dos motivos están
+        # medidos, no supuestos:
+        #
+        #   · COSTE: 5,78 s por llamada. Esta SDK corre dentro del pipeline del cliente y
+        #     `vl.monitor()` puede invocarse muchas veces; la batería entera pasó de 22 s
+        #     a 271 s con esto activado.
+        #   · SEÑAL: mete 163 componentes donde el escaneo propio pone 21, y el pin
+        #     DECLARADO del producto queda sepultado entre ellos. Medido: `requests`
+        #     pasaba a leerse 2.34.2 (lo instalado) en vez de 2.31.0 (lo declarado), que
+        #     es exactamente la distinción que #971 vino a establecer.
+        #
+        # Quien quiera el inventario transitivo completo —para un análisis de CVE sobre el
+        # entorno, p.ej.— lo pide con `VL_BOM_ENV_COMPLETO=1`.
+        if not (os.environ.get("VL_BOM_ENV_COMPLETO") == "1"
+                and self._scan_environment_with_cyclonedx()):
+            self._scan_imports()
         self._scan_models()
+        self._add_declared_artifacts()
 
         self.bom.serial_number = None
         self.bom.metadata.timestamp = None
+        # `metadata.component` es el sujeto del documento. Se pone DESPUÉS de limpiar
+        # el timestamp para no reintroducir no-determinismo: el nombre lo da quien
+        # declara la etapa, no el reloj.
+        if self._sujeto:
+            self.bom.metadata.component = Component(
+                name=self._sujeto, type=ComponentType.APPLICATION, bom_ref=f"stage:{self._sujeto}"
+            )
 
         output = JsonV1Dot6(self.bom).output_as_string()
         return output
+
+    def _scan_environment_with_cyclonedx(self) -> bool:
+        """Inventaría el entorno de medida delegando en `cyclonedx-py`, la herramienta
+        oficial del proyecto CycloneDX. Devuelve `False` si no está disponible.
+
+        POR QUÉ DELEGAR: `_scan_imports` resuelve los paquetes que el código IMPORTA vía
+        `importlib.metadata`. Es un subconjunto curado y **se pierde las transitivas** —
+        y para un inventario SOUP (IEC 62304 §8.1.2) una dependencia transitiva
+        vulnerable cuenta igual que una directa. Medido sobre este mismo venv:
+
+            _scan_imports              21 componentes
+            cyclonedx-py environment  163 componentes · 159 con licencia · 162 con purl
+
+        Además añade la taxonomía `cdx:python:*`, que es vocabulario estándar y no
+        nuestro.
+
+        POR QUÉ NO SE ADOPTA ENTERO: `cyclonedx-py poetry` EXIGE un `poetry.lock` y no
+        hay bandera que lo evite. El caso que `#971` vino a resolver —un `pyproject.toml`
+        de Poetry SIN lock, que es el del piloto sanitario— dejaría de verse. Así que el
+        parser de pines declarados (`_scan_pyproject`) se QUEDA: hace algo que la
+        herramienta no sabe hacer.
+
+        POR QUÉ SUBPROCESO: `cyclonedx-bom` 7.3.1 solo expone `_internal`; su superficie
+        pública es la CLI. Depender de un módulo que su propio autor marca como privado
+        se rompería sin aviso en cualquier actualización.
+
+        Y por qué es OPCIONAL: esta SDK corre dentro del pipeline del cliente. Si la
+        herramienta no está, se degrada al escaneo propio en vez de fallar — un
+        inventario más pobre es mejor que ninguno.
+        """
+        import json as _json
+        import subprocess
+
+        try:
+            out = subprocess.run(
+                [sys.executable, "-m", "cyclonedx_py", "environment", sys.prefix],
+                capture_output=True, text=True, timeout=120,
+            )
+            if out.returncode != 0 or not out.stdout.strip():
+                return False
+            doc = _json.loads(out.stdout)
+        except Exception:
+            return False
+
+        componentes = doc.get("components") or []
+        if not componentes:
+            return False
+
+        for c in componentes:
+            nombre = c.get("name")
+            if not nombre:
+                continue
+            licencias = None
+            for lic in c.get("licenses") or []:
+                ident = (lic.get("license") or {}).get("id") or (lic.get("license") or {}).get("name")
+                if ident:
+                    licencias = [ident]
+                    break
+            self._add_component(
+                nombre,
+                c.get("version"),
+                ComponentType.LIBRARY,
+                licenses=licencias,
+                subject=SUBJECT_MEASUREMENT_ENVIRONMENT,
+            )
+        return True
 
     def _scan_imports(self) -> None:
         """
@@ -362,6 +485,44 @@ class BOMScanner:
                 ComponentType.MACHINE_LEARNING_MODEL,
                 description=f"Detected in {os.path.basename(file_path)}"
             )
+
+    def _add_declared_artifacts(self) -> None:
+        """Emite los artefactos declarados como componentes CycloneDX.
+
+        Cada uno lleva su digest en `hashes[]` —el slot estándar— y se clasifica con
+        los tipos que el propio estándar ya define: `machine-learning-model` para un
+        fichero de pesos, `data` para el resto (cohortes, tablas). No se inventa
+        ningún tipo ni ninguna convención de nombres.
+
+        `bom-ref` va cualificado con `artifact:` porque estos componentes NO tienen
+        PURL: no viven en ningún registro de paquetes. El contrato `bom-ref == purl`
+        que fijan los tests solo aplica a las librerías, que sí lo tienen.
+        """
+        from cyclonedx.model import Property
+
+        for art in self._artefactos:
+            nombre = art.get("name")
+            if not nombre:
+                continue
+            huella = art.get("fingerprint")
+            # `MISSING` es lo que devuelve `FileArtifact.get_fingerprint()` cuando el
+            # fichero no está. Anclar eso sería peor que no anclar: un digest inventado.
+            hashes = []
+            if huella and huella != "MISSING" and len(huella) == 64:
+                hashes = [HashType(alg=HashAlgorithm.SHA_256, content=huella)]
+            ruta = (art.get("path") or nombre).lower()
+            tipo = (
+                ComponentType.MACHINE_LEARNING_MODEL
+                if ruta.endswith(self._EXT_MODELO)
+                else ComponentType.DATA
+            )
+            self.bom.components.add(Component(
+                name=nombre,
+                type=tipo,
+                bom_ref=f"artifact:{nombre}",
+                hashes=hashes,
+                properties=[Property(name=SUBJECT_PROPERTY_NAME, value=SUBJECT_PRODUCT)],
+            ))
 
     def _add_component(
         self,
