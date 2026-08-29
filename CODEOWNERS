@@ -1,0 +1,17 @@
+# Component ownership.
+#
+# This file DECLARES OWNERSHIP: which paths belong to which component, and who answers for each.
+# It is NOT a review control — Venturalítica has one employee, so requiring the owner's review
+# would be self-approval. The review control is the automated gate in CI, declared as such.
+#
+# The method that governs these paths is in CLAUDE.md.
+
+*                       @morganrcu
+/src/                   @morganrcu
+/src/oscal/             @morganrcu
+/src/policies/          @morganrcu
+/src/metrics/           @morganrcu
+/tests/                 @morganrcu
+/docs/                  @morganrcu
+/.github/workflows/     @morganrcu
+/pyproject.toml         @morganrcu
