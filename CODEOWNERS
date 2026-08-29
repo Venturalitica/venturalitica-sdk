@@ -4,6 +4,11 @@
 # It is NOT a review control — Venturalítica has one employee, so requiring the owner's review
 # would be self-approval. The review control is the automated gate in CI, declared as such.
 #
+# REVIEW TRIGGER, written here because on the day it happens nobody will have a reason to re-read
+# this file: **a second person gaining write access.** On that day this header goes stale — the
+# compensating control is no longer justified, because the structural impossibility is gone — and two
+# things must happen: turn on "require review from Code Owners", and rewrite this note.
+#
 # The method that governs these paths is in CLAUDE.md.
 
 *                       @morganrcu
