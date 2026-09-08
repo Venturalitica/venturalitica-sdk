@@ -66,3 +66,25 @@ jobs:
         with:
           name: dist
           path: dist/
+
+  # The single required check on `main`. The ruleset requires THIS job and nothing else.
+  #
+  # It exists because the obvious alternative is a trap: requiring `lint`, `test (3.11)`,
+  # `test (3.12)` and `build` by name welds branch protection to the matrix. Add a Python
+  # version and the new leg is not required; drop one and the ruleset keeps waiting for a
+  # check that nobody emits any more — which presents as "merge blocked, no visible reason".
+  # This name does not move when the matrix does.
+  #
+  # `if: always()` is load-bearing. Without it a failing dependency SKIPS this job instead of
+  # failing it, and a skipped check does not fail a ruleset — the gate would be decorative.
+  ci-gate:
+    if: always()
+    needs: [lint, test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every upstream job to have succeeded
+        run: |
+          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }}"
+          for r in "${{ needs.lint.result }}" "${{ needs.test.result }}" "${{ needs.build.result }}"; do
+            [ "$r" = "success" ] || { echo "::error::CI gate failed: an upstream job did not succeed"; exit 1; }
+          done
