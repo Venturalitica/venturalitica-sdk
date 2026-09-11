@@ -92,6 +92,10 @@ exclude = [
   "tests/",
   "dist/",
   ".github/",
+  # Design records, like `docs/` and `tests/` above: they govern the product, they are not part
+  # of it. They stay in the repository, where they are reconstructible at any commit, and out of
+  # what third parties install.
+  "openspec/",
   ".venv/",
   ".git",
   ".pypirc",

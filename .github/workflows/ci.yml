@@ -43,7 +43,21 @@ jobs:
             --cov-report=xml \
             --cov-report=term \
             --cov-fail-under=80 \
+            --junitxml=junit.xml \
             -q
+      # The currency guardian lives HERE, in the job that produces the evidence, and not in the
+      # `openspec` job. Whether a test RAN is a property of the run, not of the source: inferring
+      # it by reading `importorskip` calls would re-derive from the same text what the run already
+      # knows, and would miss every skip decided at runtime. So it reads the report pytest just
+      # wrote. The same rule the kit's gate applies to a third party, applied to our own tool.
+      #
+      # It is a SEPARATE guardian from `trazabilidad.sh` and neither substitutes for the other:
+      # that one asks whether the named test exists, this one whether it ran and can fail. A green
+      # is only ever worth the name attached to it, so each prints what it covers.
+      - name: the currency guardian knows how to go red
+        run: bash .github/scripts/vigencia.test.sh
+      - name: every CURRENT is backed by a test that ran and can fail
+        run: bash .github/scripts/vigencia.sh junit.xml
 
   build:
     runs-on: ubuntu-latest
@@ -67,6 +81,69 @@ jobs:
           name: dist
           path: dist/
 
+  openspec:
+    name: openspec — the design records are well-formed and traceable
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # This job runs a third party's CLI inside the gate chain, which is admissible for one
+    # specific reason: `openspec validate` is STRUCTURAL, so it can only fail CLOSED. It cannot
+    # green-light a bad product because it never looks at the product. Its red says "our design
+    # records are malformed", which is a legitimate reason not to emit a record set that includes
+    # them. What is NOT admissible is its verdict standing in for ours on whether the product is
+    # correct, and nothing here lets it.
+    env:
+      # The only thing this repository CAN impose on the kit's telemetry. The kit's own opt-out is
+      # not versionable: `openspec config` is explicitly global. On a machine where nobody turned
+      # it off by hand, telemetry is on — a declared gap, not a covered one (ISO 27001 A.5.23,
+      # A.8.9). The scripts export these again for the local, by-hand case.
+      OPENSPEC_TELEMETRY: '0'
+      DO_NOT_TRACK: '1'
+    steps:
+      # Full history, because `aceptacion.sh` attributes the commit that introduced a claim with
+      # `git blame`. On a shallow clone blame resolves every line to the single grafted commit, so
+      # the «the closer is not the author» check would compare against the wrong person and could
+      # pass by accident. That check is the only one of the four with teeth; a silent wrong answer
+      # there is worse than no check.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # From the LOCK, never from PATH: a global binary does not appear in the commit and its
+      # version would not be reconstructible (ISO 9001 §7.5.3). The kit is an INSTRUMENT, not a
+      # component of the product: it lives in `.github/openspec/` so the Python packaging never
+      # sees it and it does not enter the SDK's own bill of materials.
+      - name: install the method kit pinned by the lock
+        run: npm ci --prefix .github/openspec --no-audit --no-fund
+      # THE FALSIFIERS RUN FIRST, and the order is the point: if a guardian cannot turn red, you
+      # want to know that BEFORE believing its green. The kit's falsifier lives in this job and
+      # not in a general helper batch because three of its cases need the REAL pinned binary — if
+      # the kit is absent it FAILS rather than skipping those cases in silence.
+      - name: the kit guardian knows how to go red
+        run: bash .github/scripts/openspec-gate.test.sh
+      - name: the trace guardian knows how to go red
+        run: bash .github/scripts/trazabilidad.test.sh
+      - name: the acceptance guardian knows how to go red
+        run: bash .github/scripts/aceptacion.test.sh
+      - name: the design records are well-formed
+        run: bash .github/scripts/openspec-gate.sh
+      # The trace runs AFTER form, not before: a malformed corpus makes noise in the state census,
+      # and the reason read first should be the underlying one. It measures the backlog proportion
+      # and does NOT gate it — a threshold here would turn a measurement into a policy nobody
+      # decided.
+      - name: every consequence declares its state and its proof resolves
+        run: bash .github/scripts/trazabilidad.sh
+      # The semantic half: that the test is about the right subject was closed by somebody other
+      # than whoever implemented it. This gate does NOT require an acceptance to exist — that
+      # threshold belongs to the management system, not here — it requires every DECLARED one to
+      # hold. `gh` is only called when a consequence actually carries a pointer; with none, no
+      # network call happens at all.
+      - name: every declared acceptance was closed by someone other than the author
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/aceptacion.sh
+
   # The single required check on `main`. The ruleset requires THIS job and nothing else.
   #
   # It exists because the obvious alternative is a trap: requiring `lint`, `test (3.11)`,
@@ -79,12 +156,12 @@ jobs:
   # failing it, and a skipped check does not fail a ruleset — the gate would be decorative.
   ci-gate:
     if: always()
-    needs: [lint, test, build]
+    needs: [lint, test, build, openspec]
     runs-on: ubuntu-latest
     steps:
       - name: Require every upstream job to have succeeded
         run: |
-          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }}"
-          for r in "${{ needs.lint.result }}" "${{ needs.test.result }}" "${{ needs.build.result }}"; do
+          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }} openspec=${{ needs.openspec.result }}"
+          for r in "${{ needs.lint.result }}" "${{ needs.test.result }}" "${{ needs.build.result }}" "${{ needs.openspec.result }}"; do
             [ "$r" = "success" ] || { echo "::error::CI gate failed: an upstream job did not succeed"; exit 1; }
           done

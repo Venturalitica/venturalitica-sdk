@@ -1,0 +1,72 @@
+schema: spec-driven
+
+# Conventions are fixed HERE, not in anyone's memory. Each one below was measured against
+# @fission-ai/openspec@1.11.0 on 2026-09-11; the design record is
+# docs/development/openspec-baseline-design.md.
+context: |
+  THIS REPOSITORY IS PUBLIC (Apache-2.0, published to PyPI, external community).
+  Everything written under openspec/ is a public statement.
+    - Never name a customer, not even indirectly. Customer identities live in a restricted
+      register and never in this repository.
+    - Cite only references a reader outside the organisation can resolve. A private tracker
+      number is a dangling reference here, and a normative reference that does not resolve is
+      a defect rather than a typo. State the defect in its own terms instead.
+
+  LANGUAGE: English throughout, prose included. `openspec validate --strict` requires SHALL or
+  MUST in English inside the requirement text (measured: "DEBERÁ" fails, exit 1), and this
+  repository's README and docs are English, so writing the whole requirement in English removes
+  the bilingual seam instead of routing around it.
+
+  SHAPE OF A REQUIREMENT
+    - `### Requirement: <title>` — unique within its file. A repeated title makes `archive`'s
+      MODIFIED matching ambiguous and hides a requirement without lowering the count.
+    - The requirement text SHALL contain SHALL or MUST.
+    - `#### Scenario: <name>` with EXACTLY four hashes, and WHEN/THEN bullets. Three hashes
+      makes the requirement scenario-less and fails --strict.
+    - A NEW capability needs `## Purpose` of 50+ characters. In a delta against an existing
+      capability the Purpose is ignored.
+
+  STATE HANGS FROM THE CONSEQUENCE, NEVER FROM THE REQUIREMENT.
+  A requirement may be one third built and two thirds not; calling it wholly current or wholly
+  pending lies in both directions. So every `#### Scenario:` carries its own state, as a bullet
+  in the scenario body (measured: this survives --all --strict, exit 0).
+
+    - **Status:** CURRENT   describes what the SDK does today. Requires **Proof:**.
+    - **Status:** UNPROVEN  describes what the SDK does today, and nothing pins it. This state
+                            exists so that real behaviour no test holds is not filed as CURRENT
+                            and allowed to disappear in silence. Requires **Reason:**.
+    - **Status:** PENDING   describes what the SDK should do. It is backlog, counted as backlog.
+                            Requires **Reason:**.
+
+  UNPROVEN and PENDING both require **Reason:**. A state that is not CURRENT and carries no
+  written reason is indistinguishable from an oversight.
+
+  **Proof:** is `path::test_name` in backticks. Both halves are checked: a path alone is
+  satisfied by any file, and a name alone anchors to nothing.
+
+  A CURRENT ALSO HAS TO HAVE RUN AND TO BE ABLE TO FAIL.
+  Measured in this tree on 2026-09-11: 21 test functions are never collected at all, because
+  tests/test_graph_nodes.py and tests/test_imaging_metrics.py call pytest.importorskip on
+  langchain_core and monai, extras that `uv sync --group dev` does not install. The suite prints
+  `840 passed, 3 skipped` and those 21 vanish inside a green. A further 26 functions are
+  collected, always run, and contain no assertion at all.
+
+  These are TWO families and are never summed:
+    - environment gap (21): they exist and could run; installing the extras fixes them.
+    - subject gap (26): they always run and cannot fail; nothing fixes them but writing the
+      assertion.
+  Summing them means believing, one day, that installing the extras closed 61.
+
+  Neither family can back a CURRENT — and that does NOT make the consequence PENDING. Which
+  state it takes depends on whether the behaviour exists:
+    - the behaviour exists and nothing that RUNS pins it  -> UNPROVEN
+    - the behaviour does not exist yet                    -> PENDING
+  Either way the Reason is written, and it names which family the missing support belongs to.
+  Filing existing behaviour as PENDING understates the SDK exactly as filing it CURRENT
+  overstates it.
+
+  WHAT NO GUARDIAN COVERS: that the named test proves the requirement. `openspec validate` is
+  structural — a scenario whose entire body is the letter `z` passes --all --strict. The
+  traceability guardian checks the test exists. The currency guardian checks it ran and can
+  fail. None of them reads the assertion's subject. That half is closed by whoever asked for the
+  change, against a check of their own, per CLAUDE.md.

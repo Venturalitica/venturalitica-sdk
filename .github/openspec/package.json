@@ -1,0 +1,8 @@
+{
+  "name": "venturalitica-sdk-method-kit",
+  "private": true,
+  "description": "Method kit (openspec) pinned for CI. An instrument, not a component of the SDK: it is installed from this lock, never from PATH, and never enters the SDK package or its bill of materials.",
+  "devDependencies": {
+    "@fission-ai/openspec": "1.11.0"
+  }
+}
