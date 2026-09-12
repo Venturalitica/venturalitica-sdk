@@ -141,7 +141,7 @@ Incluye todo lo de 0.6.13, que se publico en PyPI real pero nunca en TestPyPI.
 
 ### Added (surface distance and topology get their own names; per-case topology primitives)
 
-Found running batch A of a clinical pilot. Two gaps, one of catalogue and
+Found running batch A of a clinical imaging pilot. Two gaps, one of catalogue and
 one of computation.
 
 **Named catalogue entries for surface distance** (issue #943). `nsd` and

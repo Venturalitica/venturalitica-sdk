@@ -60,8 +60,8 @@ class BOMScanner:
 
         Es el campo que CycloneDX reserva para el sujeto del documento y estaba sin
         poner. Su ausencia es la causa exacta de que dos etapas del MISMO entorno de
-        Python produjeran BOM idénticos byte a byte (medido en el piloto
-        real: `sha256 dbc77ee3…` en adopción y en validación). Sin sujeto, el
+        Python produjeran BOM idénticos byte a byte (medido en un piloto real: el
+        mismo `sha256 dbc77ee3…` en adopción y en validación). Sin sujeto, el
         documento no sabe nombrar su propia etapa, y como linaje del Anexo IV §2 no
         aporta nada — un artefacto que no puede salir distinto no describe nada.
         """

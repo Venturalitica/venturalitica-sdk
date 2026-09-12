@@ -1,7 +1,7 @@
 """El ML-BOM tiene que inventariar el ARTEFACTO gobernado, no solo las librerías
 del entorno — y tiene que decir DE QUÉ ETAPA habla.
 
-Nace de una medición del piloto real (27-ago-2026), producto sanitario
+Nace de una medición en un piloto real (27-ago-2026) sobre un producto sanitario
 clase IIb bajo MDR:
 
     BOM de adopción del modelo  → 18 componentes · TODOS type: "library"
