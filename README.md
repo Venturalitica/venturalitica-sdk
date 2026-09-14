@@ -4,7 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/venturalitica)](https://pypi.org/project/venturalitica/)
 [![Python](https://img.shields.io/pypi/pyversions/venturalitica)](https://pypi.org/project/venturalitica/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
-[![Discord](https://img.shields.io/discord/P4RURqRm?label=Discord&logo=discord)](https://discord.gg/P4RURqRm)
+[![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/arsgBsK6XF)
 
 > 📄 **Companion to the arXiv preprint** *[Making AI Compliance Evidence Machine-Readable](https://arxiv.org/abs/2604.13767)* (Cilla Ugarte et al., 2026). See [`CITATION.cff`](./CITATION.cff) and the [normative OSCAL contract](./docs/contracts/oscal-assessment-plan-v1.md).
 
@@ -12,7 +12,7 @@
 
 The Venturalítica SDK enables Data Scientists and ML Engineers to integrate compliance and risk management directly into their training workflows. Built on the **OSCAL** (Open Security Controls Assessment Language) standard, it provides semantic policy enforcement with educational audit trails.
 
-**[Join our Discord community](https://discord.gg/P4RURqRm)** — Get help, share your use case, and discuss EU AI Act compliance with other engineers.
+**[Join our Discord community](https://discord.gg/arsgBsK6XF)** — Get help, share your use case, and discuss EU AI Act compliance with other engineers.
 
 ## ✨ Key Features
 
