@@ -7,6 +7,15 @@ under governance, the declared product dependencies and the environment that too
 measurement. It has to separate those subjects rather than merge them, and it has to be the same
 document for the same inventory, or it cannot be versioned alongside the evidence it describes.
 
+This capability is where two of the regimes this product is placed on the market under land. The
+EU Cyber Resilience Act asks a manufacturer to document the components a product with digital
+elements contains, by drawing up a software bill of materials in a commonly used, machine-readable
+format covering at the very least its top-level dependencies. The EU Product Liability Directive
+assesses a defective product against what it was at the moment it left the manufacturer's control,
+which for a derived model is a question this inventory has to be able to answer afterwards and
+today cannot. Both are written into the requirements below rather than claimed here: one is
+demonstrated, the other is a declared gap.
+
 ## Requirements
 
 ### Requirement: The document is determined by its inventory, not by the clock
@@ -44,6 +53,47 @@ a clean clone — so any run that does not re-measure signs a record set with no
 - **WHEN** the environment satisfies its own declared pin, so one package is seen as both product
   and measurement environment
 - **THEN** the document is still identical across runs
+
+### Requirement: The inventory is emitted in a commonly used machine-readable format
+
+The bill of materials SHALL be a CycloneDX document, and every library component SHALL carry the
+package identifier that names its release unambiguously. This is the form the Cyber Resilience
+Act's component-documentation obligation asks for, and the reason it asks for it: an inventory
+only this SDK can read documents nothing to anyone else.
+
+#### Scenario: The emitted document is CycloneDX
+- **Status:** CURRENT
+- **Proof:** `tests/test_scanner.py::test_bom_scanner_emits_cyclonedx_1_6`
+- **Accepted:** not yet. No acceptance event exists for this claim.
+- **WHEN** an inventory is emitted
+- **THEN** it is a CycloneDX 1.6 document rather than a private shape
+
+#### Scenario: Every library component names its release unambiguously
+- **Status:** CURRENT
+- **Proof:** `tests/test_scanner.py::test_bom_scanner_library_components_have_pypi_purl`
+- **Accepted:** not yet. No acceptance event exists for this claim.
+- **WHEN** the inventory holds library components
+- **THEN** each carries its package URL, so a reader resolves exactly which release it is
+
+### Requirement: A released version can produce the inventory of what it was made of
+
+A released version SHALL be able to yield its own bill of materials from the repository, without
+re-running the measurement that produced it. An inventory that exists only on the machine where
+the measurement ran cannot answer what the product was once the product has left.
+
+#### Scenario: A clean checkout of a released version yields its inventory
+- **Status:** PENDING
+- **Reason:** it cannot today, and the cause is measured rather than suspected. The vault the
+  inventory is written into is git-ignored, because the document was not reproducible enough to
+  commit; so a clean clone holds no bill of materials at all, and any run that does not re-measure
+  signs a record set with no inventory in it. The determinism half is now demonstrated above; the
+  half that follows from it is not done. Tracked publicly as
+  `Venturalitica/venturalitica-sdk#10`. This is the question the Product Liability Directive turns
+  on for software: a defective product is assessed against what it was at the moment it left the
+  manufacturer's control, and today a published version cannot reconstruct that from this
+  repository.
+- **WHEN** a released version is checked out into a clean clone
+- **THEN** its inventory is present without re-running the measurement
 
 ### Requirement: The product and the bench that measured it stay distinguishable
 
