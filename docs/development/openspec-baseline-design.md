@@ -257,7 +257,13 @@ gets in. The agentic and imaging behaviours still appear, as `PENDING` consequen
 decision dated today, and repairing them now moves the number that decision rests on. They are
 cited as motives, never repaired.
 
-**The normative OSCAL contract is a dangling reference and is not fixed here.** `README.md:9` cites
+**The normative OSCAL contract was a dangling reference when this was written, and is no longer.**
+Superseded on 2026-09-15 by `docs/contracts/oscal-contract-v1.md`, which describes today's
+canonical root rather than restoring the deleted one — measured, that one's leading invariants
+were inverted with respect to the code. What follows is kept as written, because it is the record
+of why the gap existed.
+
+**The original text.** `README.md:9` cites
 `docs/contracts/oscal-assessment-plan-v1.md` as *the normative OSCAL contract*, in the same line as
 the arXiv preprint, and that path does not resolve. `CLAUDE.md` already records this as a defect
 rather than a typo. It belongs to the methodology session, which is carrying it.
