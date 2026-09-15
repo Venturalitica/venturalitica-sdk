@@ -84,23 +84,33 @@ that nonetheless produces verdicts.
 - **WHEN** the policy file is empty or holds only whitespace
 - **THEN** loading does not yield a policy with zero controls that would then pass everything
 
-### Requirement: An emitted policy is valid against the normative OSCAL contract
+### Requirement: What this SDK emits and accepts is fixed by a published contract
 
-The assessment plan the SDK emits SHALL be valid against the normative OSCAL contract this project
-publishes, so that a document accepted here is accepted by every other component reading it.
+The envelopes this SDK emits and accepts SHALL be declared in a normative contract that other
+components can be held to, and the SDK SHALL conform to it. A contract nobody can read is not a
+contract, and one nobody checks is a description of what somebody believed.
 
-#### Scenario: The emitted plan validates against the published contract
-- **Status:** PENDING
-- **Reason:** the contract does not currently resolve. `README.md` cites
-  `docs/contracts/oscal-assessment-plan-v1.md` as *the normative OSCAL contract*, and that path
-  does not exist in the tree. It was present once, at 135 lines, and was removed by the 0.6.4
-  hotfix that dropped the legacy assessment plan. A normative reference that does not resolve is a
-  defect rather than a typo, and no consequence can be CURRENT against a contract that is not
-  there. The consequences above are written against what the tests actually prove, which is the
-  round trip and the structure. Restoring or superseding the contract is tracked outside this
-  repository.
-- **WHEN** an assessment plan is emitted
-- **THEN** it validates against the published normative contract
+#### Scenario: The canonical policy envelope is the one the contract names
+- **Status:** CURRENT
+- **Proof:** `tests/test_oscal_contract_v1.py::test_las_raices_aceptadas_son_las_que_el_contrato_declara`
+- **Accepted:** not yet. No acceptance event exists for this claim.
+- **WHEN** a policy arrives under each root the contract declares accepted
+- **THEN** it loads, and the canonical root is among them
+
+#### Scenario: The retired envelope is refused rather than read empty
+- **Status:** CURRENT
+- **Proof:** `tests/test_oscal_contract_v1.py::test_el_sobre_retirado_se_rechaza`
+- **Accepted:** not yet. No acceptance event exists for this claim.
+- **WHEN** a policy arrives under the envelope retired in 0.6.4
+- **THEN** loading raises, because loading it empty would skip every control and report a clean run
+
+#### Scenario: The contract cannot outlive the code it describes
+- **Status:** CURRENT
+- **Proof:** `tests/test_oscal_contract_v1.py::test_la_version_oscal_del_contrato_es_la_que_el_emisor_declara`
+- **Accepted:** not yet. No acceptance event exists for this claim.
+- **WHEN** the emitter's declared OSCAL version and the contract's disagree
+- **THEN** the suite fails and names the contract, because the contract this one replaces was
+  typed, versioned and normative, and what it lacked was a way to expire
 
 ### Requirement: A control carries the risk it was derived from
 
