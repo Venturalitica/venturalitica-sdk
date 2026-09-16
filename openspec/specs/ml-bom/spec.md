@@ -8,13 +8,13 @@ measurement. It has to separate those subjects rather than merge them, and it ha
 document for the same inventory, or it cannot be versioned alongside the evidence it describes.
 
 This capability is where two of the regimes this product is placed on the market under land. The
-EU Cyber Resilience Act asks a manufacturer to document the components a product with digital
-elements contains, by drawing up a software bill of materials in a commonly used, machine-readable
-format covering at the very least its top-level dependencies. The EU Product Liability Directive
-assesses a defective product against what it was at the moment it left the manufacturer's control,
-which for a derived model is a question this inventory has to be able to answer afterwards and
-today cannot. Both are written into the requirements below rather than claimed here: one is
-demonstrated, the other is a declared gap.
+EU Cyber Resilience Act (`LEX-EU-CRA`) asks a manufacturer to document the components a product
+with digital elements contains, by drawing up a software bill of materials in a commonly used,
+machine-readable format covering at the very least its top-level dependencies. The EU Product
+Liability Directive (`LEX-EU-PLD`) assesses a defective product against what it was at the moment
+it left the manufacturer's control, which for a derived model is a question this inventory has to
+be able to answer afterwards and today cannot. Both are written into the requirements below
+rather than claimed here: one is demonstrated, the other is a declared gap.
 
 ## Requirements
 
@@ -58,8 +58,8 @@ a clean clone — so any run that does not re-measure signs a record set with no
 
 The bill of materials SHALL be a CycloneDX document, and every library component SHALL carry the
 package identifier that names its release unambiguously. This is the form the Cyber Resilience
-Act's component-documentation obligation asks for, and the reason it asks for it: an inventory
-only this SDK can read documents nothing to anyone else.
+Act's (`LEX-EU-CRA`) component-documentation obligation asks for, and the reason it asks for it:
+an inventory only this SDK can read documents nothing to anyone else.
 
 #### Scenario: The emitted document is CycloneDX
 - **Status:** CURRENT
@@ -88,10 +88,10 @@ the measurement ran cannot answer what the product was once the product has left
   commit; so a clean clone holds no bill of materials at all, and any run that does not re-measure
   signs a record set with no inventory in it. The determinism half is now demonstrated above; the
   half that follows from it is not done. Tracked publicly as
-  `Venturalitica/venturalitica-sdk#10`. This is the question the Product Liability Directive turns
-  on for software: a defective product is assessed against what it was at the moment it left the
-  manufacturer's control, and today a published version cannot reconstruct that from this
-  repository.
+  `Venturalitica/venturalitica-sdk#10`. This is the question the Product Liability Directive
+  (`LEX-EU-PLD`) turns on for software: a defective product is assessed against what it was at the
+  moment it left the manufacturer's control, and today a published version cannot reconstruct that
+  from this repository.
 - **WHEN** a released version is checked out into a clean clone
 - **THEN** its inventory is present without re-running the measurement
 
