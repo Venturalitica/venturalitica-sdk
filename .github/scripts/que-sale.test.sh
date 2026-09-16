@@ -103,6 +103,32 @@ R="$(raiz fechado "LICENSE")"
 S="$(sdist fechado "LICENSE=x" "src/m.py=# see 2026-05-22-algo-design.md §3")"
 caso "a dated design record that exists nowhere public" "$R" "$S" "a dated design record"
 
+# UNA REFERENCIA A ISSUE SIN CUALIFICAR en el código que se instala: se lee como la issue de este
+# repositorio y no lo es.
+R="$(raiz desnuda "LICENSE")"
+S="$(sdist desnuda "LICENSE=x" "src/m.py=# el arreglo de #977 hace esto")"
+caso "a bare issue number in shipped code" "$R" "$S" "a bare issue number"
+
+# Y su contraste, que es el que casi me cuesta un guardián inútil: los colores hexadecimales NO
+# son referencias. `#999` y `#010101` viven en SVG y CSS que este SDK genera, y contarlos como
+# issues fue mi error dos veces seguidas al medir cuántas había.
+R="$(raiz colores "LICENSE")"
+S="$(sdist colores "LICENSE=x" "src/m.py=SVG = '<rect fill=\"#555\"/><stop stop-color=\"#999\"/>'")"
+if QUE_SALE_RAIZ="$R" bash "$GUARDIAN" "$S" >/dev/null 2>&1; then
+  echo "  ✓ hex colours are not counted as issue references"; ok=$((ok+1))
+else
+  echo "  ✗ hex colours must not be flagged — counting them is what made my own measurement wrong twice"; mal=$((mal+1))
+fi
+
+# Y el CHANGELOG queda fuera del apartado a propósito: es un registro fechado.
+R="$(raiz changelog "LICENSE CHANGELOG.md")"
+S="$(sdist changelog "LICENSE=x" "CHANGELOG.md=arreglado en #977")"
+if QUE_SALE_RAIZ="$R" bash "$GUARDIAN" "$S" >/dev/null 2>&1; then
+  echo "  ✓ a dated record keeps its historical references"; ok=$((ok+1))
+else
+  echo "  ✗ the CHANGELOG is out of scope on purpose; flagging it would falsify a dated record"; mal=$((mal+1))
+fi
+
 # ── y los contrastes, sin los cuales los dos de arriba no detectan nada ─────────────────────────
 R="$(raiz propia "LICENSE")"
 S="$(sdist propia "LICENSE=x" "src/m.py=# see Venturalitica/venturalitica-sdk#10")"

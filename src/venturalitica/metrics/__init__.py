@@ -147,14 +147,14 @@ METRIC_REGISTRY = {
     "score_skew": calc_score_skew,
     # `worst_group_score` (Rawlsian min group mean) reuses min_group_score.
     "worst_group_score": calc_min_group_score,
-    # Surface distance, WITH ITS OWN NAME (#943). Same arithmetic as
+    # Surface distance, WITH ITS OWN NAME. Same arithmetic as
     # mean_score/max_score, but the identity of the gated metric now reaches the
     # compiled OSCAL and the signed bundle instead of reading "- mean_score".
     # `METRIC_META` hangs unit and sense off these names.
     "mean_nsd": calc_mean_nsd,
     "mean_hd95": calc_mean_hd95,
     "max_hd95": calc_max_hd95,
-    # Topology (#945) - a STRUCTURAL control, not an overlap one. The per-case
+    # Topology - a STRUCTURAL control, not an overlap one. The per-case
     # column comes from `assurance.imaging.excess_components`; it is what sees
     # the leak between fused vertebrae that Dice cannot.
     "max_excess_components": calc_max_excess_components,

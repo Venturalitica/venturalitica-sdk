@@ -115,7 +115,7 @@ class AssessmentResultsBuilder:
                 "risk_acceptance_criteria",
                 "threshold_justification",
                 "stakeholder_consultation_ref",
-                # #977: without this, the digest `enforce()` stamps on every
+                # without this, the digest `enforce()` stamps on every
                 # result only reached the AR via the risk-characterization
                 # facets loop below, which runs `if not cr.passed`. The
                 # issue's own example is a control that PASSES misleadingly

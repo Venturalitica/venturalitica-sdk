@@ -1,4 +1,4 @@
-"""Unidad y sentido de las métricas del catálogo (issue #943).
+"""Unidad y sentido de las métricas del catálogo.
 
 `METRIC_REGISTRY` mapea nombre → función. Eso basta para CALCULAR, pero no para
 leer: una entrada anónima no sabe si su número está en milímetros o es una
@@ -42,7 +42,7 @@ class MetricMeta:
 
 
 METRIC_META: Dict[str, MetricMeta] = {
-    # Distancia de superficie (#943) — lo que ya calcula `assurance.imaging`.
+    # Distancia de superficie — lo que ya calcula `assurance.imaging`.
     "mean_nsd": MetricMeta(
         unit="fraction",
         lower_is_better=False,
@@ -61,7 +61,7 @@ METRIC_META: Dict[str, MetricMeta] = {
         bounds=None,
         description="Peor caso de HD95 de la cohorte, en milimetros.",
     ),
-    # Topología (#945) — cero-based: 0 = ninguna etiqueta fragmentada.
+    # Topología — cero-based: 0 = ninguna etiqueta fragmentada.
     "max_excess_components": MetricMeta(
         unit="components",
         lower_is_better=True,

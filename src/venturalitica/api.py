@@ -39,7 +39,7 @@ def _partition_digest(
     The two runs can legitimately report very different numbers for the
     exact same control_id -- k-anonymity read on the per-vertebra table
     counts vertebrae as individuals, not patients -- and nothing in a bare
-    ComplianceResult says which table produced which number (#977). This
+    ComplianceResult says which table produced which number. This
     digest is that mark: stamped on every result `enforce()` returns
     (retained or not), so a result can always be traced back to the exact
     partition it was measured against.
@@ -62,7 +62,7 @@ def _partition_digest(
             # so two large DataFrames that differ only past the truncation
             # point produce an IDENTICAL repr and therefore the SAME
             # digest -- the exact collision this digest exists to rule out
-            # (#977; measured: two 401-row frames differing only at row
+            # (measured: two 401-row frames differing only at row
             # 200 give identical repr(), distinct to_csv()). Hash the full
             # byte content instead -- `to_csv` never truncates.
             try:
@@ -192,7 +192,7 @@ def _generate_oscal_artifacts(
 ) -> None:
     """Generate OSCAL Assessment Results and POA&M from cached results."""
     try:
-        # #977: prefer the RETAINED subset (`vl.retain()`) over the raw
+        # prefer the RETAINED subset (`vl.retain()`) over the raw
         # evaluated cache. When a pipeline has explicitly filtered
         # `enforce()`'s combined output (e.g. down to the controls the
         # compiled OSCAL profile actually tags for the partition they were
@@ -358,7 +358,7 @@ def enforce(
                 results = validator.evaluate(metrics, phase=phase, strict=strict)
 
             if results:
-                # #977: stamp the partition digest on every result BEFORE it
+                # stamp the partition digest on every result BEFORE it
                 # ever reaches the vault, so a result computed on one slice
                 # of the data can never be confused with the same
                 # control_id computed on a different slice (e.g. per-case
@@ -451,7 +451,7 @@ def enforce(
 
 
 def retain(results: List[ComplianceResult]) -> List[ComplianceResult]:
-    """Declares `results` as the session's authoritative, push-worthy subset (#977).
+    """Declares `results` as the session's authoritative, push-worthy subset.
 
     `enforce()` caches every result it evaluates, including ones a
     downstream pipeline later discards -- e.g. a control evaluated once
@@ -489,7 +489,7 @@ def retain(results: List[ComplianceResult]) -> List[ComplianceResult]:
         # to record the retained set, so a later `vl push` would fall back
         # to whatever got evaluated, unfiltered. That's the exact
         # contradiction this function exists to prevent, so it must not
-        # fail silently (#977).
+        # fail silently.
         print(
             "  ⚠ vl.retain() called with no active monitor() session -- "
             "nothing was recorded. A later `vl push` will ship everything "

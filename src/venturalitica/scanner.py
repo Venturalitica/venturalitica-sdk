@@ -110,7 +110,7 @@ class BOMScanner:
         #   · SEÑAL: mete 163 componentes donde el escaneo propio pone 21, y el pin
         #     DECLARADO del producto queda sepultado entre ellos. Medido: `requests`
         #     pasaba a leerse 2.34.2 (lo instalado) en vez de 2.31.0 (lo declarado), que
-        #     es exactamente la distinción que #971 vino a establecer.
+        #     es exactamente la distinción que había que establecer.
         #
         # Quien quiera el inventario transitivo completo —para un análisis de CVE sobre el
         # entorno, p.ej.— lo pide con `VL_BOM_ENV_COMPLETO=1`.
@@ -149,7 +149,7 @@ class BOMScanner:
         nuestro.
 
         POR QUÉ NO SE ADOPTA ENTERO: `cyclonedx-py poetry` EXIGE un `poetry.lock` y no
-        hay bandera que lo evite. El caso que `#971` vino a resolver —un `pyproject.toml`
+        hay bandera que lo evite. El caso que había que resolver —un `pyproject.toml`
         de Poetry SIN lock— dejaría de verse. Así que el
         parser de pines declarados (`_scan_pyproject`) se QUEDA: hace algo que la
         herramienta no sabe hacer.
@@ -571,7 +571,7 @@ class BOMScanner:
           ingester's lookup key). Merging is the honest fix instead: same
           package, same version, both subjects apply to it at once. When
           the version DIFFERS (the declared pin doesn't match what's
-          installed -- #971's whole point, e.g. torch 2.0.1 vs. 2.13.0),
+          installed -- the whole point of that fix, e.g. torch 2.0.1 vs. 2.13.0),
           the PURL differs too, so this lookup finds no match and the two
           stay separate components, keeping that divergence visible.
         """

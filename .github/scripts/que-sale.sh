@@ -121,7 +121,33 @@ ESTE = (b"Venturalitica", b"venturalitica-sdk")
 # this SDK writes is named that way.
 RE_DOC = re.compile(rb"\b(\d{4}-\d{2}-\d{2}-[A-Za-z0-9._-]+)\.md\b")
 
+# 2c. UNA REFERENCIA A ISSUE SIN CUALIFICAR, en el código que se instala. `#977` se lee como la
+# issue 977 de ESTE repositorio, que no existe: apunta a un tracker privado. Cualificarla sería
+# peor —citaría el repositorio privado desde el paquete— así que la regla es que el código que
+# viaja no lleve el número, y que la prosa se sostenga sola.
+#
+# Sólo `src/`. El CHANGELOG queda fuera a propósito y con motivo: es un registro fechado de lo que
+# se dijo en cada versión, y reescribirlo para que resuelva hoy sería falsificar lo que decía
+# entonces. Es la misma distinción que separa un contrato, que debe estar vigente, de una entrada
+# de changelog, que debe ser fiel.
+# El `#` tiene que abrir la referencia: principio de línea, espacio, `(` o `[`. Sin eso la
+# comprobación marcaba el número DENTRO de la forma cualificada que la comprobación anterior
+# permite —`Venturalitica/venturalitica-sdk#10`— y las dos se contradecían. Lo cazó el falsador.
+RE_DESNUDA = re.compile(rb"(?:^|(?<=[\s(\[]))#(\d{2,4})(?![0-9a-fA-F])")
+RE_COLOR = re.compile(rb"fill=|stop-color=|color:|background")
+
 colgantes = []
+for ruta in sorted(contenido):
+    if not ruta.startswith("src/") or not ruta.endswith(".py"):
+        continue
+    for linea in contenido[ruta].split(b"\n"):
+        if RE_COLOR.search(linea):
+            continue
+        for m in RE_DESNUDA.finditer(linea):
+            colgantes.append("%s cites `%s` — a bare issue number. It reads as this repository's "
+                             "issue and is not one; qualifying it would cite a private tracker "
+                             "from an installed package" % (ruta, m.group(0).decode()))
+
 for ruta in sorted(contenido):
     texto = contenido[ruta]
     for m in RE_AJENA.finditer(texto):
@@ -189,7 +215,7 @@ fi
 
 MSG="GREEN — and only for what it covers: all ${N_ARCH} non-code file(s) in the distribution are
 declared, every declared entry actually ships, and nothing in it cites another repository's issues
-or a dated design record that exists nowhere public.
+a dated design record that exists nowhere public, or a bare issue number in shipped code.
   declared ${N_DECL} · shipping today but pending a decision ${N_PEND}
 $(printf '%s' "$PEND" | sed 's/^/    /')
 Those are not failures and not approvals: they ship, nobody decided they should, and removing them

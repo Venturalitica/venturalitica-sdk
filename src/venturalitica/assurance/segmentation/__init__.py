@@ -78,7 +78,7 @@ __all__ = [
     "calc_worst_cell_score",
     "calc_group_score_gap",
     "calc_max_score",
-    # Agregados CON NOMBRE (#943 superficie, #945 topologia).
+    # Agregados CON NOMBRE (superficie y topologia).
     "calc_mean_nsd",
     "calc_mean_hd95",
     "calc_max_hd95",
