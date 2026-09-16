@@ -150,7 +150,7 @@ class BOMScanner:
 
         POR QUÉ NO SE ADOPTA ENTERO: `cyclonedx-py poetry` EXIGE un `poetry.lock` y no
         hay bandera que lo evite. El caso que `#971` vino a resolver —un `pyproject.toml`
-        de Poetry SIN lock, que es el del piloto sanitario— dejaría de verse. Así que el
+        de Poetry SIN lock— dejaría de verse. Así que el
         parser de pines declarados (`_scan_pyproject`) se QUEDA: hace algo que la
         herramienta no sabe hacer.
 
