@@ -21,7 +21,7 @@ class GovernanceSession:
         self.base_dir = Path(".venturalitica") / "runs" / self.run_id
         self.artifacts_dir = self.base_dir / "artifacts"
         self.results_file = self.base_dir / "results.json"
-        # #977: everything `enforce()` evaluates lands in `results.json` (the
+        # everything `enforce()` evaluates lands in `results.json` (the
         # Local Dashboard reads it, so every control shows up, even ones a
         # downstream pipeline later discards). Only what the caller explicitly
         # reclaims via `vl.retain()` as authoritative lands here instead --
@@ -99,7 +99,7 @@ class GovernanceSession:
                 # `enforce()` calls are. Re-declaring the same control on
                 # the same partition must REPLACE the earlier entry, not
                 # duplicate it -- otherwise the AR ends up with two
-                # observations/findings for one control (#977). Dedupe by
+                # observations/findings for one control. Dedupe by
                 # (control_id, partition_digest); last write wins.
                 deduped: Dict[Any, Any] = {}
                 for row in combined:

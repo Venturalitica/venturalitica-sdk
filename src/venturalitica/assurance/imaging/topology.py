@@ -1,4 +1,4 @@
-"""Per-case TOPOLOGY primitives for labelled segmentations (issue #945).
+"""Per-case TOPOLOGY primitives for labelled segmentations.
 
 The overlap metrics in :mod:`venturalitica.assurance.imaging.metrics` answer
 "how much of the right stuff did we get?". They do **not** answer "is the shape

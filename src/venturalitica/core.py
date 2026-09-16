@@ -118,7 +118,7 @@ class AssuranceValidator:
 
             print(f"  Evaluating Control '{ctrl.id}': {ctrl.description[:50]}...")
 
-            # #943: unidad y sentido del catalogo. Un umbral mal orientado
+            # unidad y sentido del catalogo. Un umbral mal orientado
             # ('gte' sobre una distancia, que pide que el error sea GRANDE) o
             # fuera del rango de la metrica se avisa aqui. ADVISORY: no falla la
             # evaluacion ni en modo estricto, y solo opina de metricas con

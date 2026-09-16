@@ -37,7 +37,7 @@ __all__ = [
     "iou",
     "hausdorff95",
     "nsd",
-    # Topología por caso (#945): controles ESTRUCTURALES, no de solape. Solo
+    # Topología por caso: controles ESTRUCTURALES, no de solape. Solo
     # necesitan scipy, no monai/torch.
     "component_counts",
     "excess_components",

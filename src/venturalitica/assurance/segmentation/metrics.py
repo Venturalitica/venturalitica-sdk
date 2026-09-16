@@ -42,7 +42,7 @@ __all__ = [
     "calc_worst_cell_score",
     "calc_group_score_gap",
     "calc_max_score",
-    # Agregados CON NOMBRE (#943, #945): misma aritmética, identidad propia.
+    # Agregados CON NOMBRE (superficie y topología): misma aritmética, identidad propia.
     "calc_mean_nsd",
     "calc_mean_hd95",
     "calc_max_hd95",
@@ -190,7 +190,7 @@ def calc_max_score(df: pd.DataFrame, **kwargs) -> float:
     return float(series.max())
 
 
-# ── Agregados CON NOMBRE para distancia de superficie y topología (#943, #945) ──
+# ── Agregados CON NOMBRE para distancia de superficie y topología ──
 #
 # Estos no calculan nada que `calc_mean_score`/`calc_max_score` no supieran ya
 # hacer: agregan la columna por caso que enlaza el rol `score`. Lo que aportan es
