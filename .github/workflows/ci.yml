@@ -76,6 +76,13 @@ jobs:
             echo "::error::sdist is too large ($SDIST_SIZE bytes > 5MB)"
             exit 1
           fi
+      # El guardián de lo que SALE vive aquí, en el job que construye el artefacto, y no en el de
+      # `openspec`: su sujeto es el paquete, no el árbol. Leerlo del tarball construido es la misma
+      # regla que aplican los demás — se lee lo que el instrumento produjo, no su configuración.
+      - name: the shipping guardian knows how to go red
+        run: bash .github/scripts/que-sale.test.sh
+      - name: nothing leaves this repository undeclared
+        run: bash .github/scripts/que-sale.sh
       - uses: actions/upload-artifact@v4
         with:
           name: dist

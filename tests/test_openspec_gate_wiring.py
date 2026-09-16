@@ -96,6 +96,17 @@ def test_el_guardian_de_vigencia_corre_donde_se_produce_la_evidencia():
     )
 
 
+def test_el_guardian_de_lo_que_sale_corre_donde_se_construye_el_artefacto():
+    """Su sujeto es el paquete, no el árbol, así que vive en el job que lo construye. Y como los
+    demás, va precedido de su falsador: si no sabe ponerse rojo, su verde no vale."""
+    guion = _pasos(_jobs()["build"])
+    assert "que-sale.sh" in guion, "the `build` job no longer runs the shipping guardian"
+    assert "que-sale.test.sh" in guion, "the shipping guardian runs without its falsifier"
+    assert guion.index("que-sale.test.sh") < guion.index("que-sale.sh"), (
+        "the falsifier has to run before the guardian"
+    )
+
+
 def test_el_pin_del_kit_es_exacto_y_no_un_rango():
     """A range makes «the pin» not a value: the kit guardian compares the running binary against
     it, so a range would leave that guardian permanently red."""

@@ -1,0 +1,49 @@
+# What is allowed to leave this repository inside the distribution.
+#
+# This is an ALLOWLIST, and the shape is the point. `pyproject.toml` controls what ships with an
+# `exclude` list: it names what must not leave, and lets through everything nobody thought to
+# name. That is how a LaTeX log, the git ignore file, the pre-commit config and a reference to a
+# private repository all travelled inside a published package without anyone deciding they should.
+#
+# A blocklist's coverage grows one line per incident. It gets long and respectable while its shape
+# stays permissive: each entry documents something that already escaped.
+#
+# The comment beside that `exclude` list states the right principle — design records govern the
+# product and are not part of it — and names two directories. Stating the principle next to a
+# partial implementation is worse than stating nothing, because it closes the question that would
+# have found the gap. The directories were excluded and a citation to a design record travelled
+# anyway, inside a file that legitimately ships.
+#
+# So the question this file answers is the inverse one: not what we exclude, but **what leaves**.
+# `.github/scripts/que-sale.sh` compares this list against the built artefact on every run, and
+# anything undeclared is red. This directory does not ship, so the manifest is not its own subject.
+
+# Non-code files that are meant to be in the distribution. Code under `src/` is not listed: that
+# is the product, and the wheel's contents are governed by the packaging config.
+ships:
+  - CHANGELOG.md
+  - CITATION.cff
+  - LICENSE
+  - PKG-INFO
+  - README.md
+  - SECURITY.md
+  - publiccode.yml
+  - pyproject.toml
+  - src/venturalitica/assurance/graph/prompts/prompts.en.yaml
+  - src/venturalitica/assurance/graph/prompts/prompts.es.yaml
+  - src/venturalitica/metrics/catalog.yaml
+  - src/venturalitica/policies/templates/huderia-cobra-design.oscal.yaml
+  - src/venturalitica/policies/templates/huderia-cobra-prerelease.oscal.yaml
+
+# These ship today and probably should not. They are listed rather than silently tolerated,
+# because the alternative was leaving them invisible — which is the state this manifest exists to
+# end. Removing them changes the published artefact, so it is a decision and not a tidy-up, and it
+# is not this file's to take. The guardian reports them in its green every run, so the decision
+# stays visible instead of ageing into the norm.
+pending_decision:
+  - .gitignore              # build hygiene, meaningless to an installer
+  - .pre-commit-config.yaml # ditto
+  - CLAUDE.md               # the method that governs the product, not part of it — same argument as docs/
+  - CODEOWNERS              # repository governance, meaningless outside the forge
+  - scripts/publish.sh      # our release procedure, and it documents a token flow the workflow no longer uses
+  - texput.log              # a stray LaTeX log. Nobody put it here on purpose
