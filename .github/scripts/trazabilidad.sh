@@ -87,6 +87,7 @@ RE_PRU = re.compile(r"\*\*Proof:\*\*\s*`([^`]+)`", re.M)
 RE_MOT = re.compile(r"\*\*Reason:\*\*\s*(\S)", re.M)
 
 cuenta = {e: 0 for e in ESTADOS}
+por_capacidad = {}
 total = 0
 fallos = []
 repetidos = []
@@ -128,6 +129,7 @@ for f in specs:
                 continue
             estado = validos[0]
             cuenta[estado] += 1
+            por_capacidad.setdefault(cap, {e: 0 for e in ESTADOS})[estado] += 1
             if estado == "CURRENT":
                 ref = RE_PRU.search(bloque)
                 if not ref:
@@ -158,6 +160,12 @@ print(len(specs))
 print(total)
 print(cuenta["CURRENT"], cuenta["UNPROVEN"], cuenta["PENDING"])
 print(len(fallos) + len(repetidos) + len(sin_consecuencia))
+# The breakdown behind the total. A number has nowhere to put a footnote: read on its own, a
+# census cannot distinguish a consequence that was retired from a test that disappeared, and
+# both move it by the same amount. The list can be attributed; the total cannot.
+for cap in sorted(por_capacidad):
+    c = por_capacidad[cap]
+    print("CAP\t%s\t%d\t%d\t%d" % (cap, c["CURRENT"], c["UNPROVEN"], c["PENDING"]))
 for x in repetidos + sin_consecuencia + fallos:
     print("  " + x)
 PY
@@ -183,7 +191,8 @@ FICHEROS="$(printf '%s' "$SALIDA" | sed -n 2p)"
 TOTAL="$(printf '%s' "$SALIDA" | sed -n 3p)"
 read -r VIG UNP PEN <<< "$(printf '%s' "$SALIDA" | sed -n 4p)"
 NFALLOS="$(printf '%s' "$SALIDA" | sed -n 5p)"
-DETALLE="$(printf '%s' "$SALIDA" | sed -n '6,$p')"
+DETALLE="$(printf '%s' "$SALIDA" | sed -n '6,$p' | grep -v '^CAP	')"
+DESGLOSE="$(printf '%s' "$SALIDA" | grep '^CAP	' | awk -F'\t' '{printf "  %-18s %3d · %2d · %2d\n", $2, $3, $4, $5}')"
 
 if [ "$NFALLOS" -gt 0 ]; then
   rojo "$NFALLOS consequence(s) do not declare their state or their proof does not resolve" "$DETALLE"
@@ -196,6 +205,8 @@ MSG="GREEN — and only for what it covers: across ${FICHEROS} capability file(s
 consequences declare exactly one state, every CURRENT names a test whose path exists and whose
 name appears inside it, and every PENDING and UNPROVEN carries a reason.
   CURRENT ${VIG} · UNPROVEN ${UNP} · PENDING ${PEN} · total ${TOTAL}
+                     current · unproven · pending
+${DESGLOSE}
   backlog: ${PROP}% of the corpus describes something that does not exist yet (measured, not gated)
 This says NOTHING about whether the named test RAN, whether it CAN FAIL, or whether it proves the
 requirement. The first two are vigencia.sh. The third is whoever asked for the change."
