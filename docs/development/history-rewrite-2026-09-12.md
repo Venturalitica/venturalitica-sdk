@@ -74,12 +74,17 @@ Two things follow, and the second is the one that matters:
 
 ## What remains to be done
 
-A ticket to GitHub Support asking whether `refs/pull/*` can be removed or re-pointed, whether the
-unreachable objects can be garbage-collected, and — the question we cannot answer ourselves — in
-what order they recommend it. It deliberately does not contain the identifiers, and deliberately
-does not bundle the PyPI and edit-history questions, so that the part they can act on is not
-delayed by the parts they cannot.
+**Filed with GitHub Support on 2026-09-16 as case #4764484**, asking whether the pre-rewrite
+`refs/pull/*` refs can be removed or re-pointed, whether the unreachable objects can be
+garbage-collected, and — the question we cannot answer ourselves — whether anything we do in the
+meantime interferes with the purge. It deliberately carries none of the removed identifiers, and
+deliberately leaves out the PyPI and edit-history questions, so that the part they can act on is
+not delayed by the parts they cannot.
 
-The order was decided the other way round: rewrite first, ticket second. The trade was recorded
-at the time. Reducing the surface from today rather than from whenever Support replies is a
+**Until that case is answered, this remains open.** The rewrite reduced the surface from the day
+it was pushed; the pre-rewrite objects stay reachable through refs nobody can write. That is the
+state, and it is not the same as closed.
+
+The order was decided the other way round: rewrite first, ticket second. The trade was recorded at
+the time. Reducing the surface from that day rather than from whenever Support replies is a
 legitimate reason, and the cost if Support declines is that the rewrite bought a partial result.
