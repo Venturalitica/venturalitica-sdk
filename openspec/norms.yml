@@ -1,0 +1,36 @@
+# The norms this component is placed on the market under, and the name each one is PUBLISHED
+# under in this corpus.
+#
+# WHY THIS FILE EXISTS, and why it is here rather than in the management system's register.
+# The register owns each norm's official title. It does not own the name this public corpus cites
+# it by: that is a drafting decision of this repository, taken when the requirement was written.
+# A control that needed to go from a requirement to a design-input entry had to guess across the
+# two, which is not comparing.
+#
+#     the register owns ..... the official title, in the language it was enacted in
+#     this file owns ........ the name this corpus publishes it under
+#
+# So this is the half only this repository can state. It is declared once, here, rather than
+# inferred from prose — inferring it would make the consumer keep its own copy of the mapping,
+# which is the defect of a guardian holding its own copy of its subject.
+#
+# THE CONDITION THESE IDENTIFIERS ENTER UNDER, and it is checked:
+# the identifier ACCOMPANIES the name in the corpus, it never replaces it. An internal register
+# key is unresolvable to a reader outside the organisation; next to the full name of the norm it
+# costs that reader nothing, because the fact is already complete without it. A public corpus that
+# said only `LEX-EU-PLD` would be a dangling reference, and the rule this repository holds itself
+# to would apply.
+#
+# `tests/test_corpus_norms.py` checks all of it: that every identifier used anywhere in
+# `openspec/` is declared here, that every entry declared here is actually used, and that each
+# name appears beside its identifier in the text. If any of those drift, the suite fails and names
+# this file.
+
+norms:
+  - id: LEX-EU-CRA
+    published_as: EU Cyber Resilience Act
+    cited_in: openspec/specs/ml-bom/spec.md
+
+  - id: LEX-EU-PLD
+    published_as: EU Product Liability Directive
+    cited_in: openspec/specs/ml-bom/spec.md
