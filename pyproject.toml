@@ -96,6 +96,20 @@ exclude = [
   # of it. They stay in the repository, where they are reconstructible at any commit, and out of
   # what third parties install.
   "openspec/",
+  # The same principle, applied to everything else that governs the product without being it.
+  # These shipped until 2026-09-16 because this list is a BLOCKLIST: it names what must not leave
+  # and lets through whatever nobody thought to name. `.github/packaging/ships.yml` is the
+  # allowlist that now answers the question the other way round, and this list is what it
+  # enforces.
+  "CLAUDE.md",                 # the method that governs the product — same argument as docs/
+  "CODEOWNERS",                # repository governance, meaningless outside the forge
+  "scripts/",                  # our release procedure, not the reader's
+  ".pre-commit-config.yaml",
+  # `.gitignore` is NOT here, and its absence is deliberate. Measured 2026-09-16: hatchling puts
+  # it in the sdist whatever this list says — `/.gitignore`, `**/.gitignore` and `*.gitignore`
+  # were each tried and each shipped it anyway. Leaving a rule here that does nothing would be
+  # worse than not having it: it would read as handled. It is declared in the allowlist instead,
+  # where the reason is written next to it.
   ".venv/",
   ".git",
   ".pypirc",

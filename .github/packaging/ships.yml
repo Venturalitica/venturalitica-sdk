@@ -21,6 +21,10 @@
 # Non-code files that are meant to be in the distribution. Code under `src/` is not listed: that
 # is the product, and the wheel's contents are governed by the packaging config.
 ships:
+  # Not chosen: hatchling puts it in the sdist whatever `pyproject.toml`'s exclude list says.
+  # Measured on 2026-09-16 with three different patterns, all ignored. It is declared here because
+  # the alternative was a rule in the exclude list that does nothing, which reads as handled.
+  - .gitignore
   - CHANGELOG.md
   - CITATION.cff
   - LICENSE
@@ -35,15 +39,9 @@ ships:
   - src/venturalitica/policies/templates/huderia-cobra-design.oscal.yaml
   - src/venturalitica/policies/templates/huderia-cobra-prerelease.oscal.yaml
 
-# These ship today and probably should not. They are listed rather than silently tolerated,
-# because the alternative was leaving them invisible — which is the state this manifest exists to
-# end. Removing them changes the published artefact, so it is a decision and not a tidy-up, and it
-# is not this file's to take. The guardian reports them in its green every run, so the decision
-# stays visible instead of ageing into the norm.
-pending_decision:
-  - .gitignore              # build hygiene, meaningless to an installer
-  - .pre-commit-config.yaml # ditto
-  - CLAUDE.md               # the method that governs the product, not part of it — same argument as docs/
-  - CODEOWNERS              # repository governance, meaningless outside the forge
-  - scripts/publish.sh      # our release procedure, and it documents a token flow the workflow no longer uses
-  - texput.log              # a stray LaTeX log. Nobody put it here on purpose
+# Nothing is pending a decision any more. The six files that used to ship without anyone deciding
+# they should — the method document, the repository's ownership file, the release script, two
+# build-hygiene dotfiles and a stray LaTeX log — were removed from the distribution on 2026-09-16.
+# The list stays declared and empty rather than being deleted: an empty list says «this was asked
+# and the answer was none», and no list says nothing.
+pending_decision: []
