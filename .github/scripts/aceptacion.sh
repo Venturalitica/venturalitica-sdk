@@ -145,12 +145,17 @@ resolver_autor() {  # sha -> login
 }
 
 aceptadas=0; sinaceptar=0; nodeclaradas=0; fallos=()
+# The breakdown behind the total, for the same reason the trace guardian carries one: a number has
+# nowhere to put a footnote. «unaccepted 87» read alone cannot distinguish a consequence that was
+# retired from one that was accepted, and both move it the same way.
+declare -A CAP_ACE CAP_SIN CAP_NOD
 
 while IFS=$'\t' read -r clase donde fichero linea repo numero; do
   [ -n "$clase" ] || continue
+  cap="${donde%% ::*}"
   case "$clase" in
-    NODECLARADA) nodeclaradas=$((nodeclaradas + 1)); continue ;;
-    SINACEPTAR)  sinaceptar=$((sinaceptar + 1)); continue ;;
+    NODECLARADA) nodeclaradas=$((nodeclaradas + 1)); CAP_NOD[$cap]=$(( ${CAP_NOD[$cap]:-0} + 1 )); continue ;;
+    SINACEPTAR)  sinaceptar=$((sinaceptar + 1));  CAP_SIN[$cap]=$(( ${CAP_SIN[$cap]:-0} + 1 )); continue ;;
   esac
 
   # 1. the pointer resolves
@@ -223,7 +228,7 @@ while IFS=$'\t' read -r clase donde fichero linea repo numero; do
       committed at $fecha_commit. An acceptance that predates its claim accepted something else.")
     continue
   fi
-  aceptadas=$((aceptadas + 1))
+  aceptadas=$((aceptadas + 1)); CAP_ACE[$cap]=$(( ${CAP_ACE[$cap]:-0} + 1 ))
 done <<< "$(printf '%s' "$CENSO" | sed -n '2,$p')"
 
 if [ "${#fallos[@]}" -gt 0 ]; then
@@ -234,6 +239,10 @@ total=$((aceptadas + sinaceptar + nodeclaradas))
 MSG="GREEN — and only for what it covers: every DECLARED acceptance resolves to a closed event
 closed by someone other than the claim's author, after the claim was committed.
   accepted ${aceptadas} · unaccepted ${sinaceptar} · not declared ${nodeclaradas} · current ${total}
+                     accepted · unaccepted · not declared
+$(for c in $(printf '%s\n' "${!CAP_ACE[@]}" "${!CAP_SIN[@]}" "${!CAP_NOD[@]}" | sort -u); do
+    printf '  %-18s %3d · %3d · %3d\n' "$c" "${CAP_ACE[$c]:-0}" "${CAP_SIN[$c]:-0}" "${CAP_NOD[$c]:-0}"
+  done)
 The last two are counted apart on purpose: «nobody said anything» is not «somebody said no».
 This gate does NOT require an acceptance to exist — that threshold belongs to the management
 system, not to this repository — and it says NOTHING about whether the check the accepter made was

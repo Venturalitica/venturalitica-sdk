@@ -141,6 +141,31 @@ else
   printf '%s\n' "$salida" | head -4; mal=$((mal+1))
 fi
 
+# EL DESGLOSE TIENE QUE SUMAR EL TOTAL. Se añadió el desglose porque un número no tiene dónde
+# poner una nota al pie; un desglose que no cuadrara con su total sería una forma NUEVA de mentir,
+# y más creíble que la que vino a corregir, porque parece detalle.
+R="$(raiz cuadra)"
+cat >> "$R/openspec/specs/muestra/spec.md" <<'MD'
+
+### Requirement: The sample also holds pending
+
+The system SHALL eventually hold the sample.
+
+#### Scenario: Not yet
+- **Status:** PENDING
+- **Reason:** it does not exist yet
+- **WHEN** taken
+- **THEN** held
+MD
+salida="$(TRAZA_RAIZ="$R" bash "$GUARDIAN" 2>&1)"
+tot="$(printf '%s' "$salida" | grep -oE 'CURRENT [0-9]+ · UNPROVEN [0-9]+ · PENDING [0-9]+' | grep -oE '[0-9]+' | paste -sd' ')"
+sum="$(printf '%s' "$salida" | awk '/^  [a-z-]+ +[0-9]/ {c+=$2; u+=$4; p+=$6} END {print c, u, p}')"
+if [ "$tot" = "$sum" ]; then
+  echo "  ✓ the breakdown sums to the total it sits under ($tot)"; ok=$((ok+1))
+else
+  echo "  ✗ the breakdown does not sum to its total: total=[$tot] breakdown=[$sum]"; mal=$((mal+1))
+fi
+
 echo
 if [ "$mal" -gt 0 ]; then
   echo "::error title=trazabilidad.test::$mal of $((ok+mal)) contracts unmet"
