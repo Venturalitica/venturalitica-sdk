@@ -7,10 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed (ML-BOM: el artefacto gobernado y el sujeto del documento)
 
 **El ML-BOM inventaría el artefacto gobernado, no solo las librerías.** Medido sobre una
-corrida real de producto sanitario clase IIb bajo MDR: los BOM de dos etapas distintas
-—adoptar un modelo de terceros y validarlo sobre 55 pacientes— tenían 18 componentes,
-todos `type: "library"`, **idénticos byte a byte** (`sha256 dbc77ee3…`), y el fichero de
-pesos gobernado no aparecía en ninguno.
+corrida real: los BOM de dos etapas distintas —adoptar un modelo de terceros y validarlo—
+tenían 18 componentes, todos `type: "library"`, **idénticos byte a byte**
+(`sha256 dbc77ee3…`), y el fichero de pesos gobernado no aparecía en ninguno.
 
 No era un fallo sino un alcance: el escáner resuelve nombres de paquete vía
 `importlib.metadata`, y un `.pth` no es una distribución de Python. El camino de modelos
@@ -55,7 +54,7 @@ producto entre los componentes del entorno (`requests` pasaba a leerse 2.34.2, l
 en vez de 2.31.0, lo declarado). Si la herramienta no está, se degrada al escaneo propio.
 
 `cyclonedx-py poetry` **no** sustituye a `_scan_pyproject`: exige un `poetry.lock` y el caso
-de un `pyproject.toml` de Poetry sin lock —el del piloto sanitario— dejaría de verse.
+de un `pyproject.toml` de Poetry sin lock dejaría de verse.
 
 ### Fixed (tests que fijaban el interior de una dependencia)
 
