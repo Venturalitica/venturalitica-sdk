@@ -8,7 +8,7 @@ CSV persisted), a **percentile bootstrap** confidence interval for the *same*
 ``calc_*`` metric callable, so under-powered controls and under-populated
 subgroups become visible.
 
-Design contract (see ``2026-05-22-seigarrena-power-stats-design.md`` §3.1, §4):
+Design contract, stated in full below rather than by reference:
 
 - ``B = 1000`` resamples with replacement; the SAME ``calc_*`` is recomputed on
   each resample; ``ci_level = 0.95`` → percentile CI ``(ci_low, ci_high)``.

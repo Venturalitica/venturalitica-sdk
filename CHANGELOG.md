@@ -133,7 +133,7 @@ peor, segun el `enforcement`, pasa desapercibido.
 Con 0.8.0 > 0.7.0, `latest` vuelve a ser la build mas reciente en los dos indices.
 
 > Publicar en TestPyPI exige que esto llegue a `staging`: `main` publica solo en PyPI
-> real. Ver Venturalitica/seigarrena#956.
+> real.
 
 Incluye todo lo de 0.6.13, que se publico en PyPI real pero nunca en TestPyPI.
 
