@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/arsgBsK6XF)
 
-> 📄 **Companion to the arXiv preprint** *[Making AI Compliance Evidence Machine-Readable](https://arxiv.org/abs/2604.13767)* (Cilla Ugarte et al., 2026). See [`CITATION.cff`](./CITATION.cff) and the [normative OSCAL contract](./docs/contracts/oscal-assessment-plan-v1.md).
+> 📄 **Companion to the arXiv preprint** *[Making AI Compliance Evidence Machine-Readable](https://arxiv.org/abs/2604.13767)* (Cilla Ugarte et al., 2026). See [`CITATION.cff`](./CITATION.cff) and the [normative OSCAL contract](./docs/contracts/oscal-contract-v1.md).
 
 **Compliance by Design — AI Assurance through Compliance-as-Code.**
 
@@ -253,7 +253,7 @@ The SDK will always remain **free and open-source** under Apache 2.0. The cloud 
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
+We welcome contributions. How work is done in this repository — the method, the anatomy of a change, and the rules a change is held to — is written in [`CLAUDE.md`](./CLAUDE.md), versioned alongside the code it governs.
 
 ## 📄 License
 
